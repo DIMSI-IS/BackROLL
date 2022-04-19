@@ -1,5 +1,6 @@
-# ![BackROLL Logo](https://www.svgrepo.com/show/273645/storing-backup.svg =32x32) BackROLL
-|Version  | 1.1.0 |
+![alt text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+# BackROLL
+|Version  | 0.1.0 |
 |--|--|
 | Website | https://backroll.readthedocs.io |
 
