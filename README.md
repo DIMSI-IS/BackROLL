@@ -1,11 +1,10 @@
 [![Documentation Status](https://readthedocs.org/projects/backroll/badge/?version=latest)](https://backroll.readthedocs.io/en/latest/?badge=latest)
 
 ## <img src="https://www.svgrepo.com/show/273645/storing-backup.svg" width="32px"> BackROLL
-|Version  | 0.1.0 |
-|--|--|
-| Website | https://backroll.readthedocs.io |
 
-
+Latest version  | 0.1.0
+------------- | -------------
+Documentation  | https://backroll.readthedocs.io
 
 ## What's BackROLL ?
 
@@ -49,11 +48,11 @@ You should have received a copy of the GNU General Public License along with thi
 ## Credits
 BackROLL is based on several open-source projects (without any modification), including
 
--[BorgBackup](https://borgbackup.readthedocs.io/en/stable/index.html)
--[Celery](https://docs.celeryq.dev/en/stable/index.html)
--[FastAPI](https://fastapi.tiangolo.com)
--[Flower](https://flower.readthedocs.io/en/latest/)
--[RedBeat](https://github.com/sibson/redbeat)
--[REDIS](https://redis.io/)
+* [BorgBackup](https://borgbackup.readthedocs.io/en/stable/index.html)
+* [Celery](https://docs.celeryq.dev/en/stable/index.html)
+* [FastAPI](https://fastapi.tiangolo.com)
+* [Flower](https://flower.readthedocs.io/en/latest/)
+* [RedBeat](https://github.com/sibson/redbeat)
+* [REDIS](https://redis.io/)
 
 Everything else is provided with ❤ by [DIMSI](https://www.dimsi.fr)
