@@ -1,4 +1,4 @@
-![alt text](https://www.svgrepo.com/show/273645/storing-backup.svg =32x32?raw=true)
+![alt text](https://www.svgrepo.com/show/273645/storing-backup.svg)
 # BackROLL
 |Version  | 0.1.0 |
 |--|--|
