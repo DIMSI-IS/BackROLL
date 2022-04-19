@@ -1,5 +1,4 @@
-<img src="https://www.svgrepo.com/show/273645/storing-backup.svg" width="128px">
-# BackROLL
+## <img src="https://www.svgrepo.com/show/273645/storing-backup.svg" width="32px"> BackROLL
 |Version  | 0.1.0 |
 |--|--|
 | Website | https://backroll.readthedocs.io |
