@@ -1,4 +1,4 @@
-# ![BackROLL](https://www.svgrepo.com/show/273645/storing-backup.svg =32x32)        BackROLL
+# ![BackROLL Logo](https://www.svgrepo.com/show/273645/storing-backup.svg =32x32) BackROLL
 |Version  | 1.1.0 |
 |--|--|
 | Website | https://backroll.readthedocs.io |
