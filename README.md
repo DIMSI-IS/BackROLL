@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/backroll/badge/?version=latest)](https://backroll.readthedocs.io/en/latest/?badge=latest)
+
 ## <img src="https://www.svgrepo.com/show/273645/storing-backup.svg" width="32px"> BackROLL
 |Version  | 0.1.0 |
 |--|--|
