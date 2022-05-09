@@ -44,7 +44,7 @@ https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-Please see the [LICENCE](https://github.com/apache/cloudstack/blob/main/LICENSE) file included in the root directory of the source tree for extended license details.
+Please see the [LICENCE](https://github.com/DIMSI-IS/BackROLL/blob/main/LICENCE) file included in the root directory of the source tree for extended license details.
 
 ## Credits
 BackROLL is based on several open-source projects (without any modification), including
