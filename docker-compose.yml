@@ -4,7 +4,7 @@ services:
   redis:
     restart: always
     image: redis
-	container_name: redis
+    container_name: redis
     command: "redis-server"
     networks:
       - backupmaker-network
