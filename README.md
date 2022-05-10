@@ -22,7 +22,7 @@ It's also
 [![Watch the video](http://i3.ytimg.com/vi/Jg40h1YjALk/hqdefault.jpg)](https://www.youtube.com/watch?v=Jg40h1YjALk)
   
 ## What do I need?
-BackROLL 1.1.0 requires at least
+BackROLL 0.1.0 requires at least
 - A MySQL/MariaDB database
 - A server which can run Docker
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
