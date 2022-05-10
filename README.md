@@ -18,6 +18,10 @@ It's also
 - No agent on guests nor KVM hosts
 - Fully containerized with minimum maintenance needed
 
+## Our demo made during the CloudSTack European User Summit (APRIL) 2022
+
+[![Watch the video](http://i3.ytimg.com/vi/Jg40h1YjALk/hqdefault.jpg)](https://www.youtube.com/watch?v=Jg40h1YjALk)
+
 ## What do I need?
 BackROLL 1.1.0 requires at least
 - A MySQL/MariaDB database
