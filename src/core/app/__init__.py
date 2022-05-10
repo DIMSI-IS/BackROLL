@@ -1,0 +1,99 @@
+## Licensed to the Apache Software Foundation (ASF) under one
+## or more contributor license agreements.  See the NOTICE file
+## distributed with this work for additional information
+## regarding copyright ownership.  The ASF licenses this file
+## to you under the Apache License, Version 2.0 (the
+## "License"); you may not use this file except in compliance
+## with the License.  You may obtain a copy of the License at
+##
+##   http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing,
+## software distributed under the License is distributed on an
+## "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+## KIND, either express or implied.  See the License for the
+## specific language governing permissions and limitations
+## under the License.
+
+#! /usr/bin/env python
+
+from fastapi import FastAPI, Form, Request
+from pydantic import BaseSettings
+from fastapi.middleware.cors import CORSMiddleware
+
+from celery import Celery
+from kombu import Queue
+
+class Settings(BaseSettings):
+    app_name: str = 'BackupAPI'
+    broker_url: str = 'redis://redis:6379/0'
+    beat_scheduler: str = 'redbeat.RedBeatScheduler'
+    beat_max_loop_interval: int = 5
+    worker_max_tasks_per_child: int = 200
+    worker_max_memory_per_child: int = 16384
+    result_expires: int = 604800
+    broker_transport_options: object = {'visibility_timeout': 43200}
+    result_backend: str = 'redis://redis:6379/0'
+    enable_utc: bool = False
+    timezone: str = 'Europe/Paris'
+    task_default_queue: str = 'default'
+    task_queues: tuple = (
+      Queue('default',    routing_key='task.#'),
+      Queue('backup_tasks', routing_key='backup.#'),
+      Queue('setup_tasks', routing_key='setup.#')
+      )
+    task_default_exchange: str = 'tasks'
+    task_default_exchange_type: str = 'topic'
+    task_default_routing_key: str = 'task.default'
+
+settings = Settings()
+app = FastAPI()
+
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["Authorization"],
+)
+
+# Initialize Celery
+celery = Celery('BackupAPI', broker='redis://redis:6379/0')
+
+celery.conf.ONCE = {
+  'backend': 'celery_once.backends.Redis',
+  'settings': {
+    'url': 'redis://redis:6379/0',
+    'default_timeout': 60 * 60 * 12
+  }
+}
+celery.conf.update(settings)
+
+celery.conf.update(
+  result_expires=604800
+)
+
+
+from app.scheduler import retrieve_tasks
+
+from app import task_handler
+
+from app.borg import borg_misc
+
+from app.backup_tasks import single_backup
+from app.backup_tasks import pool_backup
+from app import restore
+
+from app import auth
+from app.routes import job
+from app.routes import task
+from app.routes import virtual_machine
+from app.routes import pool
+from app.routes import host
+from app.routes import backup_policy
+
+from app import main

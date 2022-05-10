@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+.vscode/
+logs/
+.fake
+.ionide
+
+ssh/
+
+backroll-config.yml
+celerybeat-schedule

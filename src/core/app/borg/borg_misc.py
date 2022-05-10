@@ -1,0 +1,53 @@
+## Licensed to the Apache Software Foundation (ASF) under one
+## or more contributor license agreements.  See the NOTICE file
+## distributed with this work for additional information
+## regarding copyright ownership.  The ASF licenses this file
+## to you under the Apache License, Version 2.0 (the
+## "License"); you may not use this file except in compliance
+## with the License.  You may obtain a copy of the License at
+##
+##   http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing,
+## software distributed under the License is distributed on an
+## "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+## KIND, either express or implied.  See the License for the
+## specific language governing permissions and limitations
+## under the License.
+
+import os.path
+from os import path
+
+import time
+import subprocess
+from app import database
+
+from app import app
+from app import celery as celeryWorker
+from app import celery
+
+def borglock(payload):
+    borgbreaklock.delay(payload)
+
+@celery.task(name='Break BORG repository lock')
+def borgbreaklock(virtual_machine_list, virtual_machine_id):
+  virtual_machine = {}
+  for x in virtual_machine_list:
+    if x['uuid'] and x['uuid'] == virtual_machine_id:
+      virtual_machine = x
+  if not virtual_machine:
+    raise ValueError(f'virtual machine with id {virtual_machine_id} not found')
+
+  try:
+    if 'cloudstack' in virtual_machine['host_tag'].lower():
+      repository = os.getenv("CS_BACKUP_PATH")
+    else:
+      repository = os.getenv("MGMT_BACKUP_PATH")
+
+    if not path.isdir(f'{repository}/{virtual_machine["name"]}'):
+      raise ValueError(f'Borg repository not found for virtual machine with {virtual_machine_id}')
+
+    command = f'borg break-lock {repository}/{virtual_machine["name"]}'
+    subprocess.run(command.split(), check=True)
+  except Exception as e:
+    raise ValueError(e)

@@ -1,0 +1,116 @@
+version: "2.3"
+
+services:
+  redis:
+    restart: always
+    image: redis
+	container_name: redis
+    command: "redis-server"
+    networks:
+      - backupmaker-network
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+
+  backroll_api:
+    restart: always
+    image: dimsicloud/backroll:latest
+    container_name: core
+    command: "python3 run.py"
+    volumes:
+      - ./ssh:/root/.ssh:ro
+    networks:
+      - backupmaker-network
+    expose:
+      - "5050"
+    ports:
+      - "5050:5050"
+    depends_on:
+      - "redis"
+    env_file:
+      - ./common/config/core/env
+
+
+  worker_primary:
+    restart: always
+    image: dimsicloud/backroll:latest
+    container_name: worker1
+    command: "celery -A app.celery worker -n worker -Q default --concurrency=4"
+    environment:
+      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+    volumes:
+      - ./ssh:/root/.ssh:ro
+      - /mnt:/mnt
+    networks:
+      - backupmaker-network
+    depends_on:
+      - "backroll_api"
+    env_file:
+      - ./common/config/core/env
+
+
+  worker_secondary:
+    restart: always
+    image: dimsicloud/backroll:latest
+    container_name: worker2
+    environment:
+      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+    mem_limit: 8g
+    command: "celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=5"
+    volumes:
+      - ./ssh:/root/.ssh:ro
+      - /mnt:/mnt
+    networks:
+      - backupmaker-network
+    depends_on:
+      - "backroll_api"
+      - "worker_primary"
+    env_file:
+      - ./common/config/core/env
+
+
+  flower:
+    restart: always
+    image: dimsicloud/backroll:latest
+    container_name: celery-monitoring-ui
+    command: "celery -A app.celery flower --conf=flowerconfig.py"
+    networks:
+      - backupmaker-network
+    expose:
+      - "5555"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - "backroll_api"
+      - "worker_primary"
+    env_file:
+      - ./common/config/core/env
+
+
+  beat:
+    restart: always
+    image: dimsicloud/backroll:latest
+    container_name: scheduler
+    command: "celery -A app.celery beat -S redbeat.RedBeatScheduler"
+    networks:
+      - backupmaker-network
+    depends_on:
+      - "backroll_api"
+      - "worker_secondary"
+    env_file:
+      - ./common/config/registryctl/env
+
+  front:
+    restart: always
+    image: dimsicloud/backroll-ui:latest:latest
+    container_name: ui
+    ports:
+      - "8080:80"
+    networks:
+      - backupmaker-network
+    depends_on:
+      - "backroll_api"
+    env_file:
+      - ./common/config/ui/env
+

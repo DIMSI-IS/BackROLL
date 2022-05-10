@@ -1,0 +1,74 @@
+* {
+  font-family: 'Work Sans', sans-serif;
+}
+
+.adaptive-font {
+  font-size: min(2.6vw, 18px);
+}
+
+@media only screen and (min-width: 768px) {
+  .nav-content {
+    padding: 0 13% 0 13%;
+    background-color: #06102A;
+  }
+  .bc-content {
+    padding: 1% 14% 0 14%;
+    background-color: white;
+  }
+  .form-content {
+    padding: 2% 25% 0 25%;
+  }
+  .main-content {
+    padding: 0 14% 0 14%;
+    color: #090739;
+  }
+}
+
+@media only screen and (max-width: 765px) {
+  .nav-content {
+    padding: 0 0 0;
+    background-color: #06102A;
+  }
+  .bc-content {
+    padding: 2% 2% 0 2%;
+    background-color: white;
+  }
+  .form-content {
+    padding: 1% 2% 0 2%;
+  }  
+  .main-content {
+    padding: 1% 2% 0 2%;
+    color: #090739;
+  }
+}
+
+.nav-style {
+  border: none;
+  background-color: #06102A;
+}
+
+.nav-link {
+  color: white !important;
+  }
+
+.navbar-toggler-icon {
+  color: white !important;
+}
+
+.card .card-block {
+  padding: 15px;
+}
+
+.f-left {
+  float: left;
+}
+
+.f-right {
+  float: right;
+}
+
+.tab-title {
+  background: transparent;
+  color: black !important;
+  font-weight: bold;
+}
