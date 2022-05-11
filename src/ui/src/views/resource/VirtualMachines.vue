@@ -45,6 +45,12 @@
               <template #cell(host)="row">
                 {{ getHypervisor(row.item.host)[0].hostname }}
               </template>
+              <template #cell(cpus)="row">
+                {{ row.item.cpus }} Core{{ row.item.cpus > 1 ? 's' : '' }}
+              </template>
+              <template #cell(mem)="row">
+                {{ row.item.mem / 1024 }} MB
+              </template>
               <template #cell(host_tag)="row">
                 <div v-if="row.item.host_tag">
                   <h5><b-badge :variant="row.item.host_tag === 'management' ? 'warning' : 'light'">{{ row.item.host_tag }}</b-badge></h5>
@@ -101,6 +107,8 @@ export default {
           fields: [
             // {key: 'id', label:'ID'},
             {key: 'name', label:'Name'},
+            {key: 'cpus', label:'VCPU'},
+            {key: 'mem', label:'Memory'},
             {key: 'host', label:'Hypervisor', sortable: true},
             {key: 'host_tag', label:'Tags', sortable: true},
             {key: 'state', label:'State'},
@@ -128,6 +136,8 @@ export default {
       return this.filteredData.map(x => ({
         id: x.id,
         name: x.name,
+        cpus: x.cpus,
+        mem: x.mem,
         host: x.host,
         host_tag: x.host_tag,
         state: x.state
