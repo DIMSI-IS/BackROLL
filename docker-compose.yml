@@ -99,7 +99,7 @@ services:
       - "backroll_api"
       - "worker_secondary"
     env_file:
-      - ./common/config/registryctl/env
+      - ./common/config/core/env
 
   front:
     restart: always
