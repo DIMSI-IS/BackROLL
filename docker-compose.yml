@@ -19,7 +19,7 @@ services:
     container_name: core
     command: "python3 run.py"
     volumes:
-      - ./ssh:/root/.ssh:ro
+      - ./common/secret:/root/.ssh:ro
     networks:
       - backroll-network
     expose:
@@ -40,7 +40,7 @@ services:
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
     volumes:
-      - ./ssh:/root/.ssh:ro
+      - ./common/secret:/root/.ssh:ro
       - /mnt:/mnt
     networks:
       - backroll-network
@@ -59,7 +59,7 @@ services:
     mem_limit: 8g
     command: "celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=5"
     volumes:
-      - ./ssh:/root/.ssh:ro
+      - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
     networks:
       - backroll-network
