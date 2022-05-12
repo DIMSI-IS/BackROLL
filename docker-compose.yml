@@ -103,7 +103,7 @@ services:
 
   front:
     restart: always
-    image: dimsicloud/backroll-ui:latest:latest
+    image: dimsicloud/backroll-ui:latest
     container_name: ui
     ports:
       - "8080:80"
