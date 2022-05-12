@@ -7,7 +7,7 @@ services:
     container_name: redis
     command: "redis-server"
     networks:
-      - backupmaker-network
+      - backroll-network
     expose:
       - "6379"
     ports:
@@ -21,7 +21,7 @@ services:
     volumes:
       - ./ssh:/root/.ssh:ro
     networks:
-      - backupmaker-network
+      - backroll-network
     expose:
       - "5050"
     ports:
@@ -43,7 +43,7 @@ services:
       - ./ssh:/root/.ssh:ro
       - /mnt:/mnt
     networks:
-      - backupmaker-network
+      - backroll-network
     depends_on:
       - "backroll_api"
     env_file:
@@ -62,7 +62,7 @@ services:
       - ./ssh:/root/.ssh:ro
       - /mnt:/mnt
     networks:
-      - backupmaker-network
+      - backroll-network
     depends_on:
       - "backroll_api"
       - "worker_primary"
@@ -76,7 +76,7 @@ services:
     container_name: celery-monitoring-ui
     command: "celery -A app.celery flower --conf=flowerconfig.py"
     networks:
-      - backupmaker-network
+      - backroll-network
     expose:
       - "5555"
     ports:
@@ -94,7 +94,7 @@ services:
     container_name: scheduler
     command: "celery -A app.celery beat -S redbeat.RedBeatScheduler"
     networks:
-      - backupmaker-network
+      - backroll-network
     depends_on:
       - "backroll_api"
       - "worker_secondary"
@@ -108,9 +108,11 @@ services:
     ports:
       - "8080:80"
     networks:
-      - backupmaker-network
+      - backroll-network
     depends_on:
       - "backroll_api"
     env_file:
       - ./common/config/ui/env
 
+networks:
+  backroll-network:
