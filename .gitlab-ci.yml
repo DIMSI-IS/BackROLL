@@ -61,7 +61,7 @@ docker-push-back:
     - echo 'Connecting to docker registry as' "$HARBOR_REGISTRY_USER"
     - echo "$HARBOR_REGISTRY_PASSWORD" | docker login -u "$HARBOR_REGISTRY_USER" "$HARBOR_REGISTRY_URL" --password-stdin
   script:
-    - cd ./src/ui
+    - cd ./src/core
     - docker build -t harbor.dimsi.io/backup-maker/backend:latest .
     - docker push harbor.dimsi.io/backup-maker/backend:latest
   only:
