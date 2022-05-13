@@ -14,7 +14,7 @@
    under the License.
 
 Deployment architecture
-------------
+-----------------------
 
 .. figure:: https://i.ibb.co/nfCtLnX/archi.png
    :alt: Architecture
@@ -35,8 +35,11 @@ The application can be split with the following blocks:
 
 You can either choose to use the UI or/and the RESTful API.
 
+Database and storage
+--------------------
+
 Information related to architecture
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A separated database is needed to store some information, like your
 logical pools, your backup policies and hosts list. **No password is
@@ -49,7 +52,7 @@ advise you to use a reverse-proxy (Nginx, Apache2, Haproxy, etc.) to
 manage HTTPS.
 
 Interfacing with KVM hosts and backup storage
----------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: https://i.ibb.co/2KhvTkQ/archi.png
    :alt: enter image description here
