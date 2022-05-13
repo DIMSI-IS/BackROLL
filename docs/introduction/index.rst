@@ -13,7 +13,7 @@
    specific language governing permissions and limitations
    under the License.
 
-BackROLL Concept and Architecture
+Concept and Architecture
 ===================================
 
 Understand the concept and architecture of BackROLL

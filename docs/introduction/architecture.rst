@@ -17,7 +17,7 @@ Deployment architecture
 -----------------------
 
 .. figure:: https://i.ibb.co/nfCtLnX/archi.png
-   :alt: Architecture
+   :alt: Architecture schema
 
 BackROLL deployment is fully integrated with docker-compose, greatly
 reducing maintenance and installation/update procedures.
@@ -55,9 +55,7 @@ Interfacing with KVM hosts and backup storage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: https://i.ibb.co/2KhvTkQ/archi.png
-   :alt: enter image description here
-
-   enter image description here
+   :alt: interfacing with KVM hosts schema
 
 Backup storage must be directly accessible from a directory on the
 server.
