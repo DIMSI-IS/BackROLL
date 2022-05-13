@@ -4,25 +4,19 @@ Welcome to BackROLL’s documentation
 Table of contents:
 ~~~~~~~~~~~~~~~~~~
 
--  `What is BackROLL ? <introduction/introduction.md>`__
--  `What can BackROLL do
-   ? <introduction/introduction.md#what-can-backroll-do>`__
--  `Architecture
-   review <introduction/introduction.md#architecture-review>`__
--  `Installation guide <installation.md>`__
+-  :doc:`What is BackROLL ?  <./introduction/introduction>`
+-  :doc:`What can BackROLL do ? <./introduction/introduction#what-can-backroll-do>`
+-  :doc:`Architecture review <introduction/introduction#architecture-review>`
+-  :doc:`Installation guide <installation>`
 
-   -  `Host server
-      configuration <installation.md#host-server-configuration>`__
-   -  `Database preparation <installation.md#database-preparation>`__
-   -  `Backup storage setup <installation.md#backup-storage-setup>`__
-   -  `Configuring the OpenID
-      connector <installation.md#configuring-the-openid-connector>`__
-   -  `Running the installer <installation.md#running-the-installer>`__
+   -  :doc:`Host server configuration <installation#host-server-configuration>`
+   -  :doc:`Database preparation <installation#database-preparation>`
+   -  :doc:`Backup storage setup <installation#backup-storage-setup>`
+   -  :doc:`Configuring the OpenID connector <installation#configuring-the-openid-connector>`
+   -  :doc:`Running the installer <installation#running-the-installer>`
 
--  `Get started <getstarted.md#>`__
+-  :doc:`Get started <getstarted#>`
 
-   -  `Create your first backup
-      policy <getstarted.md#create-your-first-backup-policy>`__
-   -  `Create your first logical
-      pool <getstarted.md#create-your-first-logical-pool>`__
-   -  `Add your first host <getstarted.md#add-your-first-host>`__
+   -  :doc:`Create your first backup policy <getstarted#create-your-first-backup-policy>`
+   -  :doc:`Create your first logical pool <getstarted#create-your-first-logical-pool>`
+   -  :doc:`Add your first host <getstarted#add-your-first-host>`
