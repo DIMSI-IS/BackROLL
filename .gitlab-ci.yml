@@ -1,0 +1,68 @@
+stages:
+  - sonarqube
+  - compile
+  - build
+  - deploy
+
+sonarqube-check:
+  stage: sonarqube
+  tags: ['docker']
+  image: 
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script: 
+    - sonar-scanner
+  allow_failure: true
+  only:
+    - dev # or the name of your main branch
+
+npm-build: 
+  stage: compile
+  image: node:16.0.0
+  tags: ['docker']
+  script:
+      - cd ./src/ui
+      - npm install --silent --save-dev
+      - npm run build
+  artifacts:
+      paths:
+        - ./src/ui/dist/
+
+docker-push-front:
+  stage: build
+  tags: ['shell']
+  dependencies:
+    - npm-build
+  before_script:
+    - echo 'Selected docker registry:' "$HARBOR_REGISTRY_URL"
+    - echo 'Connecting to docker registry as' "$HARBOR_REGISTRY_USER"
+    - echo "$HARBOR_REGISTRY_PASSWORD" | docker login -u "$HARBOR_REGISTRY_USER" "$HARBOR_REGISTRY_URL" --password-stdin
+  script:
+    - cd ./src/ui
+    - docker build -t harbor.dimsi.io/backup-maker/front:latest .
+    - docker push harbor.dimsi.io/backup-maker/front:latest
+  only:
+    - latest
+
+docker-push-back:
+  stage: build
+  tags: ['shell']
+  dependencies:
+    - npm-build
+  before_script:
+    - echo 'Selected docker registry:' "$HARBOR_REGISTRY_URL"
+    - echo 'Connecting to docker registry as' "$HARBOR_REGISTRY_USER"
+    - echo "$HARBOR_REGISTRY_PASSWORD" | docker login -u "$HARBOR_REGISTRY_USER" "$HARBOR_REGISTRY_URL" --password-stdin
+  script:
+    - cd ./src/core
+    - docker build -t harbor.dimsi.io/backup-maker/backend:latest .
+    - docker push harbor.dimsi.io/backup-maker/backend:latest
+  only:
+    - latest
