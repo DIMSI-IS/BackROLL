@@ -17,10 +17,6 @@ BackROLL Installation guide
 ===================================
 
 .. toctree::
-
-Installation guide
-------------------------
-.. toctree::
    :maxdepth: 2
 
    server_configuration

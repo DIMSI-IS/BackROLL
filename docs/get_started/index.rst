@@ -17,24 +17,8 @@ Get started
 ===========
 
 .. toctree::
-
-Create your first backup policy
-------------------------
-.. toctree::
    :maxdepth: 2
 
    first_policy
-
-Create your first logical pool
-----------------------------------
-.. toctree::
-   :maxdepth: 2
-
    first_pool
-
-Add your first host
-----------------------------------
-.. toctree::
-   :maxdepth: 2
-
    first_host

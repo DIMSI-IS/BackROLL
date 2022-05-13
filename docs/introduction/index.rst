@@ -19,17 +19,7 @@ BackROLL Concept and Architecture
 Understand the concept and architecture of BackROLL
 
 .. toctree::
-
-Concept
-------------------------
-.. toctree::
    :maxdepth: 2
 
    concept
-
-Deployment architecture
-----------------------------------
-.. toctree::
-   :maxdepth: 2
-
    architecture
