@@ -13,13 +13,26 @@
    specific language governing permissions and limitations
    under the License.
 
-Welcome to BackROLL’s documentation
-===================================
+.. _installation-guide:
+Installation guide
+==================
 
-.. toctree::
-   :maxdepth: 3
-   :caption: Table of contents:
+.. _host-server-configuration:
+Host server configuration
+-------------------------
 
-   introduction/index
-   installation/index
-   get_started/index
+.. _database-preparation:
+Database preparation
+--------------------
+
+.. _backup-storage-setup:
+Backup storage setup
+--------------------
+
+.. _configuring-openid-connector:
+Configuring OpenID connector
+--------------------------------
+
+.. _running-installer-script:
+Running installer script
+---------------------

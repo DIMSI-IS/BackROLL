@@ -13,13 +13,5 @@
    specific language governing permissions and limitations
    under the License.
 
-Welcome to BackROLL’s documentation
-===================================
-
-.. toctree::
-   :maxdepth: 3
-   :caption: Table of contents:
-
-   introduction/index
-   installation/index
-   get_started/index
+Backup storage setup
+====================

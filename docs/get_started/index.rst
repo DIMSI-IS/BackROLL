@@ -13,13 +13,28 @@
    specific language governing permissions and limitations
    under the License.
 
-Welcome to BackROLL’s documentation
-===================================
+Get started
+===========
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Table of contents:
 
-   introduction/index
-   installation/index
-   get_started/index
+Create your first backup policy
+------------------------
+.. toctree::
+   :maxdepth: 2
+
+   first_policy
+
+Create your first logical pool
+----------------------------------
+.. toctree::
+   :maxdepth: 2
+
+   first_pool
+
+Add your first host
+----------------------------------
+.. toctree::
+   :maxdepth: 2
+
+   first_host

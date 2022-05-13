@@ -13,13 +13,21 @@
    specific language governing permissions and limitations
    under the License.
 
-Welcome to BackROLL’s documentation
+BackROLL Concept and Architecture
 ===================================
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Table of contents:
 
-   introduction/index
-   installation/index
-   get_started/index
+Concept
+------------------------
+.. toctree::
+   :maxdepth: 2
+
+   concept
+
+Deployment architecture
+----------------------------------
+.. toctree::
+   :maxdepth: 2
+
+   architecture
