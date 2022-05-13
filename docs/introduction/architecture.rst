@@ -1,10 +1,23 @@
-Architecture review
--------------------
+.. Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information#
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+   http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+
+Deployment architecture
+------------
 
 .. figure:: https://i.ibb.co/nfCtLnX/archi.png
    :alt: Architecture
-
-   Architecture
 
 BackROLL deployment is fully integrated with docker-compose, greatly
 reducing maintenance and installation/update procedures.
@@ -22,23 +35,8 @@ The application can be split with the following blocks:
 
 You can either choose to use the UI or/and the RESTful API.
 
-.. Licensed to the Apache Software Foundation (ASF) under one
-   or more contributor license agreements.  See the NOTICE file
-   distributed with this work for additional information#
-   regarding copyright ownership.  The ASF licenses this file
-   to you under the Apache License, Version 2.0 (the
-   "License"); you may not use this file except in compliance
-   with the License.  You may obtain a copy of the License at
-   http://www.apache.org/licenses/LICENSE-2.0
-   Unless required by applicable law or agreed to in writing,
-   software distributed under the License is distributed on an
-   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-   KIND, either express or implied.  See the License for the
-   specific language governing permissions and limitations
-   under the License.
-
 Information related to architecture
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------
 
 A separated database is needed to store some information, like your
 logical pools, your backup policies and hosts list. **No password is
@@ -51,7 +49,7 @@ advise you to use a reverse-proxy (Nginx, Apache2, Haproxy, etc.) to
 manage HTTPS.
 
 Interfacing with KVM hosts and backup storage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 
 .. figure:: https://i.ibb.co/2KhvTkQ/archi.png
    :alt: enter image description here

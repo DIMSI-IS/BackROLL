@@ -13,9 +13,6 @@
    specific language governing permissions and limitations
    under the License.
 
-Concept
-============
-
 What is BackROLL ?
 ------------------
 
