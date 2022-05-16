@@ -14,13 +14,9 @@
    under the License.
 
 Installation guide
-===================================
+==================
 
 .. toctree::
    :maxdepth: 2
 
-   server_configuration
-   database_preparation
-   storage_setup
-   openid_connector
-   running_installer
+   installation
