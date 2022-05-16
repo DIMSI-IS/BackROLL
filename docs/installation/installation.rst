@@ -52,8 +52,9 @@ The easiest choice is an NFS share mounted directly on the host server.
 
 https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04-fr
 
-**Note: As of version 0.1.0, two shares have to be set up in BackROLL.
-These two shares must be in the /mnt/ directory**
+.. note::
+  As of version 0.1.0, two shares have to be set up in BackROLL.
+  These two shares must be in the /mnt/ directory**
 
 Example:
 
@@ -111,7 +112,35 @@ Editez les fichiers suivants avec les valeurs récupérées jusqu'ici
 * ./common/config/core/env
 * ./common/config/ui/env
 
-.. image:: https://i.ibb.co/m8npyF8/core-env.png
+::
+
+  ### DATABASE CONFIGURATION [MANDATORY] ###
+  DB_IP=
+  DB_PORT=
+  DB_USER_NAME=
+  DB_USER_PASSWORD=
+  DB_BASE=
+
+  ### FLOWER AUTH CONFIGURATION [OPTIONAL] ###
+  FLOWER_USER=
+  FLOWER_PASSWORD=
+
+  ### CLOUDSTACK CONFIGURATION [OPTIONAL] ###
+  CS_ENDPOINT=
+  CS_USER_NAME=
+  CS_USER_PASSWORD=
+
+  ### BACKUP NFS SHARE MOUNT REPOSITORY [MANDATORY] ###
+  CS_BACKUP_PATH=
+  MGMT_BACKUP_PATH=
+
+  ### SLACK TOKEN [OPTIONAL] ###
+  #SLACK_TOKEN=
+
+  ### OPENID [MANDATORY] ###
+  OPENID_ISSUER=
+  OPENID_CLIENTID=
+  OPENID_CLIENTSECRET=
 
 * The database-related parameters correspond to the connection information.
 
