@@ -99,7 +99,9 @@ Running the installer
 The installation of BackROLL is straight forward.
 You just need to download the archive corresponding to the version you want to install.
 
-https://github.com/DIMSI-IS/BackROLL/releases/download/v0.1.0/backroll-installer.tar.gz
+::
+
+  wget https://github.com/DIMSI-IS/BackROLL/releases/download/v0.1.0/backroll-installer.tar.gz
 
 Once downloaded, unzip its contents on the server that will host the application.
 
@@ -158,7 +160,9 @@ The same OpenID parameters can be found in the "./common/config/ui/env" file.
 Once the information is filled in.
 Run the installation script with the following command:
 
-./install.sh
+::
+
+  ./install.sh
 
 And let yourself be guided. The installer will then retrieve the docker images used to install BackROLL.
 
