@@ -20,7 +20,9 @@ Welcome to the installation guide for BackROLL.
 
 As of today, the only **recommended operating system is Ubuntu (18.04 and further)**.
 
-For more experimented users, you can easily adapt this guide for another LINUX operating system as long as your server can run Docker.
+.. note::
+
+  For more experimented users, you can easily adapt this guide for another LINUX operating system as long as your server can run Docker.
 
 
 .. toctree::

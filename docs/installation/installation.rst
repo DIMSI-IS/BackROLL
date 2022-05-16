@@ -50,9 +50,12 @@ Backup storage configuration
 Regardless of the choice of technology, the backup storage must be accessible from the server filesystem.
 The easiest choice is an NFS share mounted directly on the host server.
 
-https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04-fr
+::
+
+  https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04-fr
 
 .. note::
+
   As of version 0.1.0, two shares have to be set up in BackROLL.
   These two shares must be in the /mnt/ directory**
 
@@ -160,7 +163,7 @@ The same OpenID parameters can be found in the "./common/config/ui/env" file.
 Once the information is filled in.
 Run the installation script with the following command:
 
-::
+.. code-block:: bash
 
   ./install.sh
 
