@@ -34,7 +34,7 @@ Database will be used to store some information, like hypervisors list, backup p
 **No password is stored in the database**
 
 You will need a Mysql/MariaDB database. This database can be hosted as another Docker image
-(eg. https://mariadb.com/kb/en/installing-and-using-mariadb-via-docker/)
+(eg. `Installing and using MariaDB via docker <https://mariadb.com/kb/en/installing-and-using-mariadb-via-docker/>`_)
 
 You can also use your existing server / cluster if you have one.
 
@@ -50,9 +50,7 @@ Backup storage configuration
 Regardless of the choice of technology, the backup storage must be accessible from the server filesystem.
 The easiest choice is an NFS share mounted directly on the host server.
 
-::
-
-  https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04-fr
+`How to set up an NFS mount on Ubuntu 20.04 <https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04-fr>`_
 
 .. note::
 
