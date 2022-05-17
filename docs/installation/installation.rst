@@ -26,6 +26,12 @@ The installer will automatically tell you if the installation conditions are com
 
 All these packages can be easily installed with the APT tool.
 
+Eg.
+
+.. code-block:: bash
+
+  apt install docker docker-compose git
+
 Database preparation
 """"""""""""""""""""
 
@@ -88,11 +94,14 @@ Finally, if you want to use the UI, create a public application (no password) an
 
 This information must be filled in the BackROLL configuration files (core and UI files) 
 
-Finally, it will be necessary to configure the "Valid Redirect URI" and the "Web Origin", these values correspond to the URL at which your BackROLL appliance will be accessible.
+.. warning::
+
+  It will be necessary to configure the "Valid Redirect URI" and the "Web Origin".
+  These values must match the URL at which your BackROLL appliance will be accessible.
 
 .. image:: https://i.ibb.co/tMZLJc0/openid-config.png
 
-If you change the URL, don't forget to change it in your OpenID provider.
+**Remember to set these values every time you change the URL of your BackROLL appliance**
 
 Running the installer
 """""""""""""""""""""
@@ -100,20 +109,26 @@ Running the installer
 The installation of BackROLL is straight forward.
 You just need to download the archive corresponding to the version you want to install.
 
-::
+.. code-block:: bash
 
   wget https://github.com/DIMSI-IS/BackROLL/releases/download/v0.1.0/backroll-installer.tar.gz
 
 Once downloaded, unzip its contents on the server that will host the application.
 
+.. code-block:: bash
+
+  tar -xvf backroll-installer.tar.gz
+
 You should find the following files:
 
 .. image:: https://i.ibb.co/FgH06PC/installer-files.png
 
-Editez les fichiers suivants avec les valeurs récupérées jusqu'ici
+Edit the following files with the values retrieved so far:
 
 * ./common/config/core/env
 * ./common/config/ui/env
+
+The following picture shows the *./common/config/core/env* file
 
 ::
 
@@ -169,11 +184,11 @@ And let yourself be guided. The installer will then retrieve the docker images u
 
 Once the installation is complete, the BackROLL api will be accessible at the following address
 
-http://ip-of-your-server:5050
+http://server-ip:5050
 
 The backroll graphical interface will be accessible via:
 
-http://ip-of-your-server:8080
+http://server-ip:8080
 
 You can then choose to put BackROLL behind a reverse-proxy to access it in HTTPS and via a domain name.
 But don't forget that you will have to change the URLs on your OpenID provider.

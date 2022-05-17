@@ -15,3 +15,5 @@
 
 Create your first logical pool
 ==============================
+
+*Coming soon*

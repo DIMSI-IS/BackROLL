@@ -15,3 +15,5 @@
 
 Add your first host
 ===============================
+
+*Coming soon*
