@@ -56,7 +56,7 @@ Backup storage configuration
 Regardless of the choice of technology, the backup storage must be accessible from the server filesystem.
 The easiest choice is an NFS share mounted directly on the host server.
 
-`How to set up an NFS mount on Ubuntu 20.04 <https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04-fr>`_
+`How to set up an NFS mount on Ubuntu 20.04 <https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-ubuntu-20-04>`_
 
 .. note::
 
@@ -182,13 +182,24 @@ Run the installation script with the following command:
 
 And let yourself be guided. The installer will then retrieve the docker images used to install BackROLL.
 
-Once the installation is complete, the BackROLL api will be accessible at the following address
+Once the installation is complete, try to access BackROLL components:
 
-http://server-ip:5050
++-----------+-----------------------+
+| Component | HTTP Access URL       |
++-----------+-----------------------+
+| API       | http://server-ip:5050 |
++-----------+-----------------------+
+| UI        | http://server-ip:8080 |
++-----------+-----------------------+
 
-The backroll graphical interface will be accessible via:
+Securing endpoints
+^^^^^^^^^^^^^^^^^^
 
-http://server-ip:8080
+As you may have noticed, these endpoints are HTTP only.
 
-You can then choose to put BackROLL behind a reverse-proxy to access it in HTTPS and via a domain name.
-But don't forget that you will have to change the URLs on your OpenID provider.
+You can put BackROLL behind a proxy/reverse-proxy to access it in HTTPS mode with domain resolution.
+This will allows you to do SSL Termination on the reverse-proxy side.
+
+`eg. NGINX SSL Termination <https://docs.nginx.com/nginx/admin-guide/security-controls/terminating-ssl-http/>`_
+
+Don't forget that you will have to change the URLs on your OpenID provider configuration !
