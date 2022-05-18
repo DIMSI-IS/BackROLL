@@ -29,7 +29,9 @@ BackROLL 0.1.0 requires at least
 
 ## Get Started
 
-Coming soon... :smirk:
+Download the [latest installer version](https://github.com/DIMSI-IS/BackROLL/releases/download/v0.1.0/backroll-installer.tar.gz) on your host server then follow [the guide](https://backroll.readthedocs.io/en/latest/installation/installation.html)
+
+Happy backuping ! :floppy_disk: :heart:
 
 ## Documentation
 The [latest documentation](https://backroll.readthedocs.io/) is hosted at Read The Docs, containing user guides, tutorials, and an API reference.
