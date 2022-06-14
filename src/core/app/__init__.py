@@ -95,5 +95,6 @@ from app.routes import virtual_machine
 from app.routes import pool
 from app.routes import host
 from app.routes import backup_policy
+from app.routes import storage
 
 from app import main

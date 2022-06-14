@@ -35,6 +35,8 @@ class Policies(SQLModel, table=True):
   description: str
   schedule: Optional[str] = None
   retention: Optional[str] = None
+  storage: uuid_pkg.UUID = Field(default=None, foreign_key="storage.id")
+  externalhook: uuid_pkg.UUID = Field(default=None, foreign_key="externalhooks.id")
   enabled: Optional[int] = 0
 
 class Pools(SQLModel, table=True):
@@ -57,6 +59,15 @@ class Tasks(SQLModel, table=True):
   name: str
   type: str
 
+class Storage(SQLModel, table=True):
+  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  name: Optional[str] = None
+  path: Optional[str] = None
+
+class ExternalHooks(SQLModel, table=True):
+  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  name: Optional[str] = None
+  url: Optional[str] = None
 
 @app.on_event("startup")
 async def startup_event():

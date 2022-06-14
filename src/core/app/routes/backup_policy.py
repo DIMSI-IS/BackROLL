@@ -17,6 +17,7 @@
 
 #!/usr/bin/env python
 import json
+import uuid as uuid_pkg
 from croniter import croniter
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Depends
@@ -53,6 +54,7 @@ class backup_policy_update(BaseModel):
   description: Optional[str] = None
   schedule: Optional[str] = None
   retention: Optional[dict] = None
+  storage: uuid_pkg.UUID
   enabled: Optional[bool] = None
   class Config:
       schema_extra = {
@@ -117,7 +119,7 @@ def retrieve_backup_policies():
           records.append(policy)
     return jsonable_encoder(records)
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise HTTPException(status_code=500, detail=e)
 
 def api_update_backup_policy(policy_id, name, description, schedule, retention, enabled):
   try:
