@@ -32,11 +32,102 @@ from app import celery
 from app import auth
 from app import database
 from app.database import Storage
+from app.database import Policies
 
-@app.get('/api/v1/storage', status_code=202)
-def list_storage(identity: Json = Depends(auth.valid_token)):
-  task = retrieve_storage.delay()
-  return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+class items_storage(BaseModel):
+  name: str
+  path: str
+  class Config:
+      schema_extra = {
+          "example": {
+              "name": "example_storage",
+              "path": "/path/to/my/storage_backend"
+          }
+      }
+
+def filter_storage_by_id(storage_id):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+  try:
+    with Session(engine) as session:
+      statement = select(Storage).where(Storage.id == storage_id)
+      results = session.exec(statement)
+      storage = results.one()
+      if not storage:
+        reason = f'Storage with id {storage_id} not found'
+        raise HTTPException(status_code=404, detail=reason)
+    return storage
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+
+@celery.task(name='create storage')
+def api_create_storage(name, path):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+  try:
+    new_storage = Storage(name=name, path=path)
+    with Session(engine) as session:
+        session.add(new_storage)
+        session.commit()
+        session.refresh(new_storage)
+    return new_storage
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
+
+@celery.task(name='Update storage')
+def api_update_storage(storage_id, name, path):
+  try:
+    engine = database.init_db_connection()
+  except:
+    raise HTTPException(status_code=500, detail='Unable to connect to database.')
+  with Session(engine) as session:
+    statement = select(Storage).where(Storage.id == storage_id)
+    results = session.exec(statement)
+    data_storage = results.one()
+  if not data_storage:
+    raise HTTPException(status_code=404, detail=f'Storage with id {storage_id} not found')
+  try:
+    if name:
+      data_storage.name = name
+    if path:
+      data_storage.path = path
+    with Session(engine) as session:
+      session.add(data_storage)
+      session.commit()
+      session.refresh(data_storage)
+    return jsonable_encoder(data_storage)
+  except Exception as e:
+    print(e)
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+
+@celery.task(name='Delete storage')
+def api_delete_storage(storage_id):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+  records = []
+  with Session(engine) as session:
+    statement = select(Policies).where(Policies.storage == storage_id)
+    results = session.exec(statement)
+    for policy in results:
+      records.append(policy)
+    print(records)
+    if len(records) > 0:
+      reason = f'One or more policies are linked to this storage'
+      raise HTTPException(status_code=500, detail=reason)
+  try:
+    storage = filter_storage_by_id(storage_id)
+    with Session(engine) as session:
+      session.delete(storage)
+      session.commit()
+    return {'state': 'SUCCESS'}
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=jsonable_encoder(e))  
 
 @celery.task(name='List registered storage')
 def retrieve_storage():
@@ -50,14 +141,43 @@ def retrieve_storage():
       results = session.exec(statement)
       for storage in results:
         records.append(storage)
-  
   result = jsonable_encoder(records)
-
   for item in result:
-    usage_info = shutil.disk_usage(item['path'])
-    d=usage_info._asdict()
-    dct=dict(d)
-    item['info'] = dct
-    print(item)
-
+    try:
+      usage_info = shutil.disk_usage(item['path'])
+      d=usage_info._asdict()
+      dct=dict(d)
+      item['info'] = dct
+    except:
+      item['info'] = None
   return jsonable_encoder(result)
+
+@app.get('/api/v1/storage', status_code=202)
+def list_storage(identity: Json = Depends(auth.valid_token)):
+  task = retrieve_storage.delay()
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+
+@app.post('/api/v1/storage', status_code=201)
+def create_storage(item: items_storage, identity: Json = Depends(auth.valid_token)):
+  name = item.name
+  path = item.path
+  return api_create_storage(name, path)
+
+@app.patch("/api/v1/storage/{storage_id}", status_code=200)
+def update_storage(storage_id, item: items_storage, identity: Json = Depends(auth.valid_token)):
+  try:
+      uuid_obj = uuid_pkg.UUID(storage_id)
+  except ValueError:
+      raise HTTPException(status_code=404, detail='Given uuid is not valid')
+  name = item.name
+  path = item.path
+  return api_update_storage(storage_id, name, path)
+
+@app.delete('/api/v1/storage/{storage_id}', status_code=200)
+def delete_storage(storage_id: str, identity: Json = Depends(auth.valid_token)):
+  try:
+    uuid_obj = uuid_pkg.UUID(storage_id)
+  except ValueError:
+    raise HTTPException(status_code=404, detail='Given uuid is not valid')
+  if not storage_id: raise HTTPException(status_code=404, detail='Pool not found')
+  return api_delete_storage(storage_id)

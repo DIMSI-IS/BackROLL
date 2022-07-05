@@ -32,6 +32,7 @@ from app import auth
 from app import database
 from app.database import Policies
 from app.database import Pools
+from app.database import Hosts
 
 class items_create_pool(BaseModel):
   name: str
@@ -82,18 +83,31 @@ def api_create_pool(name, policyid):
         session.refresh(new_pool)
     return new_pool
   except Exception as e:
-    raise HTTPException(status_code=400, detail=e)
+    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
 
 def api_delete_pool(pool_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
     raise HTTPException(status_code=500, detail=jsonable_encoder(e))
-  pool = filter_pool_by_id(pool_id)
+
+  records = []
   with Session(engine) as session:
-    session.delete(pool)
-    session.commit()
-  return {'state': 'SUCCESS'}
+    statement = select(Hosts).where(Hosts.pool_id == pool_id)
+    results = session.exec(statement)
+    for host in results:
+      records.append(host)
+    if len(records) > 0:
+      reason = f'One or more hosts are attached to this pool'
+      raise HTTPException(status_code=500, detail=reason)
+  try:
+    pool = filter_pool_by_id(pool_id)
+    with Session(engine) as session:
+      session.delete(pool)
+      session.commit()
+    return {'state': 'SUCCESS'}
+  except Exception as e:
+    raise HTTPException(status_code=400, detail=jsonable_encoder(e))  
 
 
 @celery.task(name='List registered pools')

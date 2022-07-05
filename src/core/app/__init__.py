@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     broker_transport_options: object = {'visibility_timeout': 43200}
     result_backend: str = 'redis://redis:6379/0'
     enable_utc: bool = False
+    result_extended: bool = True
     timezone: str = 'Europe/Paris'
     task_default_queue: str = 'default'
     task_queues: tuple = (

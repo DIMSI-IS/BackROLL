@@ -33,6 +33,7 @@ from app import app
 from app import auth
 from app import database
 from app.database import Policies
+from app.database import Storage
 from app.database import Pools
 from app.database import Hosts
 from app import celery as celeryWorker
@@ -40,12 +41,24 @@ from app import celery
 
 class backup_policy_create(BaseModel):
   name: str
-  description: str
+  description: Optional[str] = None
+  schedule: str
+  retention: dict
+  storage: uuid_pkg.UUID
+  externalhook: Optional[str] = None
+  enabled: Optional[bool] = False
   class Config:
       schema_extra = {
           "example": {
               "name": "example_policy",
-              "description": "This is my description"
+              "description": "Daily backup routine (at midnight)",
+              "schedule": "0 0 * * *",
+              "retention_day": "1",
+              "retention_week": "1",
+              "retention_month": "1",
+              "retention_year": "1",
+              "storage": "7984bbc7-d202-4603-834f-5d1a5bf0e33e",
+              "externalhook": "https://my.example-webhook.com/ud4jf"
           }
       }
 
@@ -54,7 +67,8 @@ class backup_policy_update(BaseModel):
   description: Optional[str] = None
   schedule: Optional[str] = None
   retention: Optional[dict] = None
-  storage: uuid_pkg.UUID
+  storage: Optional[uuid_pkg.UUID] = None
+  externalhook: Optional[str] = None
   enabled: Optional[bool] = None
   class Config:
       schema_extra = {
@@ -62,19 +76,23 @@ class backup_policy_update(BaseModel):
               "name": "example_policy",
               "description": "Daily backup routine (at midnight)",
               "schedule": "0 0 * * *",
-              "retention": {"daily":7, "weekly":1, "monthly":1, "yearly":0},
-              "enabled": True
+              "retention_day": "1",
+              "retention_week": "1",
+              "retention_month": "1",
+              "retention_year": "1",
+              "storage": "7984bbc7-d202-4603-834f-5d1a5bf0e33e",
+              "externalhook": "https://my.example-webhook.com/ud4jf"
           }
       }
 
 @celery.task(name='create_backup_policy')
-def api_create_backup_policy(name, description):
+def api_create_backup_policy(name, description, schedule, retention, storage, externalhook):
   try:
     engine = database.init_db_connection()
   except Exception as e:
     raise HTTPException(status_code=500, detail=jsonable_encoder(e))
   try:
-    new_policy = Policies(name=name, description=description, schedule='0 0 1 * *', retention='{"daily":0, "weekly":0, "monthly":0, "yearly":0}')
+    new_policy = Policies(name=name, description=description, schedule=schedule, retention_day=retention["day"], retention_week=retention["week"], retention_month=retention["month"], retention_year=retention["year"], storage=storage, externalhook=externalhook)
     with Session(engine) as session:
         session.add(new_policy)
         session.commit()
@@ -121,7 +139,7 @@ def retrieve_backup_policies():
   except Exception as e:
     raise HTTPException(status_code=500, detail=e)
 
-def api_update_backup_policy(policy_id, name, description, schedule, retention, enabled):
+def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled):
   try:
     engine = database.init_db_connection()
   except:
@@ -140,7 +158,6 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
     split_cron = data_backup_policy.schedule.split()
   if name: policy_name = name
   else: policy_name = data_backup_policy.name
-
   if data_backup_policy.enabled == 1:
     try:
       unique_task_name = f"{task}-{data_backup_policy.name}-{data_backup_policy.id}"
@@ -174,7 +191,6 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
     except Exception as e:
       raise HTTPException(status_code=500, detail=jsonable_encoder(e))
     try:
-
       unique_task_name = f"{task}-{policy_name}-{policy_id}"
       entry = RedBeatSchedulerEntry(unique_task_name, task, crontab(minute=split_cron[0], hour=split_cron[1], day_of_month=split_cron[2], month_of_year=split_cron[3], day_of_week=split_cron[4]), args=(jsonable_encoder(data_host),), app=celery)
       entry.save()
@@ -192,7 +208,14 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
     if schedule:
       data_backup_policy.schedule = schedule
     if retention:
-      data_backup_policy.retention = json.dumps(retention)
+      data_backup_policy.retention_day = retention["day"]
+      data_backup_policy.retention_week = retention["week"]
+      data_backup_policy.retention_month = retention["month"]
+      data_backup_policy.retention_year = retention["year"]
+    if storage:
+      data_backup_policy.storage = storage
+    if externalhook:
+      data_backup_policy.externalhook = externalhook
     with Session(engine) as session:
       session.add(data_backup_policy)
       session.commit()
@@ -204,9 +227,26 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
 
 @app.post("/api/v1/backup_policies", status_code=201)
 def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.valid_token)):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+  records = []
+  with Session(engine) as session:
+    statement = select(Storage).where(Storage.id == item.storage)
+    results = session.exec(statement)
+    for policy in results:
+      records.append(policy)
+    if len(records) < 1:
+      reason = f'Specified storage hasn\'t been found'
+      raise HTTPException(status_code=500, detail=reason)
   name = item.name
   description = item.description
-  return api_create_backup_policy(name, description)
+  schedule = item.schedule
+  retention = item.retention
+  storage = item.storage
+  externalhook = item.externalhook
+  return api_create_backup_policy(name, description, schedule, retention, storage, externalhook)
 
 @app.get("/api/v1/backup_policies", status_code=202)
 def list_backup_policies():
@@ -219,6 +259,8 @@ def update_backup_policy(policy_id, item: backup_policy_update, identity: Json =
   description = item.description
   schedule = item.schedule
   retention = item.retention
+  storage = item.storage
+  externalhook = item.externalhook
   enabled = item.enabled
 
   if schedule and not croniter.is_valid(schedule):
@@ -226,8 +268,21 @@ def update_backup_policy(policy_id, item: backup_policy_update, identity: Json =
   if enabled:
     if not type(enabled)==bool:
       raise HTTPException(status_code=400, detail='Provided enabled status is invalid (must be true/false)')
-  return api_update_backup_policy(policy_id, name, description, schedule, retention, enabled)
+  return api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled)
 
 @app.delete("/api/v1/backup_policies/{policy_id}", status_code=200)
 def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.valid_token)):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+  records = []
+  with Session(engine) as session:
+    statement = select(Pools).where(Pools.policy_id == policy_id)
+    results = session.exec(statement)
+    for policy in results:
+      records.append(policy)
+    if len(records) > 0:
+      reason = f'One or more pools are linked to this policy'
+      raise HTTPException(status_code=500, detail=reason)
   return api_delete_backup_policy(policy_id)
