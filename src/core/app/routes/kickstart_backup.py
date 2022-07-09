@@ -1,0 +1,94 @@
+## Licensed to the Apache Software Foundation (ASF) under one
+## or more contributor license agreements.  See the NOTICE file
+## distributed with this work for additional information
+## regarding copyright ownership.  The ASF licenses this file
+## to you under the Apache License, Version 2.0 (the
+## "License"); you may not use this file except in compliance
+## with the License.  You may obtain a copy of the License at
+##
+##   http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing,
+## software distributed under the License is distributed on an
+## "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+## KIND, either express or implied.  See the License for the
+## specific language governing permissions and limitations
+## under the License.
+
+#!/usr/bin/env python
+import os
+import json
+import uuid as uuid_pkg
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel, Field, Json
+from fastapi.encoders import jsonable_encoder
+from celery import Celery, states
+from celery.exceptions import Ignore
+from celery_once import QueueOnce
+
+import requests
+from requests.auth import HTTPBasicAuth
+
+from sqlmodel import Session, select
+from app.kvm import kvm_list_vm
+from celery import chord
+
+from app import app
+from app import celery
+from app import auth
+from app import database
+from app import task_handler
+
+from app.backup_tasks import pool_backup
+from app.routes import virtual_machine
+from app.database import Hosts
+
+def getVMtobackup(pool_id):
+  try:
+    engine = database.init_db_connection()
+  except Exception:
+    raise
+  virtual_machine_list = []
+  try:
+    host_list = []
+    with Session(engine) as session:
+      statement = select(Hosts).where(Hosts.pool_id == pool_id)
+      results = session.exec(statement)
+      for host in results:
+        HOST_UP  = True if os.system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null") == 0 else False
+        if HOST_UP and host.ssh == 1:
+          try:
+            item_host = host.to_json()
+            virtual_machine_list.extend(kvm_list_vm.retrieve_virtualmachine(item_host))
+          except Exception:
+            raise
+  except Exception:
+    raise
+
+  ready_to_backup_list = []
+  for vm in virtual_machine_list:
+    if vm['state'] == 'Running' and int(vm['id']) != -1:
+      ready_to_backup_list.append(vm)
+
+  return ready_to_backup_list
+
+@celery.task(name='Kickstart_Pool_Backup', base=QueueOnce)
+def kickstart_pool_backup(pool_id):
+  try:
+    ready_to_backup_list = getVMtobackup(pool_id)
+    mychord = chord((pool_backup.backup_subtask.s(vm) for vm in ready_to_backup_list), task_handler.pool_backup_notification.s(pool_id))
+    task = mychord.apply_async()
+    return task.id
+  except Exception:
+    raise
+
+@app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
+def start_pool_backup(pool_id, identity: Json = Depends(auth.valid_token)):
+  try:
+      uuid_obj = uuid_pkg.UUID(pool_id)
+  except ValueError:
+      raise HTTPException(status_code=404, detail='Given uuid is not valid')
+
+  task_id = kickstart_pool_backup.delay(pool_id)
+
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=task_id)}

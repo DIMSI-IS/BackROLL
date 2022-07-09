@@ -20,7 +20,7 @@ from celery import Celery
 from redbeat import schedulers
 
 from app import app
-from app import celery as celeryWorker
+
 
 # Celery Imports
 from app import celery

@@ -27,6 +27,10 @@ import requests
 from requests.auth import HTTPBasicAuth
 import json
 
+from sqlmodel import Session, select
+from app.kvm import kvm_list_vm
+from celery import chord
+
 from app import app
 from app import celery
 from celery import chain
@@ -43,6 +47,8 @@ from app.routes import virtual_machine
 from app import auth
 from app import database
 from app import restore
+
+from app.database import Hosts
 
 class restorebackup_start(BaseModel):
   virtual_machine_id: str
@@ -153,15 +159,6 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
   virtual_machine_id = item.virtual_machine_id
   backup_id = item.backup_id
   res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(parse_host.s()), handle_results.s(), virtual_machine.retrieve_virtual_machine_disk.s(virtual_machine_id), restore.restore_disk_vm.s(virtual_machine_id, backup_id)).apply_async() 
-  return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
-
-@app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
-def start_pool_backup(pool_id, identity: Json = Depends(auth.valid_token)):
-  try:
-      uuid_obj = uuid_pkg.UUID(pool_id)
-  except ValueError:
-      raise HTTPException(status_code=404, detail='Given uuid is not valid')
-  res = chain(host.retrieve_host.s(), host.filter_host_list_by_pool.s(pool_id), pool_backup.pool_vm_backup.s()).apply_async() 
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.get('/api/v1/tasks/backup', status_code=200)

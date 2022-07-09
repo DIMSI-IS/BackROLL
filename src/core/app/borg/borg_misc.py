@@ -23,7 +23,7 @@ import subprocess
 from app import database
 
 from app import app
-from app import celery as celeryWorker
+
 from app import celery
 
 def borglock(payload):

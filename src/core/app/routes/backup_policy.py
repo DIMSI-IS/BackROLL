@@ -24,7 +24,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
 from pydantic import BaseModel, Json
-from celery import Celery, states
+from celery import Celery, states, chord
 from celery.result import AsyncResult
 from celery.schedules import crontab
 from redbeat import RedBeatSchedulerEntry
@@ -151,51 +151,58 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
 
   if not data_backup_policy:
     raise HTTPException(status_code=404, detail=f'backup policy with id {policy_id} not found')
-  task = "Pool_VM_Backup"
+  task = "Kickstart_Pool_Backup"
   if schedule:
     split_cron = schedule.split()
   else:
     split_cron = data_backup_policy.schedule.split()
   if name: policy_name = name
   else: policy_name = data_backup_policy.name
+
+  try:
+    data_pool = []
+    with Session(engine) as session:
+      statement = select(Pools).where(Pools.policy_id == policy_id)
+      results = session.exec(statement)
+      for pool in results:
+        data_pool.append(pool)
+    if not data_pool: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has no pool associated to it')
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+
   if data_backup_policy.enabled == 1:
-    try:
-      unique_task_name = f"{task}-{data_backup_policy.name}-{data_backup_policy.id}"
-      key = f"redbeat:{unique_task_name}"
-      e = RedBeatSchedulerEntry.from_key(key, app=celery)
+    for pool in data_pool:
+      currentPool = pool.to_json()
       try:
-        e.delete()
+        unique_task_name = f"{task}-{data_backup_policy.name}-{data_backup_policy.id}-{currentPool['name']}"
+        key = f"redbeat:{unique_task_name}"
+        e = RedBeatSchedulerEntry.from_key(key, app=celery)
+        try:
+          e.delete()
+        except Exception as e:
+          raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+      except:
+        raise HTTPException(status_code=500, detail=f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.')
+  if enabled == True:
+    for pool in data_pool:
+      try:
+        data_host = []
+        with Session(engine) as session:
+          statement = select(Hosts).where(Hosts.pool_id == pool.id)
+          results = session.exec(statement)
+          for host in results:
+            data_host.append(host)
+        if not data_host: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has one or more empty pool associated to it')
       except Exception as e:
         raise HTTPException(status_code=500, detail=jsonable_encoder(e))
-    except:
-      raise HTTPException(status_code=500, detail=f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.')
-  if enabled == True:
-    try:
-      data_pool = []
-      with Session(engine) as session:
-        statement = select(Pools).where(Pools.policy_id == policy_id)
-        results = session.exec(statement)
-        for pool in results:
-          data_pool.append(pool)
-      if not data_pool: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has no pool associated to it')
-    except Exception as e:
-      raise HTTPException(status_code=500, detail=jsonable_encoder(e))
-    try:
-      data_host = []
-      with Session(engine) as session:
-        statement = select(Hosts).where(Hosts.pool_id == pool.id)
-        results = session.exec(statement)
-        for host in results:
-          data_host.append(host)
-      if not data_host: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} only has empty pool associated to it')
-    except Exception as e:
-      raise HTTPException(status_code=500, detail=jsonable_encoder(e))
-    try:
-      unique_task_name = f"{task}-{policy_name}-{policy_id}"
-      entry = RedBeatSchedulerEntry(unique_task_name, task, crontab(minute=split_cron[0], hour=split_cron[1], day_of_month=split_cron[2], month_of_year=split_cron[3], day_of_week=split_cron[4]), args=(jsonable_encoder(data_host),), app=celery)
-      entry.save()
-    except:
-      raise HTTPException(status_code=500, detail='Unable to enable this backup policy.')
+      try:
+        currentPool = pool.to_json()
+        unique_task_name = f"{task}-{policy_name}-{policy_id}-{currentPool['name']}"
+        entry = RedBeatSchedulerEntry(unique_task_name, task, crontab(minute=split_cron[0], hour=split_cron[1], day_of_month=split_cron[2], month_of_year=split_cron[3], day_of_week=split_cron[4]), args=(currentPool['id'],), app=celery)
+        entry.save()
+      except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail='Unable to enable this backup policy.')
   try:
     if enabled == True:
       data_backup_policy.enabled = 1

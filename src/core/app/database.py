@@ -47,6 +47,13 @@ class Pools(SQLModel, table=True):
   name: Optional[str] = None
   policy_id: uuid_pkg.UUID = Field(default=None, foreign_key="policies.id")
 
+  def to_json(self):
+    return {
+      "id": str(self.id),
+      "name": self.name,
+      "policy_id": str(self.policy_id)
+    }
+
 class Hosts(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   hostname: str
@@ -56,6 +63,18 @@ class Hosts(SQLModel, table=True):
   pool_id: uuid_pkg.UUID = Field(default=None, foreign_key="pools.id")
   tags: Optional[str] = None
   state: Optional[str] = None
+
+  def to_json(self):
+    return {
+      "id": str(self.id),
+      "hostname": self.hostname,
+      "ipaddress": self.ipaddress,
+      "username": self.username,
+      "ssh": int(self.ssh),
+      "pool_id": str(self.pool_id),
+      "tags": self.tags,
+      "state": self.state
+    }
 
 class Tasks(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)

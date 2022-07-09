@@ -24,7 +24,7 @@ from celery import Celery, states
 from celery.exceptions import Ignore
 
 from app import app
-from app import celery as celeryWorker
+
 from app import celery
 
 from app import auth

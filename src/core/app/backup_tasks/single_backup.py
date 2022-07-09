@@ -21,7 +21,7 @@ from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
 from celery import chord, chain, group, signature
 from app import app
-from app import celery as celeryWorker
+
 from app import celery
 import traceback
 import json

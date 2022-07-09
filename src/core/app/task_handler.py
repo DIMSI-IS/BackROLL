@@ -22,6 +22,7 @@ import json
 from requests.auth import HTTPBasicAuth
 import requests
 import time
+from celery_once import QueueOnce
 
 from app import app
 from app import celery as celeryWorker
@@ -34,6 +35,8 @@ from celery.exceptions import Ignore
 
 from app.backup_tasks import single_backup
 from app.backup_tasks import pool_backup
+from app.routes import kickstart_backup
+from app.routes import pool as pool_routes
 
 from app import restore
 
@@ -199,15 +202,6 @@ def single_backup_success_handler(sender=None, body=None, *args,  **kwargs):
 def single_backup_failure_handler(sender=None, body=None, *args,  **kwargs):
     handle_task_failure.apply_async(args=(sender.request.id, "A new single VM backup job has exited"))
 
-
-@task_success.connect(sender=pool_backup.backup_subtask)
-def subtask_backup_success_handler(sender=None, body=None, *args,  **kwargs):
-    handle_task_success.apply_async(args=(sender.request.id, "A new pool backup subtask has ended"))
-
-@task_failure.connect(sender=pool_backup.backup_subtask)
-def subtask_backup_failure_handler(sender=None, body=None, *args,  **kwargs):
-    handle_task_failure.apply_async(args=(sender.request.id, "A new pool backup subtask has exited"))
-
 @task_success.connect(sender=restore.restore_disk_vm)
 def restore_backup_success_handler(sender=None, body=None, *args,  **kwargs):
     handle_task_success.apply_async(args=(sender.request.id, "A new diskfile restore job has ended"))
@@ -215,3 +209,100 @@ def restore_backup_success_handler(sender=None, body=None, *args,  **kwargs):
 @task_failure.connect(sender=restore.restore_disk_vm)
 def restore_backup_failure_handler(sender=None, body=None, *args,  **kwargs):
     handle_task_failure.apply_async(args=(sender.request.id, "A new diskfile restore job has ended"))
+
+@celery.task()
+def pool_backup_notification(result, pool_id):
+  print(result, pool_id)
+
+  pool = pool_routes.filter_pool_by_id(pool_id)
+
+  # Build success and failure lists based on chord tasks results
+  success_list = []
+  failure_list = []
+
+  for item in result:
+    if isinstance(item, dict):
+      if item.get('status') == 'success':
+        success_list.append(item['info'])
+
+  inital_vm_list = kickstart_backup.getVMtobackup(pool_id)
+  for item in inital_vm_list:
+    if item not in success_list:
+      failure_list.append(item)
+
+  # Build slack block message
+  alert = ''
+  if len(failure_list) > 0:
+    alert = '<!channel> '
+
+  slack_block = {
+    "blocks": [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Summary of your pool backup job"
+        }
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": f"{alert}*{pool.name}*"
+          }
+        ]
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": ":white_check_mark:"
+          },
+          {
+            "type": "mrkdwn",
+            "text": f"*{len(success_list)}* Successful backup(s)"
+          }
+        ]
+      },
+      {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": ":x:"
+          },
+          {
+            "type": "mrkdwn",
+            "text": f"*{len(failure_list)}* Failed backup(s)"
+          }
+        ]
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "Review all backup tasks :arrow_right:"
+        },
+        "accessory": {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "By clicking here",
+          },
+          "value": "click_me_123",
+          "url": f"{os.getenv('BASE_URL')}/admin/tasks/backup",
+          "action_id": "button-action"
+        }
+      }
+    ]
+  }
+
+  try:
+    messager.slack_notification(slack_block['blocks'])
+  except:
+    raise

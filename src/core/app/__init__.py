@@ -21,7 +21,10 @@ from fastapi import FastAPI, Form, Request
 from pydantic import BaseSettings
 from fastapi.middleware.cors import CORSMiddleware
 
-from celery import Celery
+import celery
+from celery import Celery, states
+from celery.backends.redis import RedisBackend
+
 from kombu import Queue
 
 class Settings(BaseSettings):
@@ -31,7 +34,6 @@ class Settings(BaseSettings):
     beat_max_loop_interval: int = 5
     worker_max_tasks_per_child: int = 200
     worker_max_memory_per_child: int = 16384
-    result_expires: int = 604800
     broker_transport_options: object = {'visibility_timeout': 43200}
     result_backend: str = 'redis://redis:6379/0'
     enable_utc: bool = False
@@ -62,8 +64,29 @@ app.add_middleware(
     allow_headers=["Authorization"],
 )
 
+def patch_celery():
+    """Patch redis backend."""
+    def _unpack_chord_result(
+        self, tup, decode,
+        EXCEPTION_STATES=states.EXCEPTION_STATES,
+        PROPAGATE_STATES=states.PROPAGATE_STATES,
+    ):
+        _, tid, state, retval = decode(tup)
+
+        if state in EXCEPTION_STATES:
+          retval = self.exception_to_python(retval)
+        if state in PROPAGATE_STATES:
+            # retval is an Exception
+          return '{}: {}'.format(retval.__class__.__name__, str(retval))
+
+        return retval
+
+    celery.backends.redis.RedisBackend._unpack_chord_result = _unpack_chord_result
+
+    return celery
+
 # Initialize Celery
-celery = Celery('BackupAPI', broker='redis://redis:6379/0')
+celery = patch_celery().Celery('BackupAPI', broker='redis://redis:6379/0')
 
 celery.conf.ONCE = {
   'backend': 'celery_once.backends.Redis',
@@ -77,7 +100,6 @@ celery.conf.update(settings)
 celery.conf.update(
   result_expires=604800
 )
-
 
 from app.scheduler import retrieve_tasks
 
@@ -97,5 +119,6 @@ from app.routes import pool
 from app.routes import host
 from app.routes import backup_policy
 from app.routes import storage
+from app.routes import kickstart_backup
 
 from app import main

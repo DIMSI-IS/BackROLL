@@ -41,6 +41,7 @@ RUN python3 -m pip install --upgrade pip && \
 
 # Set up the ssh folder
 RUN mkdir -p /root/.ssh
+RUN mkdir -p /root/flower
 
 COPY . .
 
