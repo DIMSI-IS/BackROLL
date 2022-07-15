@@ -27,7 +27,7 @@ from celery import Celery, states
 from celery.exceptions import Ignore
 
 from app import app
-
+from app import celery as celeryWorker
 from app import celery
 
 from app import auth
@@ -53,17 +53,13 @@ class items_create_host(BaseModel):
       }
 
 class items_connect_host(BaseModel):
-  host_id: str
   ip_address: str
   username: str
-  password: Optional[str] = None
   class Config:
       schema_extra = {
           "example": {
-              "host_id": "6ce2e0e4-a39f-11ec-b909-0242ac120002",
               "ip_address": "192.168.1.200",
-              "username": "root",
-              "password": "mystrongpassword"
+              "username": "root"
           }
       }
 
@@ -158,13 +154,6 @@ def api_delete_host(host_id):
     session.commit()
   return {'state': 'SUCCESS'}
 
-
-def first_ssh_connection(host_id, ip_address, username, password):
-  if password:
-    return ssh.deploy_key(ip_address, username, password)
-  else:
-    return ssh.try_ssh_connection(host_id, ip_address, username)
-
 def getSSHPubKey():
   try:
     pubkey = os.popen('cat ~/.ssh/id_rsa.pub').read()
@@ -197,11 +186,9 @@ def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
 
 @app.post('/api/v1/connect/{host_id}', status_code=200)
 def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.valid_token)):
-  host_id = item.host_id
   ip_address = item.ip_address
   username = item.username
-  password = item.password
-  return first_ssh_connection(host_id, ip_address, username, password)
+  return ssh.init_ssh_connection(host_id, ip_address, username)
 
 @app.get("/api/v1/publickeys", status_code=200)
 def list_ssh_public_keys(identity: Json = Depends(auth.valid_token)):

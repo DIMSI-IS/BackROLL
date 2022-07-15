@@ -25,7 +25,7 @@ from celery import Celery, states
 from celery.exceptions import Ignore
 
 from app import app
-
+from app import celery as celeryWorker
 from app import celery
 
 from app import auth
@@ -85,6 +85,32 @@ def api_create_pool(name, policyid):
   except Exception as e:
     raise HTTPException(status_code=400, detail=jsonable_encoder(e))
 
+@celery.task(name='Update pool')
+def api_update_pool(pool_id, name, policy_id):
+  try:
+    engine = database.init_db_connection()
+  except:
+    raise HTTPException(status_code=500, detail='Unable to connect to database.')
+  with Session(engine) as session:
+    statement = select(Pools).where(Pools.id == pool_id)
+    results = session.exec(statement)
+    data_pool = results.one()
+  if not data_pool:
+    raise HTTPException(status_code=404, detail=f'Storage with id {pool_id} not found')
+  try:
+    if name:
+      data_pool.name = name
+    if policy_id:
+      data_pool.policy_id = policy_id
+    with Session(engine) as session:
+      session.add(data_pool)
+      session.commit()
+      session.refresh(data_pool)
+    return jsonable_encoder(data_pool)
+  except Exception as e:
+    print(e)
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+
 def api_delete_pool(pool_id):
   try:
     engine = database.init_db_connection()
@@ -130,10 +156,21 @@ def create_pool(item: items_create_pool, identity: Json = Depends(auth.valid_tok
   policy_id = item.policy_id
   return api_create_pool(name, policy_id)
 
+
 @app.get('/api/v1/pools', status_code=202)
 def list_pools(identity: Json = Depends(auth.valid_token)):
     task = retrieve_pool.delay()
     return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+
+@app.patch('/api/v1/pools/{pool_id}', status_code=200)
+def update_pool(pool_id, item: items_create_pool, identity: Json = Depends(auth.valid_token)):
+  try:
+      uuid_obj = uuid_pkg.UUID(pool_id)
+  except ValueError:
+      raise HTTPException(status_code=404, detail='Given uuid is not valid')
+  name = item.name
+  policy_id = item.policy_id
+  return api_update_pool(pool_id, name, policy_id)
 
 @app.delete('/api/v1/pools/{pool_id}', status_code=200)
 def delete_pool(pool_id, identity: Json = Depends(auth.valid_token)):

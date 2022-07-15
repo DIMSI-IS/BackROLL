@@ -24,27 +24,31 @@ from celery import Celery, states
 from celery.exceptions import Ignore
 
 from app import app
-
+from app import celery as celeryWorker
 from app import celery
 
 from app import auth
-from app import database
-from app.database import Tasks
 
 @celery.task()
 def retrieve_job():
   try:
-    engine = database.init_db_connection()
-  except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
-  try:
-    records = []
-    with Session(engine) as session:
-        statement = select(Tasks)
-        results = session.exec(statement)
-        for task in results:
-          records.append(task)
-    return jsonable_encoder(records)
+    return [
+      {
+      'name': 'Backup (VM)',
+      'mode': 'single',
+      'type': 'backup'
+      },
+      {
+      'name': 'Backup (Pool)',
+      'mode': 'pool',
+      'type': 'backup'
+      },
+      {
+      'name': 'Disk Restore & Replace (VM)',
+      'mode': 'single',
+      'type': 'restore'
+      },
+    ]
   except Exception as e:
     raise HTTPException(status_code=500, detail=jsonable_encoder(e))
 

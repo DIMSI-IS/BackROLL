@@ -29,9 +29,10 @@ import os
 from re import search
 
 from app import database
+from app.database import Hosts
 from app.routes import host
 
-def try_ssh_connection(host_id, ip_address, username):
+def init_ssh_connection(host_id, ip_address, username):
   client = paramiko.SSHClient()
   client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -45,42 +46,8 @@ def try_ssh_connection(host_id, ip_address, username):
     )
     client.close()
   except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
+    raise HTTPException(status_code=400, detail="Connection to hypervisor has failed")
 
-  host.filter_host_by_id(host_id)
-  try:
-    engine = database.init_db_connection()
-  except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
-
-  with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.id == host_id)
-    results = session.exec(statement)
-    data_host = results.one()
-    data_host.ssh = 1
-    data_host.username = username
-    session.add(data_host)
-    session.commit()
-    session.refresh(data_host)
-  return {'state': 'SUCCESS'}
-
-def deploy_key(host_id, ip_address, username, password):
-  get_key = os.popen('cat ~/.ssh/id_rsa.pub').read()
-  client = paramiko.SSHClient()
-  client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-  try:
-    client.connect(
-        hostname=ip_address,
-        username=username,
-        password=password
-    )
-  except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
-    client.exec_command('mkdir -p ~/.ssh/')
-    client.exec_command('echo "%s" >> ~/.ssh/authorized_keys' % get_key)
-    client.exec_command('chmod 644 ~/.ssh/authorized_keys')
-    client.exec_command('chmod 700 ~/.ssh/')
-    client.close()
   host.filter_host_by_id(host_id)
   try:
     engine = database.init_db_connection()

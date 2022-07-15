@@ -29,7 +29,7 @@ from celery import subtask, group, chain, chord, result
 import json
 
 from app import app
-
+from app import celery as celeryWorker
 from app import celery as celery_app
 
 from app import auth

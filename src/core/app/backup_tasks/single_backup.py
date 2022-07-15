@@ -21,7 +21,7 @@ from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
 from celery import chord, chain, group, signature
 from app import app
-
+from app import celery as celeryWorker
 from app import celery
 import traceback
 import json
@@ -168,6 +168,7 @@ def remove_archive_task(self, info):
 # Orphan backups cleaner (remove backup of non-existing VM)
 @celery.task(name='backupCleaner')
 def clean_orphan_backups():
+  parsedArchiveList = []
   try:
     backup_list = borg_core.borg_list_backedup_vm()
   except ValueError as err:

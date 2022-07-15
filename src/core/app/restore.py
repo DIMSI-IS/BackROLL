@@ -23,7 +23,7 @@ from datetime import datetime
 from fastapi import Request
 from celery_once import QueueOnce
 from app import app
-
+from app import celery as celeryWorker
 from app import celery
 import traceback
 import json

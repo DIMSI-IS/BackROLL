@@ -76,11 +76,6 @@ class Hosts(SQLModel, table=True):
       "state": self.state
     }
 
-class Tasks(SQLModel, table=True):
-  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
-  name: str
-  type: str
-
 class Storage(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   name: str
