@@ -20,7 +20,7 @@
 <template>
   <div class="nav-content">
     <b-navbar class="nav-style" toggleable="lg" type="dark" fixed>
-      <img src="../../public/storing-backup.svg" width="80" height="30" class="d-inline-block align-top" alt="BackRoll">
+      <img src="../../public/backroll_logo_only-cropped.svg" width="80" height="30" class="d-inline-block align-top" alt="BackRoll">
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav style="padding: 0 0 0 2.5%;">

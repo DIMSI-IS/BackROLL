@@ -46,7 +46,7 @@ from app.kvm import kvm_check
 from app.kvm import kvm_list_vm
 from app.kvm import kvm_list_disk
 
-@celery_app.task(name='filter_virtual_machine_list')
+@celery_app.task(name='Filter VMs list')
 def filter_virtual_machine_list(virtual_machine_list, virtual_machine_id):
   for vm in virtual_machine_list:
     if vm['uuid'] == virtual_machine_id:
@@ -62,11 +62,11 @@ def parse_host(host):
 
 @celery_app.task
 def dmap(it, callback):
-    # Map a callback over an iterator and return as a group
-    callback = subtask(callback)
-    c = group(callback.clone([arg,]) for arg in it)()
-    c.save()
-    return c.id
+  # Map a callback over an iterator and return as a group
+  callback = subtask(callback)
+  c = group(callback.clone([arg,]) for arg in it)()
+  c.save()
+  return c.id
 
 @celery_app.task
 def handle_results(group_id):
@@ -97,15 +97,14 @@ def retrieve_virtual_machine_backups(self, virtual_machine_list, virtual_machine
 @celery_app.task(name='List virtual machine disk(s)', bind=True)
 def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id):
   try:
-    virtual_machine = {}
-    for x in virtual_machine_list:
-      if x['uuid'] == virtual_machine_id:
+    for vm in virtual_machine_list:
+      if vm['uuid'] == virtual_machine_id:
         break
-    virtual_machine = x
+    virtual_machine = vm
+
     data_host = jsonable_encoder(host.filter_host_by_id(virtual_machine['host']))
-    virtual_machine_details = []
-    virtual_machine_details = kvm_list_disk.getDisk(virtual_machine, data_host)
-    return virtual_machine_details
+    virtual_machine['storage'] = kvm_list_disk.getDisk(virtual_machine, data_host)
+    return virtual_machine
   except Exception as e:
     raise HTTPException(status_code=500, detail=jsonable_encoder(e))
 

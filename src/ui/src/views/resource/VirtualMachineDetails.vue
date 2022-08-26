@@ -418,7 +418,7 @@ export default {
             this.getVmDetails(location)
           },2000)
         } else if (response.data.state === 'SUCCESS') {
-          this.disk_list = response.data.info.disk_list
+          this.disk_list = response.data.info.storage
           this.loadingdisk_list = false
         } else if (response.data.state === 'FAILURE') {
           this.loadingdisk_list = false

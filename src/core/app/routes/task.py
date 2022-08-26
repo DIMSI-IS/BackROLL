@@ -147,7 +147,7 @@ def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.val
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
-  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), single_backup.single_vm_backup.s()).apply_async() 
+  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), single_backup.single_vm_backup.s()).apply_async()
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.post('/api/v1/tasks/restore/{virtual_machine_id}', status_code=202)

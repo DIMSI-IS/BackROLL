@@ -22,7 +22,6 @@ import json
 from requests.auth import HTTPBasicAuth
 import requests
 import time
-from celery_once import QueueOnce
 
 from app import app
 from app import celery as celeryWorker

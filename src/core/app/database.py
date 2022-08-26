@@ -81,6 +81,13 @@ class Storage(SQLModel, table=True):
   name: str
   path: str
 
+  def to_json(self):
+    return {
+      "id": str(self.id),
+      "name": self.name,
+      "path": self.path,
+    }
+
 class ExternalHooks(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   name: Optional[str] = None

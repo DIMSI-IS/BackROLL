@@ -27,7 +27,7 @@ from app.kvm import kvm_connection
 
 def getDisk(virtual_machine, hypervisor):
   conn = kvm_connection.kvm_connection(hypervisor)
-  json = {'id': virtual_machine['id'], 'name': virtual_machine['name'], 'disk_list': []}
+  json = []
   dom = conn.lookupByID(virtual_machine['id'])
   raw_xml = dom.XMLDesc(0)
   xml = minidom.parseString(raw_xml)
@@ -45,6 +45,6 @@ def getDisk(virtual_machine, hypervisor):
                       for attr in disk_node.attributes.keys():
                           if (disk_node.attributes[attr].name == 'file'):
                               source = disk_node.attributes[attr].value
-          json['disk_list'].append({'device': device, 'source': source})
+          json.append({'device': device, 'source': source})
   conn.close()
   return json

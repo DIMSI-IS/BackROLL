@@ -16,6 +16,7 @@
 ## under the License.
 
 #!/usr/bin/env python
+from redis import Redis
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
@@ -34,6 +35,7 @@ from app import database
 
 from app.cloudstack import virtual_machine
 from app.routes import host
+from app.routes import storage
 from app.borg import borg_core
 from app.borg import borg_misc
 from app.kvm import kvm_list_disk
@@ -52,21 +54,23 @@ def backup_deletion(self, info):
   del delete_archive_job
   return {'status': 'success'}
 
-def backup_creation(task, info):
+def backup_creation(info):
 
-  def backup_sequence(task, info, host_info):
+  def backup_sequence(info, host_info):
     # Initializing object
-    backup_job = borg_core.borg_backup(task, info, host_info)
+    backup_job = borg_core.borg_backup(info, host_info)
     try:
       # Retrieve VM info (name, id, disks, etc.)
-      backup_job.prepare(info, host_info)
-      virtual_machine = kvm_list_disk.getDisk(info, host_info)
+      storage_repository = storage.retrieveStoragePathFromHostBackupPolicy(info)
+      virtual_machine = info
+      virtual_machine['storage'] = kvm_list_disk.getDisk(info, host_info)
+      backup_job.init(virtual_machine, storage_repository)
     except:
       raise
     print(f"[ {info['name']} ] Pre-Flight checks incoming.")
     if backup_job.check_if_snapshot(info, host_info):
       print(f"[ {info['name']} ] VM is currently under snapshot. Checking disk files...")
-      for disk in virtual_machine['disk_list']:
+      for disk in virtual_machine['storage']:
         if ".snap" in disk['source']:
           print(f"[ {info['name']} ] Current {disk['device']} disk file is in '.snap' mode.")
           try:
@@ -85,7 +89,7 @@ def backup_creation(task, info):
       backup_job.delete_snapshot()
       print(f"[ {info['name']} ] Snapshot deleted.")
     else:
-      for disk in virtual_machine['disk_list']:
+      for disk in virtual_machine['storage']:
         if backup_job.checking_files_trace(disk):
           print(f"[ {info['name']} ] Snap {disk['device']} disk file detected. Proceeding to deletion.")
           backup_job.remove_snapshot_file(disk)
@@ -94,13 +98,13 @@ def backup_creation(task, info):
     print(f"[ {info['name']} ] Pre-Flight checks done...")
     try:
       # Create full VM snapshot
-      backup_job.create_snapshot(virtual_machine)
+      backup_job.create_snapshot()
       # Check borg repository
       backup_job.check_repository()
       # Check borg repository lock status
       backup_job.check_repository_lock()
       # Loop through vm's disks
-      for disk in virtual_machine['disk_list']:
+      for disk in virtual_machine['storage']:
         # Check if template (backing file) is backed up
         backup_job.manage_backing_file(disk)
         # Launch archive creation job
@@ -114,7 +118,7 @@ def backup_creation(task, info):
       # Remove VM snapshot
       backup_job.delete_snapshot()
     except Exception as e:
-      for disk in virtual_machine['disk_list']:
+      for disk in virtual_machine['storage']:
         try:
           # Blockcommit changes to original disk file
           backup_job.blockcommit(disk)
@@ -138,21 +142,38 @@ def backup_creation(task, info):
     # Retrieve VM host info
     host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
     # Launch backup sequence
-    backup_sequence(task, info, host_info)
+    backup_sequence(info, host_info)
   except Exception as e:
     raise e
-  return { 'status': 'success' }
 
-@celery.task(bind=True, queue='backup_tasks', name='Single_VM_Backup', base=QueueOnce)
-def single_vm_backup(self, virtual_machine_info):
+@celery.task(queue='backup_tasks', name='Single_VM_Backup', soft_time_limit=5400)
+def single_vm_backup(virtual_machine_info):
+  try:
+      redis_instance = Redis(host='redis', port=6379)
+      unique_task_key = f'''nodup-single_vm_backup-{virtual_machine_info}'''
+      if not redis_instance.exists(unique_task_key):
+          #I am the legitimate running task
+          redis_instance.set(unique_task_key, "")
+          redis_instance.expire(unique_task_key, 5400)
+          if virtual_machine_info.get('state') == 'Running':
+            try:
+              backup_creation(virtual_machine_info)
+            except Exception as err:
+              raise err
+          else:
+            raise ValueError(f"Virtual machine with id {virtual_machine_info['uuid']} isn't running. Backup aborted.")
+      else:
+          #Do you want to do something else on task duplicate?
+          raise ValueError("This task is already running / scheduled")
+      redis_instance.delete(unique_task_key)
+  except Exception as e:
+      redis_instance.delete(unique_task_key)
+      # potentially log error with Sentry?
+      # decrement the counter to insure tasks can run
+      # or: raise e
+      raise e
 
-  if virtual_machine_info.get('state') == 'Running':
-    try:
-      backup_creation(self, virtual_machine_info)
-    except Exception as err:
-      raise err
-  else:
-    raise ValueError(f"Virtual machine with id {virtual_machine_info['uuid']} isn't running. Backup aborted.")
+
 
 def delete_archive(info):
   remove_archive_task.delay(info)

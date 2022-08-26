@@ -31,8 +31,10 @@ from app import celery
 
 from app import auth
 from app import database
-from app.database import Storage
+from app.database import Hosts
+from app.database import Pools
 from app.database import Policies
+from app.database import Storage
 
 class items_storage(BaseModel):
   name: str
@@ -44,6 +46,45 @@ class items_storage(BaseModel):
               "path": "/path/to/my/storage_backend"
           }
       }
+
+def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+  try:
+    with Session(engine) as session:
+      # Find host linked to vm
+      statement = select(Hosts).where(Hosts.id == virtual_machine_info['host'])
+      results = session.exec(statement)
+      host = results.one()
+      if not host:
+        reason = f"Host with id {virtual_machine_info['host']} not found"
+        raise HTTPException(status_code=404, detail=reason)
+      # Find pool linked to host
+      statement = select(Pools).where(Pools.id == host.pool_id)
+      results = session.exec(statement)
+      pool = results.one()
+      if not pool:
+        reason = f"Pool with id {host_info['pool_id']} not found"
+        raise HTTPException(status_code=404, detail=reason)
+      # Find policy linked to pool
+      statement = select(Policies).where(Policies.id == pool.policy_id)
+      results = session.exec(statement)
+      policy = results.one()
+      if not policy:
+        reason = f"Policy with id {pool.policy_id} not found"
+        raise HTTPException(status_code=404, detail=reason)
+      # Find policy linked to pool
+      statement = select(Storage).where(Storage.id == policy.storage)
+      results = session.exec(statement)
+      storage = results.one()
+      if not storage:
+        reason = f"Storage with id {policy.storage} not found"
+        raise HTTPException(status_code=404, detail=reason)
+    return storage.to_json()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
 
 def filter_storage_by_id(storage_id):
   try:

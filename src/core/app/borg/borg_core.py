@@ -45,12 +45,11 @@ class borg_backup:
   """ Full sequence to backup all disks of a specified virtual machine
   Defining environment variables and logging file for backup task of specified VM"""
 
-  def __init__(self, task, vm_info, host_info):
+  def __init__(self, vm_info, host_info):
     self.env = dict(
         BORG_CS_REPO=borgserver_CS_repositorypath,
         BORG_KVM_REPO=borgserver_MGMT_repositorypath
     )
-    self.task = task
     self.info = {}
     self.info['name'] = vm_info.get('name', None)
     self.info['borg_repository'] = None
@@ -123,17 +122,12 @@ class borg_backup:
         print(request['stdout'])
         return request['stdout']
 
-  def prepare(self, vm_info, host_info):
+  def init(self, virtual_machine, storage):
     self.vm_name = self.info['name']
     print(f'[ {self.vm_name} ] Gathering data...')
-    if re.search("^((?!^i-).)*$", self.info['name']):
-      print(f'[ {self.vm_name} ] VM is detected as part of Management. Using MGMT BORG repository')
-      self.info['borg_repository'] = self.env['BORG_KVM_REPO']
-    else:
-      print(f'[ {self.vm_name} ] VM is detected as part of CloudStack. Using CS BORG repository')
-      self.info['borg_repository'] = self.env['BORG_CS_REPO']
-    self.virtual_machine = kvm_list_disk.getDisk(vm_info, host_info)
-    disk_number = len(self.virtual_machine['disk_list'])
+    self.info['borg_repository'] = storage['path']
+    self.virtual_machine=virtual_machine
+    disk_number = len(self.virtual_machine['storage'])
     print(f'[ {self.vm_name} ] Disk(s) found : {disk_number}')
 
   def check_repository(self):
@@ -179,7 +173,7 @@ class borg_backup:
       print(f"[ {self.virtual_machine['name'] }] No snapshot detected")
       return False
 
-  def create_snapshot(self, virtual_machine):
+  def create_snapshot(self):
     vm_name = self.virtual_machine['name']
     print(f'[ {vm_name} ] Snapshotting virtual machines disks')
     command = f'LIBVIRT_DEFAULT_URI=qemu:///system virsh snapshot-create-as \
@@ -187,7 +181,7 @@ class borg_backup:
         --quiesce \
         --atomic \
         --disk-only'
-    for disk in virtual_machine['disk_list']:
+    for disk in self.virtual_machine['storage']:
       new_disk = disk['source'].replace(".snap", "")
       command += f" --diskspec {disk['device']},file={new_disk}.snap,snapshot=external"
     request = self.remote_request(command)
@@ -236,20 +230,6 @@ class borg_backup:
         meta = {'done': None, 'total': None, 'percentage': None}
         parsed_output = json.loads(output.strip().decode("utf-8"))
 
-        current_operation  = parsed_output.get('operation', None)
-        current = parsed_output.get('current', None)
-        total = parsed_output.get('total', None)
-        progressionPercentage = None
-
-        if current and total:
-          progressionPercentage = (int(parsed_output['current']) / int(parsed_output['total'])) * 100
-
-        if current_operation:
-          operation = current_operation
-          self.task.update_state(state='PROGRESS', meta={'current': current, 'total': total, 'percentage': progressionPercentage, 'step': f'{current_operation}/4'})
-        else:
-          self.task.update_state(state='PROGRESS', meta={'current': current, 'total': total, 'percentage': progressionPercentage, 'step': f'{operation}/4'})
-
     print(f'[{vm_name}] Borg archive successfully created for {disk_name}')
 
   def blockcommit(self, disk):
@@ -292,7 +272,7 @@ class borg_backup:
     if parsevm_info['snapshot'] == 1:
 
       print(f"[ {self.virtual_machine['name']} ] A snapshot has been detected")
-      for disk in self.virtual_machine['disk_list']:
+      for disk in self.virtual_machine['storage']:
         try:
           self.blockcommit(disk)
         except Exception:
@@ -300,13 +280,13 @@ class borg_backup:
         self.delete_snapshot()
     else:
       print(f"[ {self.virtual_machine['name']} ] No snapshot detected")
-      for disk in self.virtual_machine['disk_list']:
+      for disk in self.virtual_machine['storage']:
         if checking_files_trace(disk) == True:
           print(f"[ {self.virtual_machine['name']} ] Deleting old snapshot file")
           self.remove_snapshot_file(disk)
     print(f"[ {self.virtual_machine['name']} ] End of cleaning job. We can now relaunch backup task for this VM")
 
-    for disk in self.virtual_machine['disk_list']:
+    for disk in self.virtual_machine['storage']:
       if ".snap" in disk['source']:
         print(f"[ {self.virtual_machine['name']} ] Warning: Disk file in use is a snapshot file !")
         print(f"[ {self.virtual_machine['name']} ] Trying to blockcommit snapshot file to {disk['source']}...")

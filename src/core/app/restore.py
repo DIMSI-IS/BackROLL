@@ -43,8 +43,13 @@ regex = "^((?!^i-).)*$"
 @celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
 def restore_disk_vm(self, virtual_machine_details, virtual_machine_id, backup_id):
   host_list = host.retrieve_host()
-  virtual_machine_list = virtual_machine.parse_host(host_list)
-  virtual_machine_info = virtual_machine.filter_virtual_machine_list(virtual_machine_list, virtual_machine_id)
+  virtual_machine_list = []
+  for hypervisor in host_list:
+    virtual_machine_list += virtual_machine.parse_host(hypervisor)
+  for vm in virtual_machine_list:
+    if vm['uuid'] == virtual_machine_id:
+      break
+  virtual_machine_info = vm    
   hypervisor = host.filter_host_by_id(virtual_machine_info['host'])
   try:
     restore_task(self, virtual_machine_info, hypervisor, virtual_machine_details, backup_id)
@@ -100,8 +105,8 @@ def restore_task(self, virtual_machine_info, hypervisor, virtual_machine_details
         host_ssh = paramiko.SSHClient()
         host_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         host_ssh.connect(
-            hostname=hypervisor['ip_address'],
-            username=hypervisor['username']
+            hostname=hypervisor.ipaddress,
+            username=hypervisor.username
       )
 
       # Extract selected borg archive
