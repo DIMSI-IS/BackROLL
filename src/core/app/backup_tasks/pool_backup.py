@@ -182,6 +182,7 @@ def backup_subtask(info):
     # decrement the counter to insure tasks can run
     # or: raise e
     raise e
+  return { 'info': info, 'status': 'success' }
 
 @celery.task(name='backup_completed', bind=True)
 def backup_completed(target, *args, **kwargs):
