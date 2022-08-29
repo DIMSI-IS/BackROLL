@@ -41,23 +41,37 @@ borgserver_MGMT_repositorypath = os.getenv("MGMT_BACKUP_PATH")
 regex = "^((?!^i-).)*$"
 
 @celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
-def restore_disk_vm(self, virtual_machine_details, virtual_machine_id, backup_id):
-  host_list = host.retrieve_host()
-  virtual_machine_list = []
-  for hypervisor in host_list:
-    virtual_machine_list += virtual_machine.parse_host(hypervisor)
-  for vm in virtual_machine_list:
-    if vm['uuid'] == virtual_machine_id:
-      break
-  virtual_machine_info = vm    
-  hypervisor = host.filter_host_by_id(virtual_machine_info['host'])
+def restore_disk_vm(self, info, backup_id):
   try:
-    restore_task(self, virtual_machine_info, hypervisor, virtual_machine_details, backup_id)
-  except Exception:
-    self.retry(countdown=3**self.request.retries)
+    redis_instance = Redis(host='redis', port=6379)
+    unique_task_key = f'''vmlock-{virtual_machine_info}'''
+    if not redis_instance.exists(unique_task_key):
+      #I am the legitimate running task
+      redis_instance.set(unique_task_key, "")
+      redis_instance.expire(unique_task_key, 5400)
+      try:
+        # Retrieve VM host info
+        host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
+        vm_storage_info = kvm_list_disk.getDisk(info, host_info)
+        try:
+          restore_task(self, info, host_info, vm_storage_info, backup_id)
+        except Exception:
+          self.retry(countdown=3**self.request.retries)
+      except:
+        raise
+    else:
+      #Do you want to do something else on task duplicate?
+      raise ValueError("This task is already running / scheduled")
+    redis_instance.delete(unique_task_key)
+  except Exception as e:
+    redis_instance.delete(unique_task_key)
+    # potentially log error with Sentry?
+    # decrement the counter to insure tasks can run
+    # or: raise e
+    raise e
 
 # def restore_task(self, info, hypervisor, disk_list, backup):
-def restore_task(self, virtual_machine_info, hypervisor, virtual_machine_details, backup_id):
+def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_id):
   if re.search(regex, virtual_machine_info['name']):
     borg_repository = borgserver_MGMT_repositorypath
   else:
@@ -105,18 +119,19 @@ def restore_task(self, virtual_machine_info, hypervisor, virtual_machine_details
         host_ssh = paramiko.SSHClient()
         host_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         host_ssh.connect(
-            hostname=hypervisor.ipaddress,
-            username=hypervisor.username
+            hostname=hypervisor['ipaddress'],
+            username=hypervisor['username']
       )
 
       # Extract selected borg archive
       os.system(f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_id}""")
 
       # Loop through VM's disks to find filedisk
-      for i in virtual_machine_details['disk_list']:
-        if i['device'] == disk_device:
+      print(vm_storage_info)
+      for disk in vm_storage_info['storage']:
+        if disk['device'] == disk_device:
           break
-      virtual_machine_disk = i['source']
+      virtual_machine_disk = disk['source']
 
       # Build path based on disk source path
       path = virtual_machine_disk.split("/")

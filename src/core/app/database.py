@@ -90,8 +90,8 @@ class Storage(SQLModel, table=True):
 
 class ExternalHooks(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
-  name: Optional[str] = None
-  url: Optional[str] = None
+  name: str
+  value: str
 
 @app.on_event("startup")
 async def startup_event():

@@ -36,6 +36,9 @@ from app.database import Policies
 from app.database import Storage
 from app.database import Pools
 from app.database import Hosts
+
+from app.routes import external_hooks
+
 from app import celery as celeryWorker
 from app import celery
 
@@ -84,6 +87,23 @@ class backup_policy_update(BaseModel):
               "externalhook": "https://my.example-webhook.com/ud4jf"
           }
       }
+
+def filter_policy_by_id(policy_id):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+  try:
+    with Session(engine) as session:
+      statement = select(Policies).where(Policies.id == policy_id)
+      results = session.exec(statement)
+      policy = results.one()
+      if not policy:
+        reason = f'Policy with id {policy_id} not found'
+        raise HTTPException(status_code=404, detail=reason)
+    return policy
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
 
 @celery.task(name='create_backup_policy')
 def api_create_backup_policy(name, description, schedule, retention, storage, externalhook):
@@ -221,8 +241,12 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
       data_backup_policy.retention_year = retention["year"]
     if storage:
       data_backup_policy.storage = storage
-    if externalhook:
+    print(externalhook)
+    if externalhook is not None:
+      external_hooks.filter_external_hook_by_id(externalhook)
       data_backup_policy.externalhook = externalhook
+    else:
+      data_backup_policy.externalhook = None
     with Session(engine) as session:
       session.add(data_backup_policy)
       session.commit()

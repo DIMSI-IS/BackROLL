@@ -158,7 +158,7 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   virtual_machine_id = item.virtual_machine_id
   backup_id = item.backup_id
-  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.retrieve_virtual_machine_disk.s(virtual_machine_id), restore.restore_disk_vm.s(virtual_machine_id, backup_id)).apply_async() 
+  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_id)).apply_async() 
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.get('/api/v1/tasks/backup', status_code=200)

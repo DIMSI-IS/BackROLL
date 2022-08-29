@@ -50,7 +50,7 @@ from app.borg import borg_core
 from app.borg import borg_misc
 from app.kvm import kvm_list_disk
 from app.kvm import kvm_list_vm
-from app.slack import messager
+from app.webhooks import slack
 from app import task_handler
 
 @celery.task(queue='backup_tasks', name='backup_subtask', soft_time_limit=5400)
@@ -160,7 +160,7 @@ def backup_subtask(info):
 
   try:
     redis_instance = Redis(host='redis', port=6379)
-    unique_task_key = f'''nodup-single_vm_backup-{info}'''
+    unique_task_key = f'''vmlock-{info}'''
     if not redis_instance.exists(unique_task_key):
       #I am the legitimate running task
       redis_instance.set(unique_task_key, "")

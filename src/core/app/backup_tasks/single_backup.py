@@ -40,7 +40,7 @@ from app.borg import borg_core
 from app.borg import borg_misc
 from app.kvm import kvm_list_disk
 from app.kvm import kvm_list_vm
-from app.slack import messager
+from app.webhooks import slack
 
 def backup_deletion(self, info):
   # Initializing object
@@ -150,7 +150,7 @@ def backup_creation(info):
 def single_vm_backup(virtual_machine_info):
   try:
       redis_instance = Redis(host='redis', port=6379)
-      unique_task_key = f'''nodup-single_vm_backup-{virtual_machine_info}'''
+      unique_task_key = f'''vmlock-{virtual_machine_info}'''
       if not redis_instance.exists(unique_task_key):
           #I am the legitimate running task
           redis_instance.set(unique_task_key, "")
@@ -186,63 +186,63 @@ def remove_archive_task(self, info):
     raise err
 
 
-# Orphan backups cleaner (remove backup of non-existing VM)
-@celery.task(name='backupCleaner')
-def clean_orphan_backups():
-  parsedArchiveList = []
-  try:
-    backup_list = borg_core.borg_list_backedup_vm()
-  except ValueError as err:
-    raise
-  for i in backup_list:
-    x = re.search("^(^i-).*", i)
-    if x:
-      parsedArchiveList.append(i)
-  cleaning_repo_list = []
-  cs_vm_list = virtual_machine.get_vm()
-  for x in parsedArchiveList:
-    vmexists = False
-    for y in cs_vm_list['virtual_machine']:
-      if x == y['instancename']:
-        vmexists = True
-    if not vmexists:
-      cleaning_repo_list.append(x)
+# # Orphan backups cleaner (remove virtual machine borg's repository (and all of it's data) of any non-existing VM)
+# @celery.task(name='garbageCollector')
+# def garbage_collector():
+#   parsedArchiveList = []
+#   try:
+#     backup_list = borg_core.borg_list_backedup_vm()
+#   except ValueError as err:
+#     raise
+#   for i in backup_list:
+#     x = re.search("^(^i-).*", i)
+#     if x:
+#       parsedArchiveList.append(i)
+#   cleaning_repo_list = []
+#   cs_vm_list = virtual_machine.get_vm()
+#   for x in parsedArchiveList:
+#     vmexists = False
+#     for y in cs_vm_list['virtual_machine']:
+#       if x == y['instancename']:
+#         vmexists = True
+#     if not vmexists:
+#       cleaning_repo_list.append(x)
 
-  vm_list_block = []
+#   vm_list_block = []
 
-  for item in cleaning_repo_list:
-    borg_core.delete_repository(item)
-    vm_list_block.append({"type": "plain_text","text": item,"emoji": True })
+#   for item in cleaning_repo_list:
+#     borg_core.delete_repository(item)
+#     vm_list_block.append({"type": "plain_text","text": item,"emoji": True })
 
-  borg_core.close_connections()
+#   borg_core.close_connections()
 
-  if len(vm_list_block) > 0:
-    block_msg = {
-      "blocks": [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": "*I have detected that the following VMs*\n*no longer exists in Cloudstack but still have backups*"
-          }
-        },
-        {
-          "type": "divider"
-        },
-        {
-          "type": "section",
-          "fields": vm_list_block
-        },
-        {
-          "type": "divider"
-        },
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": "*These orphaned backups have been successfully cleaned up*"
-          }
-        }
-      ]
-    }
-    messager.slack_notification(block_msg['blocks'])
+#   if len(vm_list_block) > 0:
+#     block_msg = {
+#       "blocks": [
+#         {
+#           "type": "section",
+#           "text": {
+#             "type": "mrkdwn",
+#             "text": "*I have detected that the following VMs*\n*no longer exists in Cloudstack but still have backups*"
+#           }
+#         },
+#         {
+#           "type": "divider"
+#         },
+#         {
+#           "type": "section",
+#           "fields": vm_list_block
+#         },
+#         {
+#           "type": "divider"
+#         },
+#         {
+#           "type": "section",
+#           "text": {
+#             "type": "mrkdwn",
+#             "text": "*These orphaned backups have been successfully cleaned up*"
+#           }
+#         }
+#       ]
+#     }
+#     slack.connector(block_msg['blocks'])

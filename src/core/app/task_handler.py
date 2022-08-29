@@ -35,13 +35,16 @@ from celery.exceptions import Ignore
 from app.backup_tasks import single_backup
 from app.backup_tasks import pool_backup
 from app.routes import kickstart_backup
-from app.routes import pool as pool_routes
+from app.routes import host as host_route
+from app.routes import pool as pool_route
+from app.routes import backup_policy as policy_route
+from app.routes import external_hooks as hook_route
 
 from app import restore
 
 from app import database
 
-from app.slack import messager
+from app.webhooks import slack
 
 def list_running_tasks(application):
     return application.active()
@@ -64,133 +67,147 @@ def convert(seconds):
 
 
 ##################################
-# Handle task result and output to slack
+# Handle task result and output to webhook (if any)
 @celery.task(name='Handle task success', max_retries=None)
 def handle_task_success(task_id, msg):
-  time.sleep(10)
-  task_result = retrieve_task_info(task_id).decode('ascii')
-  text = json.loads(task_result)['args']
-  left = '{'
-  right = '}'
-  arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
-  arguments = arguments.replace("'", '"')
-  task_args = json.loads(arguments)
-  context_smiley = "white_check_mark"
-  alerting = ""
-  duration_time = f"{convert(json.loads(task_result).get('runtime'))}"
-  block_msg = {
-    "blocks": [
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": f"{alerting}*{msg}*"
+
+  host = host_route.filter_host_by_id(task_args['host'])
+  pool = pool_route.host.filter_pool_by_id(host.pool_id)
+  policy = policy_route.filter_policy_by_id(pool.policy_id)
+  hook = hook_route.filter_external_hook_by_id(policy.externalhook)
+
+  if hook.value:
+    time.sleep(10)
+    task_result = retrieve_task_info(task_id).decode('ascii')
+    text = json.loads(task_result)['args']
+    left = '{'
+    right = '}'
+    arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
+    arguments = arguments.replace("'", '"')
+    task_args = json.loads(arguments)
+    context_smiley = "white_check_mark"
+    alerting = ""
+    duration_time = f"{convert(json.loads(task_result).get('runtime'))}"
+    block_msg = {
+      "blocks": [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": f"{alerting}*{msg}*"
+          }
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "section",
+          "fields": [
+            {
+              "type": "mrkdwn",
+              "text": f"*Target*\n{task_args['name']}"
+            },
+            {
+              "type": "mrkdwn",
+              "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
+            },
+            {
+              "type": "mrkdwn",
+              "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
+            },
+            {
+              "type": "mrkdwn",
+              "text": f"*Duration*\n{duration_time}"
+            }
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "context",
+          "elements": [
+            {
+              "type": "mrkdwn",
+              "text": f"*TYPE*: {json.loads(task_result)['name']}"
+            }
+          ]
         }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "fields": [
-          {
-            "type": "mrkdwn",
-            "text": f"*Target*\n{task_args['name']}"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*Duration*\n{duration_time}"
-          }
-        ]
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "mrkdwn",
-            "text": f"*TYPE*: {json.loads(task_result)['name']}"
-          }
-        ]
-      }
-    ]
-  }
-  messager.slack_notification(block_msg['blocks'])
+      ]
+    }
+    slack.connector(hook, block_msg['blocks'])
 
 
 @celery.task(name='Handle task failure')
 def handle_task_failure(task_id, msg):
-  time.sleep(5)
-  task_result = retrieve_task_info(task_id).decode('ascii')
-  text = json.loads(task_result)['args']
-  left = "{"
-  right = "}"
-  arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
-  arguments = arguments.replace("(", '')
-  arguments = arguments.replace(")", '')
-  arguments = arguments.replace("'", '"')
-  task_args = json.loads(arguments)
-  context_smiley = "x"
-  alerting = "<!channel> "
-  duration_time = "N/A"
-  block_msg = {
-    "blocks": [
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": f"{alerting}*{msg}*"
+
+  host = host_route.filter_host_by_id(task_args['host'])
+  pool = pool_route.host.filter_pool_by_id(host.pool_id)
+  policy = policy_route.filter_policy_by_id(pool.policy_id)
+  hook = hook_route.filter_external_hook_by_id(policy.externalhook)
+
+  if hook.value:
+    time.sleep(10)
+    task_result = retrieve_task_info(task_id).decode('ascii')
+    text = json.loads(task_result)['args']
+    left = "{"
+    right = "}"
+    arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
+    arguments = arguments.replace("(", '')
+    arguments = arguments.replace(")", '')
+    arguments = arguments.replace("'", '"')
+    task_args = json.loads(arguments)
+    context_smiley = "x"
+    alerting = "<!channel> "
+    duration_time = "N/A"
+    block_msg = {
+      "blocks": [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": f"{alerting}*{msg}*"
+          }
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "section",
+          "fields": [
+            {
+              "type": "mrkdwn",
+              "text": f"*Target*\n{task_args['name']}"
+            },
+            {
+              "type": "mrkdwn",
+              "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
+            },
+            {
+              "type": "mrkdwn",
+              "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
+            },
+            {
+              "type": "mrkdwn",
+              "text": f"*Duration*\n{duration_time}"
+            }
+          ]
+        },
+        {
+          "type": "divider"
+        },
+        {
+          "type": "context",
+          "elements": [
+            {
+              "type": "mrkdwn",
+              "text": f"*TYPE*: {json.loads(task_result)['name']}"
+            }
+          ]
         }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "fields": [
-          {
-            "type": "mrkdwn",
-            "text": f"*Target*\n{task_args['name']}"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*Duration*\n{duration_time}"
-          }
-        ]
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "mrkdwn",
-            "text": f"*TYPE*: {json.loads(task_result)['name']}"
-          }
-        ]
-      }
-    ]
-  }
-  messager.slack_notification(block_msg['blocks'])
+      ]
+    }
+    slack.connector(hook, block_msg['blocks'])
 
 
 @task_success.connect(sender=single_backup.single_vm_backup)
@@ -213,95 +230,27 @@ def restore_backup_failure_handler(sender=None, body=None, *args,  **kwargs):
 def pool_backup_notification(result, pool_id):
   print(result, pool_id)
 
-  pool = pool_routes.filter_pool_by_id(pool_id)
+  # Retrieve pool's policy info
+  pool = pool_route.filter_pool_by_id(pool_id)
+  policy = policy_route.filter_policy_by_id(pool.policy_id)
 
-  # Build success and failure lists based on chord tasks results
-  success_list = []
-  failure_list = []
+  # No defined webhook - stopping here...
+  if not policy.webhook: return
+  else:
+    externalhook= hook_route.filter_external_hook_by_id(policy.webhook)
 
-  for item in result:
-    if isinstance(item, dict):
-      if item.get('status') == 'success':
-        success_list.append(item['info'])
+    # Build success and failure lists based on chord tasks results
+    success_list = []
+    failure_list = []
 
-  inital_vm_list = kickstart_backup.getVMtobackup(pool_id)
-  for item in inital_vm_list:
-    if item not in success_list:
-      failure_list.append(item)
+    for item in result:
+      if isinstance(item, dict):
+        if item.get('status') == 'success':
+          success_list.append(item['info'])
 
-  # Build slack block message
-  alert = ''
-  if len(failure_list) > 0:
-    alert = '<!channel> '
+    inital_vm_list = kickstart_backup.getVMtobackup(pool_id)
+    for item in inital_vm_list:
+      if item not in success_list:
+        failure_list.append(item)
 
-  slack_block = {
-    "blocks": [
-      {
-        "type": "header",
-        "text": {
-          "type": "plain_text",
-          "text": "Summary of your pool backup job"
-        }
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "mrkdwn",
-            "text": f"{alert}*{pool.name}*"
-          }
-        ]
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "mrkdwn",
-            "text": ":white_check_mark:"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*{len(success_list)}* Successful backup(s)"
-          }
-        ]
-      },
-      {
-        "type": "context",
-        "elements": [
-          {
-            "type": "mrkdwn",
-            "text": ":x:"
-          },
-          {
-            "type": "mrkdwn",
-            "text": f"*{len(failure_list)}* Failed backup(s)"
-          }
-        ]
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": "Review all backup tasks :arrow_right:"
-        },
-        "accessory": {
-          "type": "button",
-          "text": {
-            "type": "plain_text",
-            "text": "By clicking here",
-          },
-          "value": "click_me_123",
-          "url": f"{os.getenv('BASE_URL')}/admin/tasks/backup",
-          "action_id": "button-action"
-        }
-      }
-    ]
-  }
-
-  try:
-    messager.slack_notification(slack_block['blocks'])
-  except:
-    raise
+    slack.pool_notification(externalhook, success_list, failure_list, pool)

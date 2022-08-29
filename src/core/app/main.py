@@ -50,7 +50,7 @@ def main():
 
 celery.conf.beat_schedule = {
     'daily_routine_cleaning_backups': {
-        'task': 'backupCleaner',
+        'task': 'garbageCollector',
         'schedule': crontab(hour=1, minute=0, day_of_week='*', day_of_month='*', month_of_year='*'),
         'args': ()
     }
