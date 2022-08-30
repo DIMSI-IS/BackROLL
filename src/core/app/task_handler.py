@@ -86,7 +86,7 @@ def handle_task_success(task_id, msg):
   policy = policy_route.filter_policy_by_id(pool.policy_id)
   hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
-  if hook.value:
+  if hook.provider.lower() == "slack" and hook.value:
     time.sleep(10)
     task_result = retrieve_task_info(task_id).decode('ascii')
     text = json.loads(task_result)['args']
@@ -166,7 +166,7 @@ def handle_task_failure(task_id, msg):
   policy = policy_route.filter_policy_by_id(pool.policy_id)
   hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
-  if hook.value:
+  if hook.provider.lower() == "slack" and hook.value:
     time.sleep(10)
     task_result = retrieve_task_info(task_id).decode('ascii')
     text = json.loads(task_result)['args']
@@ -273,4 +273,5 @@ def pool_backup_notification(result, pool_id):
       if item not in success_list:
         failure_list.append(item)
 
-    slack.pool_notification(externalhook, success_list, failure_list, pool)
+    if externalhook.provider.lower() == "slack":
+      slack.pool_notification(externalhook, success_list, failure_list, pool)

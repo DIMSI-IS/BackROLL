@@ -50,7 +50,6 @@ from app.borg import borg_core
 from app.borg import borg_misc
 from app.kvm import kvm_list_disk
 from app.kvm import kvm_list_vm
-from app.webhooks import slack
 from app import task_handler
 
 @celery.task(queue='backup_tasks', name='backup_subtask', soft_time_limit=5400)

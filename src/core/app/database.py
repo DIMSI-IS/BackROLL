@@ -82,7 +82,6 @@ class Storage(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   name: str
   path: str
-
   def to_json(self):
     return {
       "id": str(self.id),
@@ -94,6 +93,7 @@ class ExternalHooks(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   name: str
   value: str
+  provider: Optional[str] = "slack"
 
 @app.on_event("startup")
 async def startup_event():
