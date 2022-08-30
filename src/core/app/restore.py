@@ -33,10 +33,8 @@ import re
 from app import task_handler
 from app.routes import virtual_machine
 from app.routes import host
+from app.routes import storage
 from app.cloudstack import virtual_machine as cs_vm_command
-
-borgserver_CS_repositorypath = os.getenv("CS_BACKUP_PATH")
-borgserver_MGMT_repositorypath = os.getenv("MGMT_BACKUP_PATH")
 
 regex = "^((?!^i-).)*$"
 
@@ -72,10 +70,9 @@ def restore_disk_vm(self, info, backup_id):
 
 # def restore_task(self, info, hypervisor, disk_list, backup):
 def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_id):
-  if re.search(regex, virtual_machine_info['name']):
-    borg_repository = borgserver_MGMT_repositorypath
-  else:
-    borg_repository = borgserver_CS_repositorypath
+
+  vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine_info)
+  borg_repository = vm_storage.path
 
   def remote_request(host_ssh, command):
     # Passing commands through SSH to remote endpoint

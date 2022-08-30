@@ -102,6 +102,6 @@ def pool_notification(externalhook, success_list, failure_list, pool):
   }
 
   try:
-    connector(hook, slack_block['blocks'])
+    connector(externalhook, slack_block['blocks'])
   except:
     raise

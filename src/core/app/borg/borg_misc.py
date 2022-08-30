@@ -26,6 +26,8 @@ from app import app
 
 from app import celery
 
+from app.routes import storage
+
 def borglock(payload):
     borgbreaklock.delay(payload)
 
@@ -37,17 +39,13 @@ def borgbreaklock(virtual_machine_list, virtual_machine_id):
       virtual_machine = x
   if not virtual_machine:
     raise ValueError(f'virtual machine with id {virtual_machine_id} not found')
-
   try:
-    if 'cloudstack' in virtual_machine['host_tag'].lower():
-      repository = os.getenv("CS_BACKUP_PATH")
-    else:
-      repository = os.getenv("MGMT_BACKUP_PATH")
-
-    if not path.isdir(f'{repository}/{virtual_machine["name"]}'):
+    vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine)
+    repository = vm_storage.path
+    if not path.isdir(f'{repository}{virtual_machine["name"]}'):
       raise ValueError(f'Borg repository not found for virtual machine with {virtual_machine_id}')
 
-    command = f'borg break-lock {repository}/{virtual_machine["name"]}'
+    command = f'borg break-lock {repository}{virtual_machine["name"]}'
     subprocess.run(command.split(), check=True)
   except Exception as e:
     raise ValueError(e)

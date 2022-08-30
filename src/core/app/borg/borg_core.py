@@ -37,19 +37,12 @@ from app.kvm import kvm_get_uuid
 from app.kvm import kvm_list_disk
 from app.kvm import kvm_list_snapshot
 
-borgserver_CS_repositorypath = os.getenv("CS_BACKUP_PATH")
-borgserver_MGMT_repositorypath = os.getenv("MGMT_BACKUP_PATH")
-
 
 class borg_backup:
   """ Full sequence to backup all disks of a specified virtual machine
   Defining environment variables and logging file for backup task of specified VM"""
 
   def __init__(self, vm_info, host_info):
-    self.env = dict(
-        BORG_CS_REPO=borgserver_CS_repositorypath,
-        BORG_KVM_REPO=borgserver_MGMT_repositorypath
-    )
     self.info = {}
     self.info['name'] = vm_info.get('name', None)
     self.info['borg_repository'] = None
@@ -307,13 +300,10 @@ class borg_backup:
     request = self.remote_request(command)
     self.process_rc(request, 'borg')
 
-def borg_list_backup(virtual_machine):
+def borg_list_backup(virtual_machine, repository):
   try:
     # Starting ssh access
-    if re.search("^((?!^i-).)*$", virtual_machine):
-      command = f"borg list --json {borgserver_MGMT_repositorypath}{virtual_machine}"
-    else:
-      command = f"borg list --json {borgserver_CS_repositorypath}{virtual_machine}"
+    command = f"borg list --json {repository}{virtual_machine}"
     request = subprocess.run(command.split(), capture_output=True)
     result = ""
     if request.returncode == 2:
@@ -329,25 +319,25 @@ def borg_list_backup(virtual_machine):
     raise
 
 
-def borg_list_backedup_vm():
-  try:
-    result = os.listdir(borgserver_CS_repositorypath)
-    return result
-  except Exception as e:
-    print(e)
-    raise e
+# def borg_list_backedup_vm():
+#   try:
+#     result = os.listdir(borgserver_CS_repositorypath)
+#     return result
+#   except Exception as e:
+#     print(e)
+#     raise e
 
-def delete_repository(self, repository):
-  command = f'borg delete {borgserver_CS_repositorypath}{repository}'
-  print(command)
-  stdin, stdout, stderr = self.borgSSH.exec_command(command)
-  stdin.write('YES' + '\n')
-  if stdout.channel.recv_exit_status() == 2:
-    for line in iter(stderr.readline, ""):
-      reason = ''
-      reason += line
-    print(reason)
-  else:
-    for line in iter(stdout.readline, ""):
-      output += line
-    print(output)
+# def delete_repository(self, repository):
+#   command = f'borg delete {borgserver_CS_repositorypath}{repository}'
+#   print(command)
+#   stdin, stdout, stderr = self.borgSSH.exec_command(command)
+#   stdin.write('YES' + '\n')
+#   if stdout.channel.recv_exit_status() == 2:
+#     for line in iter(stderr.readline, ""):
+#       reason = ''
+#       reason += line
+#     print(reason)
+#   else:
+#     for line in iter(stdout.readline, ""):
+#       output += line
+#     print(output)

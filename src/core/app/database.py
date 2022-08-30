@@ -40,7 +40,7 @@ class Policies(SQLModel, table=True):
   retention_year: int
   storage: uuid_pkg.UUID = Field(default=None, foreign_key="storage.id")
   externalhook: uuid_pkg.UUID = Field(default=None, foreign_key="externalhooks.id")
-  enabled: Optional[int] = 0
+  enabled: Optional[bool] = 0
 
 class Pools(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
@@ -59,10 +59,11 @@ class Hosts(SQLModel, table=True):
   hostname: str
   ipaddress: str
   username: Optional[str] = None
-  ssh: Optional[int] = 0
+  ssh: Optional[bool] = 0
+  cloudstack: Optional[bool] = 0
   pool_id: uuid_pkg.UUID = Field(default=None, foreign_key="pools.id")
   tags: Optional[str] = None
-  state: Optional[str] = None
+  state: Optional[bool] = 0
 
   def to_json(self):
     return {
@@ -70,10 +71,11 @@ class Hosts(SQLModel, table=True):
       "hostname": self.hostname,
       "ipaddress": self.ipaddress,
       "username": self.username,
-      "ssh": int(self.ssh),
+      "ssh": bool(self.ssh),
+      "cloudstack": bool(self.ssh),
       "pool_id": str(self.pool_id),
       "tags": self.tags,
-      "state": self.state
+      "state": bool(self.state)
     }
 
 class Storage(SQLModel, table=True):

@@ -71,8 +71,18 @@ def convert(seconds):
 @celery.task(name='Handle task success', max_retries=None)
 def handle_task_success(task_id, msg):
 
+  task_result = retrieve_task_info(task_id).decode('ascii')
+  text = json.loads(task_result)['args']
+  left = "{"
+  right = "}"
+  arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
+  arguments = arguments.replace("(", '')
+  arguments = arguments.replace(")", '')
+  arguments = arguments.replace("'", '"')
+  task_args = json.loads(arguments)
+
   host = host_route.filter_host_by_id(task_args['host'])
-  pool = pool_route.host.filter_pool_by_id(host.pool_id)
+  pool = pool_route.filter_pool_by_id(host.pool_id)
   policy = policy_route.filter_policy_by_id(pool.policy_id)
   hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
@@ -141,8 +151,18 @@ def handle_task_success(task_id, msg):
 @celery.task(name='Handle task failure')
 def handle_task_failure(task_id, msg):
 
+  task_result = retrieve_task_info(task_id).decode('ascii')
+  text = json.loads(task_result)['args']
+  left = "{"
+  right = "}"
+  arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
+  arguments = arguments.replace("(", '')
+  arguments = arguments.replace(")", '')
+  arguments = arguments.replace("'", '"')
+  task_args = json.loads(arguments)
+
   host = host_route.filter_host_by_id(task_args['host'])
-  pool = pool_route.host.filter_pool_by_id(host.pool_id)
+  pool = pool_route.filter_pool_by_id(host.pool_id)
   policy = policy_route.filter_policy_by_id(pool.policy_id)
   hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
@@ -235,9 +255,9 @@ def pool_backup_notification(result, pool_id):
   policy = policy_route.filter_policy_by_id(pool.policy_id)
 
   # No defined webhook - stopping here...
-  if not policy.webhook: return
+  if not policy.externalhook: return
   else:
-    externalhook= hook_route.filter_external_hook_by_id(policy.webhook)
+    externalhook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
     # Build success and failure lists based on chord tasks results
     success_list = []

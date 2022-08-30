@@ -40,6 +40,7 @@ from app.borg import borg_core
 from app.borg import borg_misc
 
 from app.routes import host
+from app.routes import storage
 
 # KVM Imports
 from app.kvm import kvm_check
@@ -89,7 +90,8 @@ def retrieve_virtual_machine_backups(self, virtual_machine_list, virtual_machine
     raise ValueError(f'virtual machine with id {virtual_machine_id} not found')
 
   try:
-    backup_list = json.loads(borg_core.borg_list_backup(virtual_machine['name']))
+    vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine)
+    backup_list = json.loads(borg_core.borg_list_backup(virtual_machine['name'], vm_storage.path))
     return backup_list
   except Exception:
     self.retry(countdown=1)
