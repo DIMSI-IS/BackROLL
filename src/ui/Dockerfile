@@ -1,11 +1,18 @@
-FROM httpd:2.4
-COPY ./dist/ /usr/local/apache2/htdocs/
+# build stage
+FROM node:14 as build-stage
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --no-optional
+COPY . .
+RUN npm run build
 
+# production stage
+FROM nginx as production-stage
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-COPY create_config_js.sh .
-RUN chmod +x create_config_js.sh
-COPY docker_entrypoint.sh .
-RUN chmod +x docker_entrypoint.sh
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 EXPOSE 80
-CMD ["/bin/sh", "docker_entrypoint.sh"]
+CMD ["/bin/sh", "entrypoint.sh"]

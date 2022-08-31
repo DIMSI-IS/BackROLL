@@ -1,0 +1,127 @@
+<template>
+  <va-card>
+    <va-card-title>
+      <h1>Pools</h1>
+      <div class="mr-0 text-right">
+        <va-button
+          color="info"
+          @click="this.$router.push('/admin/resources/pools/new')"
+        >
+          Create new Pool
+        </va-button>
+      </div>
+    </va-card-title>
+    <va-card-content>
+      <va-data-table
+        :items="$store.state.resources.poolList"
+        :columns="columns"
+      >
+        <template #header(policy_id)>Assigned policy</template>
+        <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
+        <template #cell(policy_id)="{ value }">
+          <va-chip size="small" square @click="this.$router.push('/admin/configuration/policies')">
+            {{ getBackupPolicy(value).name.toUpperCase() }}
+          </va-chip>
+        </template>
+        <template #cell(actions)="{ rowIndex }">
+          <va-button-group gradient :rounded="false">
+            <va-button icon="settings" @click="this.$router.push(`/admin/resources/pools/${$store.state.resources.poolList[rowIndex].id}`)" />
+            <va-button icon="delete" @click="selectedPool = $store.state.resources.poolList[rowIndex], showDeleteModal = !showDeleteModal" />
+          </va-button-group>
+        </template>
+      </va-data-table>
+      <div v-if="!$store.state.ispoolTableReady" class="flex-center ma-3">
+        <spring-spinner
+          :animation-duration="2000"
+          :size="30"
+          color="#2c82e0"
+        />
+      </div>
+    </va-card-content>
+  </va-card>
+  <va-modal
+    v-model="showDeleteModal"
+    @ok="deletePool()"
+  >
+    <template #header>
+      <h2>
+        <va-icon name="warning" color="danger" />
+        Removing Pool
+      </h2>
+    </template>
+    <hr>
+    <div>
+      You are about to remove Pool <b>{{ JSON.parse(JSON.stringify(this.selectedPool)).name }}</b>.
+      <br>Please confirm action.
+    </div>
+  </va-modal>
+</template>
+
+<script>
+import axios from 'axios'
+import { defineComponent } from 'vue'
+import * as spinners from 'epic-spinners'
+
+export default defineComponent({
+  name: 'PoolsTable',
+  components: { ...spinners },
+  data () {
+    return {
+      columns: [
+        { key: 'name'},
+        { key: 'policy_id'},
+        { key: 'actions' }
+      ],
+      showDeleteModal: false,
+      selectedPool: null
+    }
+  },
+  computed: {
+  },
+  methods: {
+    deletePool () {
+      const self = this
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/pools/${this.selectedPool.id}`, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
+      .then(response => {
+        this.$store.dispatch("requestPool", { token: this.$keycloak.token })
+        this.$vaToast.init(({ title: response.data.state, message: 'Pool has been successfully deleted', color: 'success' }))
+      })
+      .catch(function (error) {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          self.$vaToast.init(({ title: 'Unable to delete pool', message: error.response.data.detail, color: 'danger' }))
+        }
+      })
+    },
+    humanPoolsSize(bytes, si=false, dp=1) {
+      const thresh = si ? 1000 : 1024;
+      if (Math.abs(bytes) < thresh) {
+        return bytes + ' B';
+      }
+      const units = si 
+        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] 
+        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+      let u = -1;
+      const r = 10**dp;
+      do {
+        bytes /= thresh;
+        ++u;
+      } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
+      return bytes.toFixed(dp) + ' ' + units[u];
+    },
+    getBackupPolicy (id) {
+      const result = this.$store.state.resources.policyList.filter((item) => {
+        return item.id == id
+      })
+      return result[0]
+    }
+  }
+})
+</script>
+<style scoped>
+  .text-right {
+    text-align: right;
+    width: 100%;
+  }
+</style>

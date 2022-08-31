@@ -1,4 +1,0 @@
-window.BACKROLL_API_ENDPOINT_URL = null;
-window.BACKROLL_OPENID_ISSUER_URL = null;
-window.BACKROLL_OPENID_CLIENTID = null;
-window.BACKROLL_OPENID_REALM = null;

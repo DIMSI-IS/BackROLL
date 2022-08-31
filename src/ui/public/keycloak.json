@@ -1,0 +1,8 @@
+{
+  "realm": "master",
+  "auth-server-url": "https://sso.dimsi.io/auth",
+  "ssl-required": "all",
+  "resource": "backroll",
+  "public-client": true,
+  "confidential-port": 0
+}
