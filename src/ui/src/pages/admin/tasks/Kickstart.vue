@@ -200,7 +200,7 @@ export default {
         route = "/api/v1/tasks/restore/"
         args = {
           virtual_machine_id: this.targetSelection.value,
-          backup_id: this.backupSelection.value
+          backup_name: this.backupSelection.value
         }
       }
       axios.post(`${this.$store.state.endpoint.api}${route}${this.targetSelection.value}`, args, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})

@@ -91,7 +91,7 @@ def retrieve_virtual_machine_backups(self, virtual_machine_list, virtual_machine
 
   try:
     vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine)
-    backup_list = json.loads(borg_core.borg_list_backup(virtual_machine['name'], vm_storage.path))
+    backup_list = json.loads(borg_core.borg_list_backup(virtual_machine['name'], vm_storage["path"]))
     return backup_list
   except Exception:
     self.retry(countdown=1)

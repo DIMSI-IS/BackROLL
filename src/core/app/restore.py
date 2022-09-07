@@ -20,7 +20,9 @@ import os
 import logging
 import subprocess
 from datetime import datetime
+from redis import Redis
 from fastapi import Request
+from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
 from app import app
 from app import celery as celeryWorker
@@ -34,15 +36,16 @@ from app import task_handler
 from app.routes import virtual_machine
 from app.routes import host
 from app.routes import storage
+from app.kvm import kvm_list_disk
 from app.cloudstack import virtual_machine as cs_vm_command
 
 regex = "^((?!^i-).)*$"
 
 @celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
-def restore_disk_vm(self, info, backup_id):
+def restore_disk_vm(self, info, backup_name):
   try:
     redis_instance = Redis(host='redis', port=6379)
-    unique_task_key = f'''vmlock-{virtual_machine_info}'''
+    unique_task_key = f'''vmlock-{info}'''
     if not redis_instance.exists(unique_task_key):
       #I am the legitimate running task
       redis_instance.set(unique_task_key, "")
@@ -52,7 +55,7 @@ def restore_disk_vm(self, info, backup_id):
         host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
         vm_storage_info = kvm_list_disk.getDisk(info, host_info)
         try:
-          restore_task(self, info, host_info, vm_storage_info, backup_id)
+          restore_task(self, info, host_info, vm_storage_info, backup_name)
         except Exception:
           self.retry(countdown=3**self.request.retries)
       except:
@@ -69,10 +72,10 @@ def restore_disk_vm(self, info, backup_id):
     raise e
 
 # def restore_task(self, info, hypervisor, disk_list, backup):
-def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_id):
+def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_name):
 
   vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine_info)
-  borg_repository = vm_storage.path
+  borg_repository = vm_storage["path"]
 
   def remote_request(host_ssh, command):
     # Passing commands through SSH to remote endpoint
@@ -98,7 +101,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
   try:
 
-    disk_device = backup_id.split('_')[0]
+    disk_device = backup_name.split('_')[0]
 
     # Remove existing files inside restore folder
     command = f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}"
@@ -121,11 +124,18 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
       )
 
       # Extract selected borg archive
-      os.system(f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_id}""")
+      cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
+      process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+      while True:
+        process.stdout.flush()
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+          break
+        elif not output and process.poll() is not None:
+          break
 
       # Loop through VM's disks to find filedisk
-      print(vm_storage_info)
-      for disk in vm_storage_info['storage']:
+      for disk in vm_storage_info:
         if disk['device'] == disk_device:
           break
       virtual_machine_disk = disk['source']

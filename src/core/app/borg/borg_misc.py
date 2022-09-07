@@ -41,7 +41,7 @@ def borgbreaklock(virtual_machine_list, virtual_machine_id):
     raise ValueError(f'virtual machine with id {virtual_machine_id} not found')
   try:
     vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine)
-    repository = vm_storage.path
+    repository = vm_storage["path"]
     if not path.isdir(f'{repository}{virtual_machine["name"]}'):
       raise ValueError(f'Borg repository not found for virtual machine with {virtual_machine_id}')
 
