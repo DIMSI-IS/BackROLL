@@ -41,7 +41,7 @@ export default defineComponent({
       if (this.backupInfo.archives) {
         const result = this.backupInfo.archives.map(x => ({
           text: `${x.archive.split('_')[0].toUpperCase()} (${new Date(x.start).toLocaleDateString()})`,
-          value: x.id
+          value: x.name
         }))
         return result.sort().reverse()
       }
