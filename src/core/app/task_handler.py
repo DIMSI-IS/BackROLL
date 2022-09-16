@@ -34,7 +34,6 @@ from celery.exceptions import Ignore
 
 from app.backup_tasks import single_backup
 from app.backup_tasks import pool_backup
-from app.routes import kickstart_backup
 from app.routes import host as host_route
 from app.routes import pool as pool_route
 from app.routes import backup_policy as policy_route
@@ -267,11 +266,8 @@ def pool_backup_notification(result, pool_id):
       if isinstance(item, dict):
         if item.get('status') == 'success':
           success_list.append(item['info'])
-
-    inital_vm_list = kickstart_backup.getVMtobackup(pool_id)
-    for item in inital_vm_list:
-      if item not in success_list:
-        failure_list.append(item)
+      else:
+          failure_list.append(item)
 
     if externalhook.provider.lower() == "slack":
       slack.pool_notification(externalhook, success_list, failure_list, pool)

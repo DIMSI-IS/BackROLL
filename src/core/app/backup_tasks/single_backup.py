@@ -152,7 +152,7 @@ def single_vm_backup(virtual_machine_info):
       redis_instance = Redis(host='redis', port=6379)
       unique_task_key = f'''vmlock-{virtual_machine_info}'''
       if not redis_instance.exists(unique_task_key):
-          #I am the legitimate running task
+          #No duplicated key found in redis - target IS NOT locked right now
           redis_instance.set(unique_task_key, "")
           redis_instance.expire(unique_task_key, 5400)
           if virtual_machine_info.get('state') == 'Running':
@@ -163,7 +163,7 @@ def single_vm_backup(virtual_machine_info):
           else:
             raise ValueError(f"Virtual machine with id {virtual_machine_info['uuid']} isn't running. Backup aborted.")
       else:
-          #Do you want to do something else on task duplicate?
+          #Duplicated key found in redis - target IS locked right now
           raise ValueError("This task is already running / scheduled")
       redis_instance.delete(unique_task_key)
   except Exception as e:

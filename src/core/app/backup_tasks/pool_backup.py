@@ -161,7 +161,7 @@ def backup_subtask(info):
     redis_instance = Redis(host='redis', port=6379)
     unique_task_key = f'''vmlock-{info}'''
     if not redis_instance.exists(unique_task_key):
-      #I am the legitimate running task
+      #No duplicated key found in redis - target IS NOT locked right now
       redis_instance.set(unique_task_key, "")
       redis_instance.expire(unique_task_key, 5400)
       try:
@@ -172,14 +172,12 @@ def backup_subtask(info):
       except:
         raise
     else:
-      #Do you want to do something else on task duplicate?
+      #Duplicated key found in redis - target IS locked right now
       raise ValueError("This task is already running / scheduled")
     redis_instance.delete(unique_task_key)
   except Exception as e:
     redis_instance.delete(unique_task_key)
-    # potentially log error with Sentry?
-    # decrement the counter to insure tasks can run
-    # or: raise e
+    # potentially log error?
     raise e
   return { 'info': info, 'status': 'success' }
 
