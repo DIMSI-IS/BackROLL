@@ -102,20 +102,10 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
           'total': 1,
           'status': 'Pending...'
       }
-      if task.info:
-        response['current'] = task.info.get('current')
-        response['total'] = task.info.get('total')
-        response['percentage'] = task.info.get('percentage')
-        response['step'] = task.info.get('step')
   elif task.state == 'PROGRESS':
       response = {
           'status': 'In progress...'
       }
-      if task.info:
-        response['current'] = task.info.get('current')
-        response['total'] = task.info.get('total')
-        response['percentage'] = task.info.get('percentage')
-        response['step'] = task.info.get('step')
   elif task.state != 'FAILURE':
       response = {
           'state': task.state,
