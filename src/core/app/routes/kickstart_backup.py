@@ -17,17 +17,11 @@
 
 #!/usr/bin/env python
 import os
-import json
 import uuid as uuid_pkg
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, Field, Json
-from fastapi.encoders import jsonable_encoder
-from celery import Celery, states
-from celery.exceptions import Ignore
+from fastapi import HTTPException, Depends
+from pydantic import Json
 from celery_once import QueueOnce
 
-import requests
-from requests.auth import HTTPBasicAuth
 
 from sqlmodel import Session, select
 from app.kvm import kvm_list_vm
@@ -40,7 +34,6 @@ from app import database
 from app import task_handler
 
 from app.backup_tasks import pool_backup
-from app.routes import virtual_machine
 from app.database import Hosts
 
 def getVMtobackup(pool_id):

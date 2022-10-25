@@ -17,30 +17,13 @@
 
 #!/usr/bin/env python
 from redis import Redis
-from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
-from celery import chord, chain, group, signature
-from app import app
-from app import celery as celeryWorker
 from app import celery
-import traceback
-import json
-import re
-
-import logging
-import graypy
-
-from app import database
-
-from app.cloudstack import virtual_machine
 from app.routes import host
 from app.routes import storage
 from app.borg import borg_core
-from app.borg import borg_misc
 from app.kvm import kvm_list_disk
-from app.kvm import kvm_list_vm
-from app.webhooks import slack
 
 def backup_deletion(self, info):
   # Initializing object

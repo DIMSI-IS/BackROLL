@@ -15,7 +15,6 @@
 ## specific language governing permissions and limitations
 ## under the License.
 
-from cs import CloudStack
 from app.cloudstack import endpoint
 import eventlet
 

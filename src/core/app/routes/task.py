@@ -18,37 +18,24 @@
 #!/usr/bin/env python
 import os
 import uuid as uuid_pkg
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, Field, Json
-from fastapi.encoders import jsonable_encoder
-from celery import Celery, states
-from celery.exceptions import Ignore
+from fastapi import HTTPException, Depends
+from pydantic import BaseModel, Json
 import requests
 from requests.auth import HTTPBasicAuth
 import json
 
-from sqlmodel import Session, select
-from app.kvm import kvm_list_vm
-from celery import chord
-
 from app import app
 from app import celery
 from celery import chain
-from celery import current_app
 
-from app import task_handler
 from app.backup_tasks import single_backup
-from app.backup_tasks import pool_backup
 
 from app.routes import host
-from app.routes import pool
 from app.routes import virtual_machine
 
 from app import auth
-from app import database
 from app import restore
 
-from app.database import Hosts
 
 class restorebackup_start(BaseModel):
   virtual_machine_id: str

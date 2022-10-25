@@ -14,13 +14,9 @@
 ## KIND, either express or implied.  See the License for the
 ## specific language governing permissions and limitations
 ## under the License.
-
-import os.path
 from os import path
 
-import time
 import subprocess
-from app import database
 
 from app import app
 

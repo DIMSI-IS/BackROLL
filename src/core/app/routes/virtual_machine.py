@@ -17,24 +17,19 @@
 
 #!/usr/bin/env python
 import uuid as uuid_pkg
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 from pydantic import Json
 
 from celery.result import allow_join_result
-from celery import Celery, states
-from celery.exceptions import Ignore
-from celery import subtask, group, chain, chord, result
+from celery import subtask, group, chain
 
 import json
 
 from app import app
-from app import celery as celeryWorker
 from app import celery as celery_app
 
 from app import auth
-from app import database
-from app.database import Hosts
 
 from app.borg import borg_core
 from app.borg import borg_misc
@@ -43,7 +38,6 @@ from app.routes import host
 from app.routes import storage
 
 # KVM Imports
-from app.kvm import kvm_check
 from app.kvm import kvm_list_vm
 from app.kvm import kvm_list_disk
 

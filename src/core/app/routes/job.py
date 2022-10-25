@@ -16,15 +16,11 @@
 ## under the License.
 
 #!/usr/bin/env python
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, Field, Json
-from sqlmodel import Session, select
+from fastapi import HTTPException, Depends
+from pydantic import Json
 from fastapi.encoders import jsonable_encoder
-from celery import Celery, states
-from celery.exceptions import Ignore
 
 from app import app
-from app import celery as celeryWorker
 from app import celery
 
 from app import auth

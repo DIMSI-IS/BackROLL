@@ -16,9 +16,7 @@
 ## under the License.
 
 import re
-import json
 import libvirt
-from xml.dom import minidom
 
 from app.kvm import kvm_connection
 # from app.borg import borg_core

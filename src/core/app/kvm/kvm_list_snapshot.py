@@ -16,12 +16,6 @@
 ## under the License.
 
 from __future__ import print_function
-# SSH Module Imports
-import paramiko
-import libvirt
-# Libvirt dependencies Imports
-import sys
-from xml.dom import minidom
 # KVM Connection Module Imports
 from app.kvm import kvm_connection
 

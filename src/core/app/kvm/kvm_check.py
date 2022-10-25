@@ -15,8 +15,7 @@
 ## specific language governing permissions and limitations
 ## under the License.
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import HTTPException
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 

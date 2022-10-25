@@ -16,10 +16,7 @@
 ## under the License.
 
 from pprint import pprint
-from celery import Celery
 from redbeat import schedulers
-
-from app import app
 
 
 # Celery Imports

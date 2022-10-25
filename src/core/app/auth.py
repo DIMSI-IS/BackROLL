@@ -16,17 +16,15 @@
 ## under the License.
 
 import os
-import json
-from fastapi import FastAPI, HTTPException, Security, status
-from fastapi.encoders import jsonable_encoder
+from fastapi import HTTPException, Security, status
 from starlette.config import Config
 from starlette.requests import Request
 from starlette.middleware.sessions import SessionMiddleware
 import jwt
 from jwt import PyJWKClient
 from pydantic import Json
-from starlette.responses import HTMLResponse, RedirectResponse
-from authlib.integrations.starlette_client import OAuth, OAuthError
+from starlette.responses import RedirectResponse
+from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2AuthorizationCodeBearer
 
 from app import app
@@ -74,20 +72,14 @@ def valid_token(token: str = Security(oauth2_scheme)) -> Json:
 
 @app.get('/login')
 async def login(request: Request):
-    redirect_uri = request.url_for('auth')
-    return await oauth.openid_provider.authorize_redirect(request, redirect_uri)
+  # curl --data "grant_type=client_credentials&client_id=backroll_api&client_secret=TeaSv9Q0nG2r64w0QnSvtbYdx9hu1n6P" https://sso.dimsi.io/auth/realms/master/protocol/openid-connect/token
+  print("a faire...")
 
-@app.get('/auth', status_code=200)
-async def auth(request: Request):
-  try:
-      token = await oauth.openid_provider.authorize_access_token(request)
-  except OAuthError as error:
-      raise HTTPException(status_code=500, detail=jsonable_encoder(error.error))
-  user = token.get('userinfo')
-  access_token = token.get('access_token')
-  return {'state': 'SUCCESS', 'info': { 'access_token': access_token, 'userinfo': user } }
+@app.get('api/v1/auth', status_code=200)
+def auth(token):
+  return valid_token(token)
 
-@app.get('/logout')
+@app.get('api/v1/logout')
 async def logout(request: Request):
     request.session.pop('user', None)
     return RedirectResponse(url='/')

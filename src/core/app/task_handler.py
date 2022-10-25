@@ -23,25 +23,17 @@ from requests.auth import HTTPBasicAuth
 import requests
 import time
 
-from app import app
-from app import celery as celeryWorker
 from app import celery
 
 from celery.signals import task_failure, task_success
-from celery.result import AsyncResult
-from celery import Celery, states
-from celery.exceptions import Ignore
 
 from app.backup_tasks import single_backup
-from app.backup_tasks import pool_backup
 from app.routes import host as host_route
 from app.routes import pool as pool_route
 from app.routes import backup_policy as policy_route
 from app.routes import external_hooks as hook_route
 
 from app import restore
-
-from app import database
 
 from app.webhooks import slack
 

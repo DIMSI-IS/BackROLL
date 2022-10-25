@@ -15,13 +15,11 @@
 ## specific language governing permissions and limitations
 ## under the License.
 
-# MySQL Module Imports
-import mysql.connector
 # SSH Module Imports
 import paramiko
 import select
 # Other imports
-from fastapi import FastAPI, HTTPException
+from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
 # Misc

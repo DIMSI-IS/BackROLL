@@ -17,40 +17,14 @@
 
 #!/usr/bin/env python
 from redis import Redis
-from fastapi import Request
-from celery import chord, chain, group, signature
-from celery.result import AsyncResult
 from fastapi.encoders import jsonable_encoder
-from app import app
-from app import celery as celeryWorker
 from app import celery
-import traceback
-import json
-import re
-import os
-
-from sqlmodel import Session, select
-import logging
-import graypy
-
-import random
 
 import time
-
-import logging
-
-from app.routes import host
-from app import database
-from app.database import Hosts
-
-from app.cloudstack import virtual_machine
 from app.routes import host
 from app.routes import storage
 from app.borg import borg_core
-from app.borg import borg_misc
 from app.kvm import kvm_list_disk
-from app.kvm import kvm_list_vm
-from app import task_handler
 
 @celery.task(queue='backup_tasks', name='backup_subtask', soft_time_limit=5400)
 def backup_subtask(info):

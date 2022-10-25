@@ -17,7 +17,6 @@
 
 import sys
 import libvirt
-from xml.dom import minidom
 
 from app.kvm import kvm_connection
 

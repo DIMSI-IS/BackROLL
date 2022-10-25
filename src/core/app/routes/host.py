@@ -19,15 +19,12 @@
 import os
 import uuid as uuid_pkg
 from typing import Optional
-from fastapi import Depends, FastAPI, HTTPException
-from pydantic import BaseModel, Field, Json
+from fastapi import Depends, HTTPException
+from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
-from celery import Celery, states
-from celery.exceptions import Ignore
 
 from app import app
-from app import celery as celeryWorker
 from app import celery
 
 from app import auth

@@ -20,24 +20,12 @@
 # Misc Module Imports
 from celery.schedules import crontab
 from threading import Lock
-from celery.result import AsyncResult
 
-from fastapi import Request
 # General imports
 from app import app
-from app import celery as celeryWorker
-# Custom modules imports
-
-from app.backup_tasks import single_backup
-from app.backup_tasks import pool_backup
-from app import task_handler
-from app.routes import pool
-from app.routes import host
 
 # Celery Imports
 from app import celery
-# ThreadPoolExecutor Imports
-from concurrent.futures import ThreadPoolExecutor
 
 # Set this variable to "threading", "eventlet" or "gevent" to select the
 # different async modes, or leave it set to None for the application to choose

@@ -18,12 +18,10 @@
 #!/usr/bin/env python
 import shutil
 import uuid as uuid_pkg
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, Field, Json
+from fastapi import HTTPException, Depends
+from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
-from celery import Celery, states
-from celery.exceptions import Ignore
 
 from app import app
 

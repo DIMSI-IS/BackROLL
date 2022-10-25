@@ -16,7 +16,6 @@
 ## under the License.
 
 import os
-import re
 import json
 import subprocess
 import os.path
@@ -25,16 +24,7 @@ import calendar
 import time
 from datetime import date as getTodayDate
 import paramiko
-import libvirt
-# Logging Module Imports
-import logging
-import graypy
-# Libvirt dependencies Imports
-import sys
-from xml.dom import minidom
 # KVM Connection Module Imports
-from app.kvm import kvm_get_uuid
-from app.kvm import kvm_list_disk
 from app.kvm import kvm_list_snapshot
 
 

@@ -19,21 +19,13 @@
 import os
 import logging
 import subprocess
-from datetime import datetime
 from redis import Redis
-from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
-from app import app
-from app import celery as celeryWorker
 from app import celery
-import traceback
-import json
 import paramiko
 import re
 
-from app import task_handler
-from app.routes import virtual_machine
 from app.routes import host
 from app.routes import storage
 from app.kvm import kvm_list_disk
