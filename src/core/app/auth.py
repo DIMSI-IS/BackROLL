@@ -16,13 +16,15 @@
 ## under the License.
 
 import os
-from fastapi import HTTPException, Security, status
+import requests
+import json
+from fastapi import Depends, HTTPException, Security, status
 from starlette.config import Config
 from starlette.requests import Request
 from starlette.middleware.sessions import SessionMiddleware
 import jwt
 from jwt import PyJWKClient
-from pydantic import Json
+from pydantic import Json, BaseModel
 from starlette.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
 from fastapi.security import OAuth2AuthorizationCodeBearer
@@ -52,11 +54,22 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
     tokenUrl=f"""{issuer}/protocol/openid-connect/token"""
 )
 
+class items_login(BaseModel):
+  app_id: str
+  app_secret: str
+  class Config:
+      schema_extra = {
+          "example": {
+              "app_id": "openid application id",
+              "app_secret": "openid application secret"
+          }
+      }
+
 def valid_token(token: str = Security(oauth2_scheme)) -> Json:
   url = f"""{issuer}/protocol/openid-connect/certs"""
   jwks_client = PyJWKClient(url)
-  signing_key = jwks_client.get_signing_key_from_jwt(token)
   try:
+    signing_key = jwks_client.get_signing_key_from_jwt(token)
     return jwt.decode(
       token, signing_key.key,
       issuer=issuer,
@@ -70,16 +83,29 @@ def valid_token(token: str = Security(oauth2_scheme)) -> Json:
       headers={"WWW-Authenticate": "Bearer"},
     )
 
-@app.get('/login')
-async def login(request: Request):
+@app.post('/api/v1/login', status_code=200)
+def login(item: items_login):
   # curl --data "grant_type=client_credentials&client_id=backroll_api&client_secret=TeaSv9Q0nG2r64w0QnSvtbYdx9hu1n6P" https://sso.dimsi.io/auth/realms/master/protocol/openid-connect/token
-  print("a faire...")
+  app_id = item.app_id
+  app_secret = item.app_secret
+  url = f"""{os.getenv("OPENID_ISSUER")}/protocol/openid-connect/token"""
+  payload = {
+    'grant_type': 'client_credentials',
+    'client_id': app_id,
+    'client_secret': app_secret
+  }
+  x = requests.post(url, data = payload)
+  token = json.loads(x.text)
+  return token
 
-@app.get('api/v1/auth', status_code=200)
-def auth(token):
-  return valid_token(token)
+@app.post('/api/v1/auth', status_code=200)
+def auth(identity: Json = Depends(valid_token)):
+  return {
+    'state': 'authenticated',
+    'jwt': identity
+  }
 
-@app.get('api/v1/logout')
-async def logout(request: Request):
+@app.get('/api/v1/logout')
+def logout(request: Request):
     request.session.pop('user', None)
     return RedirectResponse(url='/')
