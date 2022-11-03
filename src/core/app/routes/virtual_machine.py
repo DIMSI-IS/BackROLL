@@ -71,7 +71,8 @@ def handle_results(group_id):
     result = restored_group_result.get()
   global_instance_list = []
   for instance_list in result:
-    global_instance_list += instance_list
+    if instance_list:
+      global_instance_list += instance_list
   return global_instance_list
 
 @celery_app.task(name='List VMs backups', bind=True, max_retries=3)
