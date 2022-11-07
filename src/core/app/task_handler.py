@@ -75,68 +75,70 @@ def handle_task_success(task_id, msg):
   host = host_route.filter_host_by_id(task_args['host'])
   pool = pool_route.filter_pool_by_id(host.pool_id)
   policy = policy_route.filter_policy_by_id(pool.policy_id)
-  hook = hook_route.filter_external_hook_by_id(policy.externalhook)
+  
+  if policy.externalhook:
+    hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
-  if hook.provider.lower() == "slack" and hook.value:
-    time.sleep(10)
-    task_result = retrieve_task_info(task_id).decode('ascii')
-    text = json.loads(task_result)['args']
-    left = '{'
-    right = '}'
-    arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
-    arguments = arguments.replace("'", '"')
-    task_args = json.loads(arguments)
-    context_smiley = "white_check_mark"
-    alerting = ""
-    duration_time = f"{convert(json.loads(task_result).get('runtime'))}"
-    block_msg = {
-      "blocks": [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": f"{alerting}*{msg}*"
+    if hook.provider.lower() == "slack" and hook.value:
+      time.sleep(10)
+      task_result = retrieve_task_info(task_id).decode('ascii')
+      text = json.loads(task_result)['args']
+      left = '{'
+      right = '}'
+      arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
+      arguments = arguments.replace("'", '"')
+      task_args = json.loads(arguments)
+      context_smiley = "white_check_mark"
+      alerting = ""
+      duration_time = f"{convert(json.loads(task_result).get('runtime'))}"
+      block_msg = {
+        "blocks": [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": f"{alerting}*{msg}*"
+            }
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "section",
+            "fields": [
+              {
+                "type": "mrkdwn",
+                "text": f"*Target*\n{task_args['name']}"
+              },
+              {
+                "type": "mrkdwn",
+                "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
+              },
+              {
+                "type": "mrkdwn",
+                "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
+              },
+              {
+                "type": "mrkdwn",
+                "text": f"*Duration*\n{duration_time}"
+              }
+            ]
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "context",
+            "elements": [
+              {
+                "type": "mrkdwn",
+                "text": f"*TYPE*: {json.loads(task_result)['name']}"
+              }
+            ]
           }
-        },
-        {
-          "type": "divider"
-        },
-        {
-          "type": "section",
-          "fields": [
-            {
-              "type": "mrkdwn",
-              "text": f"*Target*\n{task_args['name']}"
-            },
-            {
-              "type": "mrkdwn",
-              "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
-            },
-            {
-              "type": "mrkdwn",
-              "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
-            },
-            {
-              "type": "mrkdwn",
-              "text": f"*Duration*\n{duration_time}"
-            }
-          ]
-        },
-        {
-          "type": "divider"
-        },
-        {
-          "type": "context",
-          "elements": [
-            {
-              "type": "mrkdwn",
-              "text": f"*TYPE*: {json.loads(task_result)['name']}"
-            }
-          ]
-        }
-      ]
-    }
-    slack.connector(hook, block_msg['blocks'])
+        ]
+      }
+      slack.connector(hook, block_msg['blocks'])
 
 
 @celery.task(name='Handle task failure')

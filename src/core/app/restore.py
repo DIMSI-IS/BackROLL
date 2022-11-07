@@ -31,6 +31,9 @@ from app.routes import storage
 from app.kvm import kvm_list_disk
 from app.cloudstack import virtual_machine as cs_vm_command
 
+# KVM custom module import
+from app.kvm import kvm_manage_vm
+
 regex = "^((?!^i-).)*$"
 
 @celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
@@ -67,39 +70,17 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
   vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine_info)
   borg_repository = vm_storage["path"]
 
-  def remote_request(host_ssh, command):
-    # Passing commands through SSH to remote endpoint
-    try:
-      stdin, stdout, stderr = host_ssh.exec_command(command)
-    except:
-      raise ValueError('Unable to connect to KVM host !')
-    rc = stdout.channel.recv_exit_status()
-    stderr = stderr.readlines()
-    stdout = stdout.readlines()
-    return {'rc': rc, 'stdout': stdout, 'stderr': stderr}
-
-  def process_rc(request, shell):
-    """ Processing return code of specified command """
-    if shell == 'bash':
-      if request.returncode == 1:
-        logging.error(request.stderr.decode("utf-8"))
-        raise ValueError(request.stderr.decode("utf-8"))
-    elif shell == 'borg':
-      if request.returncode == 2:
-        logging.error(request.stderr.decode("utf-8"))
-        raise ValueError(request.stderr.decode("utf-8"))
-
   try:
 
     disk_device = backup_name.split('_')[0]
 
     # Remove existing files inside restore folder
     command = f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}"
-    request = subprocess.run(command.split())  
+    subprocess.run(command.split())  
 
     # Create temporary folder to extract borg archive
     command = f"mkdir -p {borg_repository}restore/{virtual_machine_info['name']}"
-    request = subprocess.run(command.split())
+    subprocess.run(command.split())
 
     # Go into directory
     os.chdir(f"{borg_repository}restore/{virtual_machine_info['name']}")
@@ -146,8 +127,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
       # Power off guest VM
       if re.search(regex, virtual_machine_info['name']):
-        command = f"LIBVIRT_DEFAULT_URI=qemu:///system virsh destroy {virtual_machine_info['name']}"
-        remote_request(host_ssh, command)
+        kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
       else:
         cs_vm_command.stop_vm(virtual_machine_info['uuid'])
 
@@ -164,9 +144,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
       os.system(f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}")
 
       if re.search(regex, virtual_machine_info['name']):
-        command = f"LIBVIRT_DEFAULT_URI=qemu:///system virsh start {virtual_machine_info['name']}"
-        remote_request(host_ssh, command)
-        host_ssh.close()
+        kvm_manage_vm.start_vm(virtual_machine_info, hypervisor)
       else:
         # Power on guest VM
         cs_vm_command.start_vm(virtual_machine_info['uuid'])

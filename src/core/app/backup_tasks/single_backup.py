@@ -30,9 +30,8 @@ def backup_deletion(self, info):
   delete_archive_job = borg_core.borg_backup(info, {})
   try:
     delete_archive_job.delete_archive(info)
-  except ValueError as err:
-    return {'status': 'error'}
-    raise err
+  except ValueError as deletearchive_error:
+    raise deletearchive_error
   delete_archive_job.close_connections()
   del delete_archive_job
   return {'status': 'success'}
@@ -50,35 +49,35 @@ def backup_creation(info):
       backup_job.init(virtual_machine, storage_repository)
     except:
       raise
-    print(f"[ {info['name']} ] Pre-Flight checks incoming.")
-    if backup_job.check_if_snapshot(info, host_info):
-      print(f"[ {info['name']} ] VM is currently under snapshot. Checking disk files...")
+    print(f"[{info['name']}] Pre-Flight checks incoming.")
+    if backup_job.check_if_snapshot():
+      print(f"[{info['name']}] VM is currently under snapshot. Checking disk files...")
       for disk in virtual_machine['storage']:
         if ".snap" in disk['source']:
-          print(f"[ {info['name']} ] Current {disk['device']} disk file is in '.snap' mode.")
+          print(f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
           try:
             # Blockcommit changes to original disk file
             backup_job.blockcommit(disk)
-            print(f"[ {info['name']} ] {disk['device']} disk file has been successfully blockcommitted.")
+            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
           except:
             backup_job.close_connections()
             del backup_job
             raise
         if backup_job.checking_files_trace(disk):
-          print(f"[ {info['name']} ] Snap {disk['device']} disk file detected. Proceeding to deletion.")
+          print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
           # Clean remaining snapshot files
           backup_job.remove_snapshot_file(disk)
-          print(f"[ {info['name']} ] Snap {disk['device']} disk file has been deleted.")
+          print(f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
       backup_job.delete_snapshot()
-      print(f"[ {info['name']} ] Snapshot deleted.")
+      print(f"[{info['name']}] Snapshot deleted.")
     else:
       for disk in virtual_machine['storage']:
         if backup_job.checking_files_trace(disk):
-          print(f"[ {info['name']} ] Snap {disk['device']} disk file detected. Proceeding to deletion.")
+          print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
           backup_job.remove_snapshot_file(disk)
-          print(f"[ {info['name']} ] Snap {disk['device']} disk file has been deleted.")
-    print(f"[ {info['name']} ] Virtual Machine is now in clean condition.")
-    print(f"[ {info['name']} ] Pre-Flight checks done...")
+          print(f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
+    print(f"[{info['name']}] Virtual Machine is now in clean condition.")
+    print(f"[{info['name']}] Pre-Flight checks done...")
     try:
       # Create full VM snapshot
       backup_job.create_snapshot()
@@ -94,40 +93,38 @@ def backup_creation(info):
         backup_job.create_archive(disk)
         # Blockcommit changes to original disk file
         backup_job.blockcommit(disk)
-        # Remove snapshot's remaining associated file
-        backup_job.remove_snapshot_file(disk)
         # Borg Prune
         backup_job.borg_prune(disk)
       # Remove VM snapshot
       backup_job.delete_snapshot()
-    except Exception as e:
+    except Exception as backup_error:
       for disk in virtual_machine['storage']:
         try:
           # Blockcommit changes to original disk file
           backup_job.blockcommit(disk)
-        except Exception as e:
-          print(f"[ {info['name']} ] Unable to blockcommit {disk['device']} ({disk['source']}). Keep going...")
-          print(e)
+        except Exception as bcommit_error:
+          print(f"[{info['name']}] Unable to blockcommit {disk['device']} ({disk['source']}). Keep going...")
+          print(bcommit_error)
         if backup_job.checking_files_trace(disk):
           try:
             # Clean remaining snapshot files
             backup_job.remove_snapshot_file(disk)
-          except Exception as e:
+          except Exception as cleaning_error:
             # Close connections
             backup_job.close_connections()
             del backup_job
-            raise e
+            raise cleaning_error
       # Close connections
       backup_job.close_connections()
       del backup_job
-      raise e
+      raise backup_error
   try:
     # Retrieve VM host info
     host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
     # Launch backup sequence
     backup_sequence(info, host_info)
-  except Exception as e:
-    raise e
+  except Exception as sequence_error:
+    raise sequence_error
 
 @celery.task(queue='backup_tasks', name='Single_VM_Backup', soft_time_limit=5400)
 def single_vm_backup(virtual_machine_info):
@@ -141,20 +138,17 @@ def single_vm_backup(virtual_machine_info):
           if virtual_machine_info.get('state') == 'Running':
             try:
               backup_creation(virtual_machine_info)
-            except Exception as err:
-              raise err
+            except Exception as startbackup_error:
+              raise startbackup_error
           else:
             raise ValueError(f"Virtual machine with id {virtual_machine_info['uuid']} isn't running. Backup aborted.")
       else:
           #Duplicated key found in redis - target IS locked right now
           raise ValueError("This task is already running / scheduled")
       redis_instance.delete(unique_task_key)
-  except Exception as e:
+  except Exception as backup_error:
       redis_instance.delete(unique_task_key)
-      # potentially log error with Sentry?
-      # decrement the counter to insure tasks can run
-      # or: raise e
-      raise e
+      raise backup_error
 
 
 
@@ -165,8 +159,8 @@ def delete_archive(info):
 def remove_archive_task(self, info):
   try:
     backup_deletion(self, info)
-  except ValueError as err:
-    raise err
+  except ValueError as backupdelete_error:
+    raise backupdelete_error
 
 
 # # Orphan backups cleaner (remove virtual machine borg's repository (and all of it's data) of any non-existing VM)

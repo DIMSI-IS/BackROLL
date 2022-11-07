@@ -38,7 +38,7 @@ from app.routes import host
 from app.routes import storage
 
 # KVM Imports
-from app.kvm import kvm_list_vm
+from app.kvm import kvm_manage_vm
 from app.kvm import kvm_list_disk
 
 @celery_app.task(name='Filter VMs list')
@@ -51,7 +51,7 @@ def filter_virtual_machine_list(virtual_machine_list, virtual_machine_id):
 @celery_app.task(name='Parse Host instance(s)')
 def parse_host(host):
   if host['state'] == 'Reachable' and host['ssh'] == 1:
-    return kvm_list_vm.retrieve_virtualmachine(host)
+    return kvm_manage_vm.retrieve_virtualmachine(host)
   else:
     return []
 

@@ -40,50 +40,50 @@ def backup_subtask(info):
       backup_job.init(virtual_machine, storage_repository)
     except:
       raise
-    print(f"[ {info['name']} ] Pre-Flight checks incoming.")
-    if backup_job.check_if_snapshot(info, host_info):
-      print(f"[ {info['name']} ] VM is currently under snapshot. Checking disk files...")
+    print(f"[{info['name']}] Pre-Flight checks incoming.")
+    if backup_job.check_if_snapshot():
+      print(f"[{info['name']}] VM is currently under snapshot. Checking disk files...")
       for disk in virtual_machine['storage']:
         if ".snap" in disk['source']:
-          print(f"[ {info['name']} ] Current {disk['device']} disk file is in '.snap' mode.")
+          print(f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
           try:
             # Blockcommit changes to original disk file
             backup_job.blockcommit(disk)
-            print(f"[ {info['name']} ] {disk['device']} disk file has been successfully blockcommitted.")
+            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
           except:
-            print(f"[ {info['name']} ] {disk['device']} disk file has been successfully blockcommitted.")
+            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
             # Close connections
             backup_job.close_connections()
             del backup_job
             raise
           if backup_job.checking_files_trace(disk):
-            print(f"[ {info['name']} ] Snap {disk['device']} disk file detected. Proceeding to deletion.")
+            print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
             # Clean remaining snapshot files
             try:
               backup_job.remove_snapshot_file(disk)
-              print(f"[ {info['name']} ] Snap {disk['device']} disk file has been deleted.")
+              print(f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
             except:
               raise
       backup_job.delete_snapshot()
-      print(f"[ {info['name']} ] Snapshot deleted.")
+      print(f"[{info['name']}] Snapshot deleted.")
     else:
       for disk in virtual_machine['storage']:
         if ".snap" in disk['source']:
-          print(f"[ {info['name']} ] Current {disk['device']} disk file is in '.snap' mode.")
+          print(f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
           try:
             # Blockcommit changes to original disk file
             backup_job.blockcommit(disk)
-            print(f"[ {info['name']} ] {disk['device']} disk file has been successfully blockcommitted.")
+            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
           except:
-            print(f"[ {info['name']} ] {disk['device']} disk file has been successfully blockcommitted.")
+            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
             del backup_job
             raise
           if backup_job.checking_files_trace(disk):
-            print(f"[ {info['name']} ] Snap {disk['device']} disk file detected. Proceeding to deletion.")
+            print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
             backup_job.remove_snapshot_file(disk)
-            print(f"[ {info['name']} ] Snap {disk['device']} disk file has been deleted.")
-    print(f"[ {info['name']} ] Virtual Machine is now in clean condition.")
-    print(f"[ {info['name']} ] Pre-Flight checks done...")
+            print(f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
+    print(f"[{info['name']}] Virtual Machine is now in clean condition.")
+    print(f"[{info['name']}] Pre-Flight checks done...")
     time.sleep(5)
     try:
       # Create full VM snapshot
@@ -115,7 +115,7 @@ def backup_subtask(info):
           # Blockcommit changes to original disk file
           backup_job.blockcommit(disk)
         except Exception as e:
-          print(f"[ {info['name']} ] Unable to blockcommit {disk['device']} ({disk['source']}). Keep going...")
+          print(f"[{info['name']}] Unable to blockcommit {disk['device']} ({disk['source']}). Keep going...")
           print(e)
         if backup_job.checking_files_trace(disk):
           try:

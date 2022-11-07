@@ -20,12 +20,13 @@ import json
 import subprocess
 import os.path
 from os import path
+from pathlib import Path
 import calendar
 import time
-from datetime import date as getTodayDate
 import paramiko
-# KVM Connection Module Imports
-from app.kvm import kvm_list_snapshot
+import shutil
+# KVM custom module import
+from app.kvm import kvm_manage_snapshot
 
 
 class borg_backup:
@@ -38,6 +39,8 @@ class borg_backup:
     self.info['borg_repository'] = None
     self.info['ip_address'] = host_info['ipaddress']
     self.info['username'] = host_info['username']
+    self.info['vm_info'] = vm_info
+    self.info['host_info'] = host_info
     self.virtual_machine = {}
     self.vm_name = ''
 
@@ -71,47 +74,20 @@ class borg_backup:
       self.borgSSH.close()
     except:
       pass
-  def process_rc(self, request, shell, remote=False):
+  def process_rc(self, request):
     """ Processing return code of specified command """
     # Locally runned command
-    if not remote:
-      if shell == 'bash':
-        if request.returncode == 1:
-          print(request.stderr.decode("utf-8"))
-          raise ValueError(request.stderr.decode("utf-8"))
-      elif shell == 'borg' and request.returncode == 2:
-        print(request.stderr.decode("utf-8"))
-        raise ValueError(request.stderr.decode("utf-8"))
-    # Remotely runned command
-    else:
-      if shell == 'bash':
-        if request['rc'] == 1:
-          error_message = (request['stderr'][0:1] or ('',))[0]
-          print(error_message)
-          raise ValueError(error_message)
-        else:
-          return request['stdout']
-      elif shell == 'borg':
-        if request['rc'] == 2:
-          error_message = (request['stderr'][0:1] or ('',))[0]
-          print(error_message)
-          raise ValueError(error_message)
-        else:
-          return request['stdout']
-      if len(request['stdout']) > 0:
-        print(request['stdout'][0])
-        return request['stdout']
-      elif request['stdout'] != []:
-        print(request['stdout'])
-        return request['stdout']
+    if request.returncode == 2:
+      print(request.stderr.decode("utf-8"))
+      raise ValueError(request.stderr.decode("utf-8"))
 
   def init(self, virtual_machine, storage):
     self.vm_name = self.info['name']
-    print(f'[ {self.vm_name} ] Gathering data...')
+    print(f'[{self.vm_name}] Gathering data...')
     self.info['borg_repository'] = storage['path']
     self.virtual_machine=virtual_machine
     disk_number = len(self.virtual_machine['storage'])
-    print(f'[ {self.vm_name} ] Disk(s) found : {disk_number}')
+    print(f'[{self.vm_name}] Disk(s) found : {disk_number}')
 
   def check_repository(self):
     self.vm_name = self.info['name']
@@ -119,26 +95,27 @@ class borg_backup:
     # Check if borg repository folder exists
     if os.path.exists(f"{repository}{self.vm_name}"):
       # Borg repo exists
-      print(f'[ {self.vm_name} ] A Borg repository for this VM has been found')
+      print(f'[{self.vm_name}] A Borg repository for this VM has been found')
     else:
       # Borg repo doesn't exist
-      print(f'[ {self.vm_name} ] Borg repository for this VM doesn\'t exist. Creating a new one')
-      subprocess.run(["mkdir", "-p", f"{repository}/{self.vm_name}"], check=True)
+      print(f'[{self.vm_name}] Borg repository for this VM doesn\'t exist. Creating a new one')
+      path = Path(f"{repository}/{self.vm_name}")
+      path.mkdir(parents=True, exist_ok=True)
       # Initializing borg repository
-      print(f'[ {self.vm_name} ] Initializing the new borg repo')
+      print(f'[{self.vm_name}] Initializing the new borg repo')
       subprocess.run(["borg", "init", "--encryption", "none", f"{repository}{self.vm_name}"], check=True)
-    print(f'[ {self.vm_name} ] Borg repository setup is OK')
+    print(f'[{self.vm_name}] Borg repository setup is OK')
 
   def check_repository_lock(self):
     self.vm_name = self.info['name']
-    print(f'[ {self.vm_name} ] Checking borg repository lock status')
+    print(f'[{self.vm_name}] Checking borg repository lock status')
     # Check if borg repo is locked
     repository = self.info['borg_repository']
     request = subprocess.run(["borg", "list", f"{repository}{self.vm_name}"], capture_output=True)
     if request.returncode == 0:
-      print(f'[ {self.vm_name} ] Borg repository is unlocked, job will continue')
+      print(f'[{self.vm_name}] Borg repository is unlocked, job will continue')
     else:
-      print(f'[ {self.vm_name} ] Borg repository is locked, job will stop')
+      print(f'[{self.vm_name}] Borg repository is locked, job will stop')
       raise ValueError(request.stderr.decode("utf-8"))
 
   def checking_files_trace(self, disk):
@@ -147,28 +124,21 @@ class borg_backup:
     else:
       return False
 
-  def check_if_snapshot(self, info, host_info):
-    vm_state = kvm_list_snapshot.get_snapshot(info, host_info)
+  def check_if_snapshot(self):
+    vm_state = kvm_manage_snapshot.get_snapshot(self.info['vm_info'], self.info['host_info'])
     if vm_state['snapshot'] == 1:
-      print(f"[ {self.virtual_machine['name'] }] A snapshot has been detected !")
+      print(f"[{self.virtual_machine['name'] }] A snapshot has been detected !")
       return True
     else:
-      print(f"[ {self.virtual_machine['name'] }] No snapshot detected")
+      print(f"[{self.virtual_machine['name'] }] No snapshot detected")
       return False
 
   def create_snapshot(self):
     vm_name = self.virtual_machine['name']
-    print(f'[ {vm_name} ] Snapshotting virtual machines disks')
-    command = f'LIBVIRT_DEFAULT_URI=qemu:///system virsh snapshot-create-as \
-        --domain {vm_name} {vm_name}.snap \
-        --quiesce \
-        --atomic \
-        --disk-only'
-    for disk in self.virtual_machine['storage']:
-      new_disk = disk['source'].replace(".snap", "")
-      command += f" --diskspec {disk['device']},file={new_disk}.snap,snapshot=external"
-    request = self.remote_request(command)
-    self.process_rc(request, 'bash', remote=True)
+    print(f'[{vm_name}] Snapshotting virtual machines disks')
+    snapshot_xml = kvm_manage_snapshot.generate_xmlSnapshot(vm_name, self.virtual_machine['storage'])
+    kvm_manage_snapshot.createSnapshot(self.info['vm_info'], self.info['host_info'], snapshot_xml)
+    
 
   def manage_backing_file(self, disk):
     repository = self.info['borg_repository']
@@ -181,7 +151,7 @@ class borg_backup:
       backing_file = qemu_img_info['full-backing-filename'].split('/')[-1]
       if not path.isfile(f"{repository}template/{backing_file}"):
         print(f'[{vm_name}] Backing up the backing file...')
-        os.system(f"""cp {qemu_img_info['full-backing-filename']} {repository}template/{backing_file}""")
+        shutil.copy(qemu_img_info['full-backing-filename'], f"{repository}template/{backing_file}")
         print(f'[{vm_name}] Backing up the backing file has successfully completed')
 
   def create_archive(self, disk):
@@ -198,8 +168,6 @@ class borg_backup:
         {repository}{vm_name}::{disk_name}_{disk_source.split("/")[-1]}_{calendar.timegm(time.gmtime())} \
         {disk_source}'
 
-    operation = None
-
     process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     while True:
       process.stdout.flush()
@@ -208,39 +176,26 @@ class borg_backup:
         break
       elif not output and process.poll() is not None:
         break
-      if output:
-        parsed_output = json.loads(output.strip().decode("utf-8"))
-        meta = {'done': None, 'total': None, 'percentage': None}
-        parsed_output = json.loads(output.strip().decode("utf-8"))
 
     print(f'[{vm_name}] Borg archive successfully created for {disk_name}')
 
   def blockcommit(self, disk):
     vm_name = self.virtual_machine['name']
-    disk_name = disk['device']
-    command = f'LIBVIRT_DEFAULT_URI=qemu:///system virsh blockcommit {vm_name} {disk_name} \
-        --base {disk["source"].replace(".snap", "")} \
-        --top {disk["source"].replace(".snap", "")}.snap \
-        --active \
-        --verbose \
-        --pivot'
-    request = self.remote_request(command)
-    self.process_rc(request, 'bash', remote=True)
-    print(f"[{vm_name}] Disk {disk_name} has been successfully blockcommited to {disk['source']}")
+    kvm_manage_snapshot.blockCommit(self.info['vm_info'], self.info['host_info'], disk)
+    print(f"[{vm_name}] Disk {disk['device']} has been successfully blockcommited")
 
   def delete_snapshot(self):
     vm_name = self.virtual_machine['name']
-    command = f'LIBVIRT_DEFAULT_URI=qemu:///system virsh snapshot-delete {vm_name} --metadata {vm_name}.snap'
-    request = self.remote_request(command)
-    self.process_rc(request, 'bash', remote=True)
+    kvm_manage_snapshot.deleteSnapshot(self.info['vm_info'], self.info['host_info'])
     print(f'[{vm_name}] Snapshot {vm_name}.snap has been successfully deleted')
 
   def remove_snapshot_file(self, disk):
     vm_name = self.virtual_machine['name']
     disk_name = disk['device']
-    disk_source = f"""{disk['source'].split('.')[0]}.snap"""
-    os.remove(disk_source)
-    print(f"[ {vm_name} ] Successfully removed snapshot file '{disk_source}' for disk {disk_name}")
+    disk_source = f"""{disk['source'].split('.')[0]}.snap"""    
+    if os.path.exists(disk_source):
+      os.remove(disk_source)
+      print(f"[{vm_name}] Successfully removed snapshot file '{disk_source}' for disk {disk_name}")
 
   def borg_prune(self, disk):
     disk_name = disk['device']
@@ -248,47 +203,26 @@ class borg_backup:
     command = f'borg prune --keep-daily 30 --prefix "{disk_name}" {repository}{self.vm_name}'
     subprocess.run(command.split(),check=True)
 
-  def clean_failed_job(self, vm_info, host_info):
-    print(f"[ {self.virtual_machine['name'] }] Reverting changes due to backup job failure...")
-    parsevm_info = kvm_list_snapshot.get_snapshot(vm_info, host_info)
-
-    if parsevm_info['snapshot'] == 1:
-
-      print(f"[ {self.virtual_machine['name']} ] A snapshot has been detected")
-      for disk in self.virtual_machine['storage']:
-        try:
-          self.blockcommit(disk)
-        except Exception:
-          pass
-        self.delete_snapshot()
-    else:
-      print(f"[ {self.virtual_machine['name']} ] No snapshot detected")
-      for disk in self.virtual_machine['storage']:
-        if checking_files_trace(disk) == True:
-          print(f"[ {self.virtual_machine['name']} ] Deleting old snapshot file")
-          self.remove_snapshot_file(disk)
-    print(f"[ {self.virtual_machine['name']} ] End of cleaning job. We can now relaunch backup task for this VM")
-
     for disk in self.virtual_machine['storage']:
       if ".snap" in disk['source']:
-        print(f"[ {self.virtual_machine['name']} ] Warning: Disk file in use is a snapshot file !")
-        print(f"[ {self.virtual_machine['name']} ] Trying to blockcommit snapshot file to {disk['source']}...")
+        print(f"[{self.virtual_machine['name']}] Warning: Disk file in use is a snapshot file !")
+        print(f"[{self.virtual_machine['name']}] Trying to blockcommit snapshot file to {disk['source']}...")
         try:
-          self.blockcommit(disk)
-          print(f"[ {self.virtual_machine['name']} ] Successfully blockcommited {disk['device']}")
+          self.blockcommit(vm_info, host_info, disk)
+          print(f"[{self.virtual_machine['name']}] Successfully blockcommited {disk['device']}")
           try:
             self.remove_snapshot_file(disk)
-            print(f"[ {self.virtual_machine['name']} ] Snapshot file has been deleted")
+            print(f"[{self.virtual_machine['name']}] Snapshot file has been deleted")
           except Exception:
-            raise ValueError(f"[ {self.virtual_machine['name']} ] Unable to remove snapshot file. Manual action required")
+            raise ValueError(f"[{self.virtual_machine['name']}] Unable to remove snapshot file. Manual action required")
         except Exception:
-          print(f"[ {self.virtual_machine['name']} ] Unable to blockcommit file {disk['source']} for disk {disk['device']}. Manual action may be required")
+          print(f"[{self.virtual_machine['name']}] Unable to blockcommit file {disk['source']} for disk {disk['device']}. Manual action may be required")
 
   def delete_archive(self, payload):
     repository = self.info['borg_repository']
     command = f'borg delete {repository}{payload["target"]["name"]}::{payload["selected_backup"]["name"]}'
     request = self.remote_request(command)
-    self.process_rc(request, 'borg')
+    self.process_rc(request)
 
 def borg_list_backup(virtual_machine, repository):
   try:

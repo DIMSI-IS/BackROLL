@@ -24,7 +24,7 @@ from celery_once import QueueOnce
 
 
 from sqlmodel import Session, select
-from app.kvm import kvm_list_vm
+from app.kvm import kvm_manage_vm
 from celery import chord
 
 from app import app
@@ -52,7 +52,7 @@ def getVMtobackup(pool_id):
         if HOST_UP and host.ssh == 1:
           try:
             item_host = host.to_json()
-            virtual_machine_list.extend(kvm_list_vm.retrieve_virtualmachine(item_host))
+            virtual_machine_list.extend(kvm_manage_vm.retrieve_virtualmachine(item_host))
           except Exception:
             raise
   except Exception:
