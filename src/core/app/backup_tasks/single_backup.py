@@ -97,6 +97,8 @@ def backup_creation(info):
         backup_job.borg_prune(disk)
       # Remove VM snapshot
       backup_job.delete_snapshot()
+      # Return backup name
+      return backup_job.send_result(disk)
     except Exception as backup_error:
       for disk in virtual_machine['storage']:
         try:
@@ -122,7 +124,7 @@ def backup_creation(info):
     # Retrieve VM host info
     host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
     # Launch backup sequence
-    backup_sequence(info, host_info)
+    return backup_sequence(info, host_info)
   except Exception as sequence_error:
     raise sequence_error
 
@@ -137,7 +139,7 @@ def single_vm_backup(virtual_machine_info):
           redis_instance.expire(unique_task_key, 5400)
           if virtual_machine_info.get('state') == 'Running':
             try:
-              backup_creation(virtual_machine_info)
+              return backup_creation(virtual_machine_info)
             except Exception as startbackup_error:
               raise startbackup_error
           else:

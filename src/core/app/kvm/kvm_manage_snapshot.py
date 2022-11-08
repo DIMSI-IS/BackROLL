@@ -88,9 +88,9 @@ def blockCommit(virtual_machine, hypervisor, disk_info):
     )
     blockJob = dom.blockJobInfo(disk_info["device"])
     while blockJob['cur'] < blockJob['end']:
-      time.wait(2)
+      time.sleep(2)
       blockJob = dom.blockJobInfo(disk_info["device"])
-    dom.blockJobAbort("vda", 2)
+    dom.blockJobAbort(disk_info["device"], 2)
   except Exception as blockcommit_error:
     conn.close()
     raise blockcommit_error

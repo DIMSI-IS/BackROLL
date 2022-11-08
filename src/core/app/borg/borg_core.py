@@ -218,6 +218,11 @@ class borg_backup:
         except Exception:
           print(f"[{self.virtual_machine['name']}] Unable to blockcommit file {disk['source']} for disk {disk['device']}. Manual action may be required")
 
+  def send_result(self, disk):
+    disk_source = ((disk['source']).split('.'))[0]
+    disk_name = disk['device']
+    return f"{disk_name}_{disk_source.split('/')[-1]}_{calendar.timegm(time.gmtime())}"
+
   def delete_archive(self, payload):
     repository = self.info['borg_repository']
     command = f'borg delete {repository}{payload["target"]["name"]}::{payload["selected_backup"]["name"]}'
@@ -241,7 +246,6 @@ def borg_list_backup(virtual_machine, repository):
   except ValueError as err:
     print(err.args[0])
     raise
-
 
 # def borg_list_backedup_vm():
 #   try:

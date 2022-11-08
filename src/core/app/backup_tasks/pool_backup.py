@@ -109,6 +109,8 @@ def backup_subtask(info):
         backup_job.borg_prune(disk)
       # Remove VM snapshot
       backup_job.delete_snapshot()
+      # Return backup name
+      return backup_job.send_result(disk)
     except Exception as e:
       for disk in virtual_machine['storage']:
         try:
