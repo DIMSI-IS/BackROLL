@@ -107,6 +107,10 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
           'total': 1,
           'status': str(task.info)
       }
+      if "not found" in str(task.info):
+        raise HTTPException(status_code=404, detail=response)
+      else:
+        raise HTTPException(status_code=500, detail=response)  
   return response
 
 @app.get('/api/v1/logs/{task_id}', status_code=200)

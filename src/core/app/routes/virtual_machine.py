@@ -16,7 +16,6 @@
 ## under the License.
 
 #!/usr/bin/env python
-import uuid as uuid_pkg
 from fastapi import HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 from pydantic import Json
@@ -36,6 +35,8 @@ from app.borg import borg_misc
 
 from app.routes import host
 from app.routes import storage
+
+from app.backup_tasks import manage_backup
 
 # KVM Imports
 from app.kvm import kvm_manage_vm
@@ -124,7 +125,21 @@ def retrieve_specific_virtual_machine(virtual_machine_id, identity: Json = Depen
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.get('/api/v1/virtualmachines/{virtual_machine_id}/backups', status_code=202)
-def retrieve_specific_virtual_machine_backups(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
+def list_virtual_machine_backups(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
   if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
   res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), retrieve_virtual_machine_backups.s(virtual_machine_id)).apply_async() 
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+
+@app.get('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
+def retrieve_specific_virtual_machine_backup(virtual_machine_id, backup_name, identity: Json = Depends(auth.valid_token)):
+  if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
+  if not backup_name: raise HTTPException(status_code=404, detail='Backup not found')
+  res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), manage_backup.get_archive_info.s(virtual_machine_id, backup_name)).apply_async() 
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+
+@app.delete('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
+def delete_specific_virtual_machine_backup(virtual_machine_id, backup_name, identity: Json = Depends(auth.valid_token)):
+  if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
+  if not backup_name: raise HTTPException(status_code=404, detail='Backup not found')
+  res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), manage_backup.remove_archive.s(virtual_machine_id, backup_name)).apply_async() 
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}

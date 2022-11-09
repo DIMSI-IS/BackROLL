@@ -25,17 +25,6 @@ from app.routes import storage
 from app.borg import borg_core
 from app.kvm import kvm_list_disk
 
-def backup_deletion(self, info):
-  # Initializing object
-  delete_archive_job = borg_core.borg_backup(info, {})
-  try:
-    delete_archive_job.delete_archive(info)
-  except ValueError as deletearchive_error:
-    raise deletearchive_error
-  delete_archive_job.close_connections()
-  del delete_archive_job
-  return {'status': 'success'}
-
 def backup_creation(info):
 
   def backup_sequence(info, host_info):
@@ -139,7 +128,9 @@ def single_vm_backup(virtual_machine_info):
           redis_instance.expire(unique_task_key, 5400)
           if virtual_machine_info.get('state') == 'Running':
             try:
-              return backup_creation(virtual_machine_info)
+              backup_result = backup_creation(virtual_machine_info)
+              redis_instance.delete(unique_task_key)
+              return backup_result
             except Exception as startbackup_error:
               raise startbackup_error
           else:
@@ -147,22 +138,9 @@ def single_vm_backup(virtual_machine_info):
       else:
           #Duplicated key found in redis - target IS locked right now
           raise ValueError("This task is already running / scheduled")
-      redis_instance.delete(unique_task_key)
   except Exception as backup_error:
       redis_instance.delete(unique_task_key)
       raise backup_error
-
-
-
-def delete_archive(info):
-  remove_archive_task.delay(info)
-
-@celery.task(name='Delete VM archive', bind=True, base=QueueOnce)
-def remove_archive_task(self, info):
-  try:
-    backup_deletion(self, info)
-  except ValueError as backupdelete_error:
-    raise backupdelete_error
 
 
 # # Orphan backups cleaner (remove virtual machine borg's repository (and all of it's data) of any non-existing VM)

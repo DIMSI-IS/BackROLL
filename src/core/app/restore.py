@@ -17,7 +17,6 @@
 
 #!/usr/bin/env python
 import os
-import logging
 import subprocess
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
