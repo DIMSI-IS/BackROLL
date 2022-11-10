@@ -110,7 +110,7 @@ def backup_subtask(info):
       # Remove VM snapshot
       backup_job.delete_snapshot()
       # Return backup name
-      return backup_job.send_result(disk)
+      return backup_job.send_result()
     except Exception as e:
       for disk in virtual_machine['storage']:
         try:

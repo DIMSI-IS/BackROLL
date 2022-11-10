@@ -41,6 +41,7 @@ class borg_backup:
     self.info['username'] = host_info['username']
     self.info['vm_info'] = vm_info
     self.info['host_info'] = host_info
+    self.info['backup_name'] = None
     self.virtual_machine = {}
     self.vm_name = ''
 
@@ -138,7 +139,6 @@ class borg_backup:
     print(f'[{vm_name}] Snapshotting virtual machines disks')
     snapshot_xml = kvm_manage_snapshot.generate_xmlSnapshot(vm_name, self.virtual_machine['storage'])
     kvm_manage_snapshot.createSnapshot(self.info['vm_info'], self.info['host_info'], snapshot_xml)
-    
 
   def manage_backing_file(self, disk):
     repository = self.info['borg_repository']
@@ -161,12 +161,14 @@ class borg_backup:
     disk_name = disk['device']
 
     print(f'[{vm_name}] Creating borg archive for disk {disk_name}')
+    
+    self.info['backup_name'] = f'{disk_name}_{disk_source.split("/")[-1]}_{calendar.timegm(time.gmtime())}'
 
-    cmd = f'borg create \
+    cmd = f"""borg create \
         --log-json \
         --progress \
-        {repository}{vm_name}::{disk_name}_{disk_source.split("/")[-1]}_{calendar.timegm(time.gmtime())} \
-        {disk_source}'
+        {repository}{vm_name}::{self.info['backup_name']} \
+        {disk_source}"""
 
     process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     while True:
@@ -208,7 +210,7 @@ class borg_backup:
         print(f"[{self.virtual_machine['name']}] Warning: Disk file in use is a snapshot file !")
         print(f"[{self.virtual_machine['name']}] Trying to blockcommit snapshot file to {disk['source']}...")
         try:
-          self.blockcommit(vm_info, host_info, disk)
+          self.blockcommit(self.info['vm_info'], self.info['host_info'], disk)
           print(f"[{self.virtual_machine['name']}] Successfully blockcommited {disk['device']}")
           try:
             self.remove_snapshot_file(disk)
@@ -218,10 +220,8 @@ class borg_backup:
         except Exception:
           print(f"[{self.virtual_machine['name']}] Unable to blockcommit file {disk['source']} for disk {disk['device']}. Manual action may be required")
 
-  def send_result(self, disk):
-    disk_source = ((disk['source']).split('.'))[0]
-    disk_name = disk['device']
-    return f"{disk_name}_{disk_source.split('/')[-1]}_{calendar.timegm(time.gmtime())}"
+  def send_result(self):
+    return self.info['backup_name']
 
   def delete_archive(self, payload):
     repository = self.info['borg_repository']

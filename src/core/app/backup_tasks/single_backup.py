@@ -87,7 +87,7 @@ def backup_creation(info):
       # Remove VM snapshot
       backup_job.delete_snapshot()
       # Return backup name
-      return backup_job.send_result(disk)
+      return backup_job.send_result()
     except Exception as backup_error:
       for disk in virtual_machine['storage']:
         try:
