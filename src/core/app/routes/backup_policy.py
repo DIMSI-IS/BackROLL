@@ -186,11 +186,11 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
       results = session.exec(statement)
       for pool in results:
         data_pool.append(pool)
-    if not data_pool: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has no pool associated to it')
   except Exception as e:
     raise HTTPException(status_code=500, detail=jsonable_encoder(e))
 
   if data_backup_policy.enabled == 1:
+    if not data_pool: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has no pool associated to it')
     for pool in data_pool:
       currentPool = pool.to_json()
       try:
@@ -204,6 +204,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
       except:
         raise HTTPException(status_code=500, detail=f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.')
   if enabled == True:
+    if not data_pool: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has no pool associated to it')
     for pool in data_pool:
       try:
         data_host = []

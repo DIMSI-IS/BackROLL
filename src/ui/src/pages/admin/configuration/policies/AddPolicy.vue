@@ -2,7 +2,6 @@
   <va-card>
     <va-card-title>
       <h1>Adding new policy</h1>
-      {{ newRetention }}
     </va-card-title>
     <va-card-content>
       <va-form

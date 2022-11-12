@@ -91,6 +91,7 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
       }
   elif task.state == 'PROGRESS':
       response = {
+          'state': task.state,
           'status': 'In progress...'
       }
   elif task.state != 'FAILURE':
