@@ -50,25 +50,24 @@ def filter_external_hook_by_id(hook_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     with Session(engine) as session:
       statement = select(ExternalHooks).where(ExternalHooks.id == hook_id)
       results = session.exec(statement)
       pool = results.one()
       if not pool:
-        reason = f'External hook with id {hook_id} not found'
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f'External hook with id {hook_id} not found')
     return pool
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='Create external_hook')
 def api_create_external_hook(name, value, provider):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     new_external_hook = ExternalHooks(name=name, value=value, provider=provider)
     with Session(engine) as session:
@@ -77,14 +76,14 @@ def api_create_external_hook(name, value, provider):
         session.refresh(new_external_hook)
     return new_external_hook
   except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='Read external_hook')
 def api_read_external_hook():
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   records = []
   with Session(engine) as session:
       statement = select(ExternalHooks)
@@ -98,13 +97,13 @@ def api_update_external_hook(hook_id, name, value, provider):
   try:
     engine = database.init_db_connection()
   except:
-    raise HTTPException(status_code=500, detail='Unable to connect to database.')
+    raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
     statement = select(ExternalHooks).where(ExternalHooks.id == hook_id)
     results = session.exec(statement)
     data_external_hook = results.one()
   if not data_external_hook:
-    raise HTTPException(status_code=404, detail=f'External hook with id {hook_id} not found')
+    raise ValueError(f'External hook with id {hook_id} not found')
   try:
     if name:
       data_external_hook.name = name
@@ -119,14 +118,14 @@ def api_update_external_hook(hook_id, name, value, provider):
     return jsonable_encoder(data_external_hook)
   except Exception as e:
     print(e)
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='Delete external_hook')
 def api_delete_external_hook(hook_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
   records = []
   with Session(engine) as session:
@@ -135,8 +134,7 @@ def api_delete_external_hook(hook_id):
     for hook in results:
       records.append(hook)
     if len(records) > 0:
-      reason = f'One or more policies are attached to this external_hook'
-      raise HTTPException(status_code=500, detail=reason)
+      raise ValueError('One or more policies are attached to this external_hook')
   try:
     external_hook = filter_external_hook_by_id(hook_id)
     with Session(engine) as session:
@@ -144,7 +142,7 @@ def api_delete_external_hook(hook_id):
       session.commit()
     return {'state': 'SUCCESS'}
   except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 
 @app.post('/api/v1/externalhooks', status_code=201)

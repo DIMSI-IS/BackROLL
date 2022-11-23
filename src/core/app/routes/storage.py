@@ -49,7 +49,7 @@ def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     with Session(engine) as session:
       # Find host linked to vm
@@ -57,56 +57,51 @@ def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
       results = session.exec(statement)
       host = results.one()
       if not host:
-        reason = f"Host with id {virtual_machine_info['host']} not found"
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f"Host with id {virtual_machine_info['host']} not found")
       # Find pool linked to host
       statement = select(Pools).where(Pools.id == host.pool_id)
       results = session.exec(statement)
       pool = results.one()
       if not pool:
-        reason = f"Pool with id {host_info['pool_id']} not found"
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f"Pool with id {host_info['pool_id']} not found")
       # Find policy linked to pool
       statement = select(Policies).where(Policies.id == pool.policy_id)
       results = session.exec(statement)
       policy = results.one()
       if not policy:
-        reason = f"Policy with id {pool.policy_id} not found"
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f"Policy with id {pool.policy_id} not found")
       # Find policy linked to pool
       statement = select(Storage).where(Storage.id == policy.storage)
       results = session.exec(statement)
       storage = results.one()
       if not storage:
-        reason = f"Storage with id {policy.storage} not found"
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f"Storage with id {policy.storage} not found")
     return storage.to_json()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 def filter_storage_by_id(storage_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     with Session(engine) as session:
       statement = select(Storage).where(Storage.id == storage_id)
       results = session.exec(statement)
       storage = results.one()
       if not storage:
-        reason = f'Storage with id {storage_id} not found'
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f'Storage with id {storage_id} not found')
     return storage
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='create storage')
 def api_create_storage(name, path):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     new_storage = Storage(name=name, path=path)
     with Session(engine) as session:
@@ -115,20 +110,20 @@ def api_create_storage(name, path):
         session.refresh(new_storage)
     return new_storage
   except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='Update storage')
 def api_update_storage(storage_id, name, path):
   try:
     engine = database.init_db_connection()
   except:
-    raise HTTPException(status_code=500, detail='Unable to connect to database.')
+    raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
     statement = select(Storage).where(Storage.id == storage_id)
     results = session.exec(statement)
     data_storage = results.one()
   if not data_storage:
-    raise HTTPException(status_code=404, detail=f'Storage with id {storage_id} not found')
+    raise ValueError(f'Storage with id {storage_id} not found')
   try:
     if name:
       data_storage.name = name
@@ -141,14 +136,14 @@ def api_update_storage(storage_id, name, path):
     return jsonable_encoder(data_storage)
   except Exception as e:
     print(e)
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='Delete storage')
 def api_delete_storage(storage_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   records = []
   with Session(engine) as session:
     statement = select(Policies).where(Policies.storage == storage_id)
@@ -157,8 +152,7 @@ def api_delete_storage(storage_id):
       records.append(policy)
     print(records)
     if len(records) > 0:
-      reason = f'One or more policies are linked to this storage'
-      raise HTTPException(status_code=500, detail=reason)
+      raise ValueError('One or more policies are linked to this storage')
   try:
     storage = filter_storage_by_id(storage_id)
     with Session(engine) as session:
@@ -166,14 +160,14 @@ def api_delete_storage(storage_id):
       session.commit()
     return {'state': 'SUCCESS'}
   except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))  
+    raise ValueError(e)
 
 @celery.task(name='List registered storage')
 def retrieve_storage():
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   records = []
   with Session(engine) as session:
       statement = select(Storage)

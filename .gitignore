@@ -1,3 +1,4 @@
 # Avoid compromising SSH information
 common/*
 development/*
+venv/*

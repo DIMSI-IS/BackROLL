@@ -15,6 +15,8 @@
 ## specific language governing permissions and limitations
 ## under the License.
 
+# Libvirt dependencies Imports
+from xml.dom import minidom
 import re
 import libvirt
 
@@ -31,21 +33,35 @@ def retrieve_virtualmachine(host):
     domain_list = []
     if len(domains) != 0:
         for domain in domains:
-          if re.search("^((?!^r-)(?!^v-)(?!^s-).)*$", domain.name()):
 
+          is_cloudstack_instance = False
+
+          # Check that VM is managed by CloudStack
+          raw_xml = domain.XMLDesc(0)
+          xml = minidom.parseString(raw_xml)
+          sysbios_xml  = xml.getElementsByTagName('system')
+          smbiosEntries  = sysbios_xml[0].getElementsByTagName('entry')
+          for smbiosEntry in smbiosEntries:
+            if "cloudstack" in str(smbiosEntry.firstChild.nodeValue).lower():
+              is_cloudstack_instance = True
+          
+          # Ignoring VMs managed by CloudStack and name starting with r-/s- as these are VR or SystemVM
+          if is_cloudstack_instance and not re.search("^((?!^r-)(?!^v-)(?!^s-).)*$", domain.name()): continue
+          
+          else:
             instance = {}
-
             instance['id'] = domain.ID()
             instance['uuid'] = domain.UUIDString()
             instance['name'] = domain.name()
-
             state, maxmem, mem, cpus, cput = domain.info()
             instance['mem'] = mem
             instance['cpus'] = cpus
-
             instance['host'] = host['id']
             instance['host_tag'] = host['tags']
+            instance['cloudstack_instance'] = is_cloudstack_instance
 
+
+                
             state, reason = domain.state()
             if state == libvirt.VIR_DOMAIN_NOSTATE:
                 instance['state'] = 'No_State'

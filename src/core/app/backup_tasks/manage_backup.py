@@ -22,7 +22,6 @@ from celery_once import QueueOnce
 from app import celery as celery_app
 from app.routes import storage
 from app.routes import storage
-from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
 def vm_info(virtual_machine_list, virtual_machine_id):

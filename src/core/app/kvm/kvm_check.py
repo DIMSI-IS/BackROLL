@@ -15,7 +15,6 @@
 ## specific language governing permissions and limitations
 ## under the License.
 
-from fastapi import HTTPException
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 
@@ -27,7 +26,7 @@ def check_kvm(host):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
   with Session(engine) as session:
     statement = select(Hosts).where(Hosts.id == host.id)

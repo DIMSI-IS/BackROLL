@@ -92,25 +92,24 @@ def filter_policy_by_id(policy_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     with Session(engine) as session:
       statement = select(Policies).where(Policies.id == policy_id)
       results = session.exec(statement)
       policy = results.one()
       if not policy:
-        reason = f'Policy with id {policy_id} not found'
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f'Policy with id {policy_id} not found')
     return policy
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='create_backup_policy')
 def api_create_backup_policy(name, description, schedule, retention, storage, externalhook):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     new_policy = Policies(name=name, description=description, schedule=schedule, retention_day=retention["day"], retention_week=retention["week"], retention_month=retention["month"], retention_year=retention["year"], storage=storage, externalhook=externalhook)
     with Session(engine) as session:
@@ -119,35 +118,33 @@ def api_create_backup_policy(name, description, schedule, retention, storage, ex
         session.refresh(new_policy)
         return new_policy
   except Exception as e:
-    print(e)
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='delete_backup_policy')
 def api_delete_backup_policy(backup_policy_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     with Session(engine) as session:
       statement = select(Policies).where(Policies.id == backup_policy_id)
       results = session.exec(statement)
       policy = results.one()
       if not policy:
-        reason = f'Backup policy with id {backup_policy_id} not found'
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f'Backup policy with id {backup_policy_id} not found')
       session.delete(policy)
       session.commit()
       return {'state': 'SUCCESS'}
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='List backup policies')
 def retrieve_backup_policies():
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     records = []
     with Session(engine) as session:
@@ -157,20 +154,20 @@ def retrieve_backup_policies():
           records.append(policy)
     return jsonable_encoder(records)
   except Exception as e:
-    raise HTTPException(status_code=500, detail=e)
+    raise ValueError(e)
 
 def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled):
   try:
     engine = database.init_db_connection()
   except:
-    raise HTTPException(status_code=500, detail='Unable to connect to database.')
+    raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
     statement = select(Policies).where(Policies.id == policy_id)
     results = session.exec(statement)
     data_backup_policy = results.one()
 
   if not data_backup_policy:
-    raise HTTPException(status_code=404, detail=f'backup policy with id {policy_id} not found')
+    raise ValueError(f'backup policy with id {policy_id} not found')
   task = "Kickstart_Pool_Backup"
   if schedule:
     split_cron = schedule.split()
@@ -187,10 +184,10 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
       for pool in results:
         data_pool.append(pool)
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
   if data_backup_policy.enabled == 1:
-    if not data_pool: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has no pool associated to it')
+    if not data_pool: raise ValueError(f'backup policy with id {policy_id} has no pool associated to it')
     for pool in data_pool:
       currentPool = pool.to_json()
       try:
@@ -200,11 +197,11 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
         try:
           e.delete()
         except Exception as e:
-          raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+          raise ValueError(e)
       except:
-        raise HTTPException(status_code=500, detail=f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.')
+        raise ValueError(f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.')
   if enabled == True:
-    if not data_pool: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has no pool associated to it')
+    if not data_pool: raise ValueError(f'backup policy with id {policy_id} has no pool associated to it')
     for pool in data_pool:
       try:
         data_host = []
@@ -213,17 +210,16 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
           results = session.exec(statement)
           for host in results:
             data_host.append(host)
-        if not data_host: raise HTTPException(status_code=500, detail=f'backup policy with id {policy_id} has one or more empty pool associated to it')
+        if not data_host: raise ValueError(f'backup policy with id {policy_id} has one or more empty pool associated to it')
       except Exception as e:
-        raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+        raise ValueError(e)
       try:
         currentPool = pool.to_json()
         unique_task_name = f"{task}-{policy_name}-{policy_id}-{currentPool['name']}"
         entry = RedBeatSchedulerEntry(unique_task_name, task, crontab(minute=split_cron[0], hour=split_cron[1], day_of_month=split_cron[2], month_of_year=split_cron[3], day_of_week=split_cron[4]), args=(currentPool['id'],), app=celery)
         entry.save()
       except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail='Unable to enable this backup policy.')
+        raise ValueError(e)
   try:
     if enabled == True:
       data_backup_policy.enabled = 1
@@ -254,8 +250,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
       session.refresh(data_backup_policy)
     return jsonable_encoder(data_backup_policy)
   except Exception as e:
-    print(e)
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @app.post("/api/v1/backup_policies", status_code=201)
 def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.valid_token)):

@@ -18,6 +18,7 @@
 #!/usr/bin/env python
 import os
 import uuid as uuid_pkg
+import paramiko
 from typing import Optional
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel, Json
@@ -84,11 +85,10 @@ def filter_host_by_id(host_id):
       results = session.exec(statement)
       host = results.first()
     if not host:
-      reason = f'Host with id {host_id} not found'
-      raise HTTPException(status_code=404, detail=reason)
+      raise ValueError(f'Host with id {host_id} not found')
     return host
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 
 @celery.task(name='filter_host_list_by_pool')
@@ -103,14 +103,13 @@ def api_create_host(hostname, tags, ipaddress, pool_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   with Session(engine) as session:
     statement = select(Pools).where(Pools.id == pool_id)
     results = session.exec(statement)
     pool = results.first()
     if not pool:
-      reason = f'Pool with id {str(pool_id)} not found'
-      raise HTTPException(status_code=404, detail=reason)
+      raise ValueError(f'Pool with id {str(pool_id)} not found')
   try:
     new_host = Hosts(hostname=hostname, tags=tags, ipaddress=ipaddress, pool_id=pool_id)
     with Session(engine) as session:
@@ -119,28 +118,26 @@ def api_create_host(hostname, tags, ipaddress, pool_id):
         session.refresh(new_host)
         return new_host
   except Exception as e:
-    print(e)
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
   try:
     engine = database.init_db_connection()
   except:
-    raise HTTPException(status_code=500, detail='Unable to connect to database.')
+    raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
     statement = select(Hosts).where(Hosts.id == host_id)
     results = session.exec(statement)
     data_host = results.one()
   if not data_host:
-    raise HTTPException(status_code=404, detail=f'Host with id {host_id} not found')
+    raise ValueError(f'Host with id {host_id} not found')
   if pool_id:
     with Session(engine) as session:
       statement = select(Pools).where(Pools.id == pool_id)
       results = session.exec(statement)
       pool = results.first()
       if not pool:
-        reason = f'Pool with id {str(pool_id)} not found'
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f'Pool with id {str(pool_id)} not found')
   try:
     if hostname:
       data_host.hostname = hostname
@@ -157,14 +154,34 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
     return jsonable_encoder(data_host)
   except Exception as e:
     print(e)
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
+
+def is_cs_managed(hypervisor):
+  cloudstack_agent_info = {
+    "managed": False,
+    "status": False
+  }
+  client = paramiko.SSHClient()
+  client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+  client.connect(
+        hostname=hypervisor.ipaddress,
+        username=hypervisor.username
+  )
+  stdin, stdout, stderr = client.exec_command('systemctl list-units --type=service -all | grep "cloudstack-agent"')
+  if stdout.channel.recv_exit_status() == 0: cloudstack_agent_info["managed"] =  True
+  
+  stdin, stdout, stderr = client.exec_command('ps aux | grep -v grep | grep -q "cloudstack-agent"')
+  if stdout.channel.recv_exit_status() == 0: cloudstack_agent_info["status"] =  True
+  
+  if cloudstack_agent_info["managed"] or cloudstack_agent_info["status"]: return cloudstack_agent_info
+  else: return None
 
 @celery.task(name='List registered hosts')
 def retrieve_host():
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     records = []
     with Session(engine) as session:
@@ -174,28 +191,27 @@ def retrieve_host():
           records.append(host)
     for host in records:
       HOST_UP  = True if os.system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null") == 0 else False
-      if HOST_UP:
-          pingstatus = 'Reachable'
-      else:
-          pingstatus = 'Unreachable'
-      host.state = pingstatus
+      if HOST_UP: host.state = 'Reachable'
+      else: host.state = 'Unreachable'
+      cs_agent_info = is_cs_managed(host)
+      host.is_cloudstack_managed = cs_agent_info["managed"]
+      host.cs_agent_status = cs_agent_info["status"]
     return jsonable_encoder(records)
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 def api_delete_host(host_id):
   ssh_status = 0
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   with Session(engine) as session:
     statement = select(Hosts).where(Hosts.id == host_id)
     results = session.exec(statement)
     host = results.first()
     if not host:
-      reason = f'Host with id {host_id} not found'
-      raise HTTPException(status_code=404, detail=reason)
+      raise ValueError(f'Host with id {host_id} not found')
     HOST_UP  = True if os.system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null") == 0 else False
     if (host.ssh == 1) and HOST_UP:
       ssh.remove_key(host.ipaddress, host.username)
@@ -208,7 +224,7 @@ def getSSHPubKey():
     pubkey = os.popen('cat ~/.ssh/id_rsa.pub').read()
     return {'state': 'SUCCESS', 'info': {'public_key': pubkey}}
   except Exception as e:
-    raise HTTPException(status_code=404, detail='Unable to retrieve appliance public key')
+    raise ValueError('Unable to retrieve appliance public key')
 
 @app.post("/api/v1/hosts", status_code=201)
 def create_host(item: items_create_host, identity: Json = Depends(auth.valid_token)):

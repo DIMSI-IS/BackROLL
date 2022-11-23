@@ -91,6 +91,22 @@ def retrieve_virtual_machine_backups(self, virtual_machine_list, virtual_machine
     return backup_list
   except Exception:
     self.retry(countdown=1)
+    
+@celery_app.task(name='List VM repository', bind=True, max_retries=3)
+def retrieve_virtual_machine_repository(self, virtual_machine_list, virtual_machine_id):
+  virtual_machine = {}
+  for x in virtual_machine_list:
+    if x['uuid'] and x['uuid'] == virtual_machine_id:
+      virtual_machine = x
+  if not virtual_machine:
+    raise ValueError(f'virtual machine with id {virtual_machine_id} not found')
+
+  try:
+    vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine)
+    backup_list = json.loads(borg_core.borg_list_repository(virtual_machine['name'], vm_storage["path"]))
+    return backup_list
+  except Exception:
+    self.retry(countdown=1)
 
 @celery_app.task(name='List virtual machine disk(s)', bind=True)
 def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id):
@@ -104,7 +120,7 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
     virtual_machine['storage'] = kvm_list_disk.getDisk(virtual_machine, data_host)
     return virtual_machine
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @app.get('/api/v1/virtualmachines/{virtual_machine_id}/breaklock', status_code=202)
 def break_virtual_machine_borg_lock(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
@@ -142,4 +158,10 @@ def delete_specific_virtual_machine_backup(virtual_machine_id, backup_name, iden
   if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
   if not backup_name: raise HTTPException(status_code=404, detail='Backup not found')
   res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), manage_backup.remove_archive.s(virtual_machine_id, backup_name)).apply_async() 
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+
+@app.get('/api/v1/virtualmachines/{virtual_machine_id}/repository', status_code=202)
+def list_virtual_machine_repository(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
+  if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
+  res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), retrieve_virtual_machine_repository.s(virtual_machine_id)).apply_async() 
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}

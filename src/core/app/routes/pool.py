@@ -47,31 +47,29 @@ def filter_pool_by_id(pool_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   try:
     with Session(engine) as session:
       statement = select(Pools).where(Pools.id == pool_id)
       results = session.exec(statement)
       pool = results.one()
       if not pool:
-        reason = f'Pool with id {pool_id} not found'
-        raise HTTPException(status_code=404, detail=reason)
+        raise ValueError(f'Pool with id {pool_id} not found')
     return pool
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 def api_create_pool(name, policyid):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   with Session(engine) as session:
     statement = select(Policies).where(Policies.id == policyid)
     results = session.exec(statement)
     policy = results.first()
     if not policy:
-      reason = f'Policy with id {str(policyid)} not found'
-      raise HTTPException(status_code=404, detail=reason)
+      raise ValueError(f'Policy with id {str(policyid)} not found')
   try:
     new_pool = Pools(name=name, policy_id=policyid)
     with Session(engine) as session:
@@ -80,20 +78,20 @@ def api_create_pool(name, policyid):
         session.refresh(new_pool)
     return new_pool
   except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @celery.task(name='Update pool')
 def api_update_pool(pool_id, name, policy_id):
   try:
     engine = database.init_db_connection()
   except:
-    raise HTTPException(status_code=500, detail='Unable to connect to database.')
+    raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
     statement = select(Pools).where(Pools.id == pool_id)
     results = session.exec(statement)
     data_pool = results.one()
   if not data_pool:
-    raise HTTPException(status_code=404, detail=f'Storage with id {pool_id} not found')
+    raise ValueError(f'Storage with id {pool_id} not found')
   try:
     if name:
       data_pool.name = name
@@ -106,13 +104,13 @@ def api_update_pool(pool_id, name, policy_id):
     return jsonable_encoder(data_pool)
   except Exception as e:
     print(e)
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 def api_delete_pool(pool_id):
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
   records = []
   with Session(engine) as session:
@@ -121,8 +119,7 @@ def api_delete_pool(pool_id):
     for host in results:
       records.append(host)
     if len(records) > 0:
-      reason = f'One or more hosts are attached to this pool'
-      raise HTTPException(status_code=500, detail=reason)
+      raise ValueError('One or more hosts are attached to this pool')
   try:
     pool = filter_pool_by_id(pool_id)
     with Session(engine) as session:
@@ -130,7 +127,7 @@ def api_delete_pool(pool_id):
       session.commit()
     return {'state': 'SUCCESS'}
   except Exception as e:
-    raise HTTPException(status_code=400, detail=jsonable_encoder(e))  
+    raise ValueError(e)
 
 
 @celery.task(name='List registered pools')
@@ -138,7 +135,7 @@ def retrieve_pool():
   try:
     engine = database.init_db_connection()
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
   records = []
   with Session(engine) as session:
       statement = select(Pools)

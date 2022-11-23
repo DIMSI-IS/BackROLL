@@ -247,6 +247,24 @@ def borg_list_backup(virtual_machine, repository):
     print(err.args[0])
     raise
 
+def borg_list_repository(virtual_machine, repository):
+  try:
+    # Starting ssh access
+    command = f"borg info --json {repository}{virtual_machine}"
+    request = subprocess.run(command.split(), capture_output=True)
+    result = ""
+    if request.returncode == 2:
+      if 'lock' in request.stderr.decode("utf-8"):
+        result = '{"archives": [], "state": "locked"}'
+      else:
+        result = '{"archives": [], "state": "unlocked"}'
+    else:
+      result = request.stdout.decode("utf-8")
+    return result
+  except ValueError as err:
+    print(err.args[0])
+    raise
+
 # def borg_list_backedup_vm():
 #   try:
 #     result = os.listdir(borgserver_CS_repositorypath)
