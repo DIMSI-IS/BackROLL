@@ -1,71 +1,73 @@
 <template>
-  <va-card>
-    <va-card-title>
-      <h1>Storage</h1>
-      <div class="mr-0 text-right">
-        <va-button
-          color="info"
-          @click="this.$router.push('/admin/configuration/storage/new')"
+  <div>
+    <va-card>
+      <va-card-title>
+        <h1>Storage</h1>
+        <div class="mr-0 text-right">
+          <va-button
+            color="info"
+            @click="this.$router.push('/admin/configuration/storage/new')"
+          >
+            Add new storage
+          </va-button>
+        </div>
+      </va-card-title>
+      <va-card-content>
+        <va-data-table
+          :items="$store.state.storageList"
+          :columns="columns"
         >
-          Add new storage
-        </va-button>
+          <template #header(info)>disk usage (%)</template>
+          <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
+          <template #cell(info)="{ rowIndex }">
+            <div v-if="$store.state.storageList[rowIndex].info">
+              <va-chip size="small" outline square :color="(100 - (($store.state.storageList[rowIndex].info.free / $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) < 75 ? 'success' : 'danger'">
+                <va-icon v-if="(100 - (($store.state.storageList[rowIndex].info.free / $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) >= 75" name="warning" color="danger" />
+                <span style="margin-right: 2px;"><b>{{ (100 - (($store.state.storageList[rowIndex].info.free / $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) }}%</b></span> ({{ humanStorageSize($store.state.storageList[rowIndex].info.free) }} free)
+              </va-chip>
+            </div>
+            <div v-else>
+              <va-chip size="small" outline square color="danger">
+                <va-icon class="material-icons" color="danger">warning</va-icon>
+                Unable to retrieve information
+              </va-chip>
+            </div>
+          </template>
+          <template #cell(actions)="{ rowIndex }">
+            <va-button-group gradient :rounded="false">
+              <va-button icon="settings" @click="this.$router.push(`/admin/configuration/storage/${$store.state.storageList[rowIndex].id}`)" />
+              <va-button icon="delete" @click="selectedStorage = $store.state.storageList[rowIndex], showDeleteModal = !showDeleteModal" />
+            </va-button-group>
+          </template>
+          <template #cell(path)="{ value }"><va-chip size="small" outline square>{{ value }}</va-chip></template>
+        </va-data-table>
+        <div class="flex-center ma-3">
+          <spring-spinner
+            v-if="!$store.state.isstorageTableReady"
+            :animation-duration="2000"
+            :size="30"
+            color="#2c82e0"
+          />
+        </div>
+      </va-card-content>
+    </va-card>
+    <va-modal
+      v-model="showDeleteModal"
+      @ok="deleteStorage()"
+    >
+      <template #header>
+        <h2>
+          <va-icon name="warning" color="danger" />
+          Removing Storage
+        </h2>
+      </template>
+      <hr>
+      <div>
+        You are about to remove storage <b>{{ JSON.parse(JSON.stringify(this.selectedStorage)).name }}</b>.
+        <br>Please confirm action.
       </div>
-    </va-card-title>
-    <va-card-content>
-      <va-data-table
-        :items="$store.state.storageList"
-        :columns="columns"
-      >
-        <template #header(info)>disk usage (%)</template>
-        <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
-        <template #cell(info)="{ rowIndex }">
-          <div v-if="$store.state.storageList[rowIndex].info">
-            <va-chip size="small" outline square :color="(100 - (($store.state.storageList[rowIndex].info.free / $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) < 75 ? 'success' : 'danger'">
-              <va-icon v-if="(100 - (($store.state.storageList[rowIndex].info.free / $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) >= 75" name="warning" color="danger" />
-              <span style="margin-right: 2px;"><b>{{ (100 - (($store.state.storageList[rowIndex].info.free / $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) }}%</b></span> ({{ humanStorageSize($store.state.storageList[rowIndex].info.free) }} free)
-            </va-chip>
-          </div>
-          <div v-else>
-            <va-chip size="small" outline square color="danger">
-              <va-icon class="material-icons" color="danger">warning</va-icon>
-              Unable to retrieve information
-            </va-chip>
-          </div>
-        </template>
-        <template #cell(actions)="{ rowIndex }">
-          <va-button-group gradient :rounded="false">
-            <va-button icon="settings" @click="this.$router.push(`/admin/configuration/storage/${$store.state.storageList[rowIndex].id}`)" />
-            <va-button icon="delete" @click="selectedStorage = $store.state.storageList[rowIndex], showDeleteModal = !showDeleteModal" />
-          </va-button-group>
-        </template>
-        <template #cell(path)="{ value }"><va-chip size="small" outline square>{{ value }}</va-chip></template>
-      </va-data-table>
-      <div class="flex-center ma-3">
-        <spring-spinner
-          v-if="!$store.state.isstorageTableReady"
-          :animation-duration="2000"
-          :size="30"
-          color="#2c82e0"
-        />
-      </div>
-    </va-card-content>
-  </va-card>
-  <va-modal
-    v-model="showDeleteModal"
-    @ok="deleteStorage()"
-  >
-    <template #header>
-      <h2>
-        <va-icon name="warning" color="danger" />
-        Removing Storage
-      </h2>
-    </template>
-    <hr>
-    <div>
-      You are about to remove storage <b>{{ JSON.parse(JSON.stringify(this.selectedStorage)).name }}</b>.
-      <br>Please confirm action.
-    </div>
-  </va-modal>
+    </va-modal>
+  </div>
 </template>
 
 <script>

@@ -17,6 +17,7 @@
 
 import re
 import libvirt
+from xml.dom import minidom
 
 from app.kvm import kvm_connection
 # from app.borg import borg_core
@@ -27,6 +28,10 @@ def retrieve_virtualmachine(host):
       conn = kvm_connection.kvm_connection(host)
     except:
       raise ValueError(f"Unable to connect to host with id {host['id']}")
+    
+    xmlSysinfo = conn.getSysinfo()
+    dom = minidom.parseString('xmlSysinfo')
+    
     domains = conn.listAllDomains(0)
     domain_list = []
     if len(domains) != 0:
@@ -40,6 +45,8 @@ def retrieve_virtualmachine(host):
             instance['name'] = domain.name()
 
             state, maxmem, mem, cpus, cput = domain.info()
+            
+            
             instance['mem'] = mem
             instance['cpus'] = cpus
 

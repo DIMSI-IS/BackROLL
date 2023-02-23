@@ -14,18 +14,18 @@ services:
       - "6379:6379"
 
   backroll_api:
-    restart: always
-    image: dimsicloud/backroll:latest
+    restart: on-failure
+    image: dimsicloud/backroll:0.1.1
     container_name: core
     command: "python3 run.py"
-    volumes:
-      - ./common/secret:/root/.ssh:ro
     networks:
       - backroll-network
+    volumes:
+      - ./src/core:/usr/src/app
     expose:
       - "5050"
     ports:
-      - "5050:5050"
+      - 5050:5050
     depends_on:
       - "redis"
     env_file:
@@ -33,15 +33,16 @@ services:
 
 
   worker_primary:
-    restart: always
-    image: dimsicloud/backroll:latest
-    container_name: worker1
-    command: "celery -A app.celery worker -n worker -Q default --concurrency=4"
+    restart: on-failure
+    container_name: worker
+    image: dimsicloud/backroll:0.1.1
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4
+    volumes:
+      - ./common/secret/:/root/.ssh:ro
+      - /mnt:/mnt
+      - ./src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-    volumes:
-      - ./common/secret:/root/.ssh:ro
-      - /mnt:/mnt
     networks:
       - backroll-network
     depends_on:
@@ -51,16 +52,16 @@ services:
 
 
   worker_secondary:
-    restart: always
-    image: dimsicloud/backroll:latest
-    container_name: worker2
-    environment:
-      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-    mem_limit: 8g
-    command: "celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=5"
+    restart: on-failure
+    container_name: worker-lrt
+    image: dimsicloud/backroll:0.1.1
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
+    environment:
+      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     depends_on:
@@ -71,12 +72,13 @@ services:
 
 
   flower:
-    restart: always
-    image: dimsicloud/backroll:latest
-    container_name: celery-monitoring-ui
-    command: "celery -A app.celery flower --conf=flowerconfig.py"
+    restart: on-failure
+    container_name: celery-flower
+    image: dimsicloud/backroll:0.1.1
+    command: celery -A app.celery flower --conf=flowerconfig.py
     volumes:
       - ./flower:/root/flower
+      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     expose:
@@ -91,10 +93,12 @@ services:
 
 
   beat:
-    restart: always
-    image: dimsicloud/backroll:latest
+    restart: on-failure
     container_name: scheduler
-    command: "celery -A app.celery beat -S redbeat.RedBeatScheduler"
+    image: dimsicloud/backroll:0.1.1
+    command: celery -A app.celery beat -S redbeat.RedBeatScheduler
+    volumes:
+      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     depends_on:
@@ -104,9 +108,15 @@ services:
       - ./common/config/core/env
 
   front:
-    restart: always
-    image: dimsicloud/backroll-ui:latest
+    restart: on-failure
     container_name: ui
+    image: dimsicloud/backroll-ui:0.1.1
+    volumes:
+      - ./src/ui:/app
+    stdin_open: true
+    tty: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     ports:
       - "8080:80"
     networks:
