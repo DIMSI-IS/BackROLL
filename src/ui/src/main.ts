@@ -46,9 +46,9 @@ function instantiateVueApp () {
         onLoad: 'login-required'
       },
       config: {
-        url: '$BACKROLL_OPENID_ISSUER_URL',
-        clientId: '$BACKROLL_OPENID_CLIENTID',
-        realm: '$BACKROLL_OPENID_REALM'
+        url: '$OPENID_ISSUER',
+        clientId: '$OPENID_CLIENTID',
+        realm: '$OPENID_REALM'
       },
       onReady (kc: { token: any }) {
         // Store token immediately

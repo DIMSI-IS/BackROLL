@@ -6,7 +6,7 @@ export default createStore({
   strict: true, // process.env.NODE_ENV !== 'production',
   state: {
     endpoint: {
-      api: '$BACKROLL_API_ENDPOINT_URL'
+      api: '$API_ENDPOINT_URL'
     },
     token: null,
     isSidebarMinimized: false,
