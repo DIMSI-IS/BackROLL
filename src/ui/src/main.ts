@@ -46,9 +46,9 @@ function instantiateVueApp () {
         onLoad: 'login-required'
       },
       config: {
-        url: '$OPENID_ISSUER',
-        clientId: '$OPENID_CLIENTID',
-        realm: '$OPENID_REALM'
+        url: process.env.VUE_APP_OPENID_ISSUER,
+        clientId: process.env.VUE_APP_OPENID_CLIENTID,
+        realm: process.env.VUE_APP_OPENID_REALM
       },
       onReady (kc: { token: any }) {
         // Store token immediately
