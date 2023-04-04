@@ -1,3 +1,2 @@
-# Avoid compromising SSH information
+# Avoid compromising secret information
 common/*
-development/*

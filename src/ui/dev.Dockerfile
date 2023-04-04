@@ -27,20 +27,21 @@
 # CMD ["npm", "run", "serve"]
 
 # build stage
-FROM node:16 as build-stage
+FROM node:14 as build-stage
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --no-optional
+COPY . .
 
 # # copy & replace stage
 FROM ubuntu:latest
 USER root
-WORKDIR /home/app
+WORKDIR /app
 COPY --from=build-stage /app .
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN apt-get update
 RUN apt-get -y install curl gnupg gettext-base
-RUN curl -sL https://deb.nodesource.com/setup_16.x  | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash -
 RUN apt-get -y install nodejs
 
 COPY entrypoint.sh .

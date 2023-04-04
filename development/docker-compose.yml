@@ -1,0 +1,149 @@
+version: "2.3"
+
+### This docker-compose file is intended for localhost development ###
+
+services:
+  redis:
+    restart: always
+    image: redis:7.0.2
+    container_name: redis
+    command: "redis-server"
+    networks:
+      - backroll-network
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+
+  backroll_api:
+    restart: on-failure
+    container_name: core
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: uvicorn app:app --host 0.0.0.0 --port 5050 --reload
+    environment:
+      DEBUG: 1
+    networks:
+      - backroll-network
+    volumes:
+      - ../src/core:/usr/src/app
+    expose:
+      - "5050"
+    ports:
+      - 5050:5050
+    depends_on:
+      - "redis"
+    env_file:
+      - ./common/config/core/env
+
+
+  worker_primary:
+    restart: on-failure
+    container_name: worker
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4
+    volumes:
+      - ./common/secret/:/root/.ssh:ro
+      - /mnt:/mnt
+      - ../src/core:/usr/src/app
+    environment:
+      - DEBUG=1
+      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+    networks:
+      - backroll-network
+    depends_on:
+      - "backroll_api"
+    env_file:
+      - ./common/config/core/env
+
+
+  worker_secondary:
+    restart: on-failure
+    container_name: worker-lrt
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
+    volumes:
+      - ./common/secret/:/root/.ssh:ro
+      - /mnt:/mnt
+    environment:
+      - DEBUG=1
+      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+      - ../src/core:/usr/src/app
+    mem_limit: 8g
+    networks:
+      - backroll-network
+    depends_on:
+      - "backroll_api"
+      - "worker_primary"
+    env_file:
+      - ./common/config/core/env
+
+
+  flower:
+    restart: on-failure
+    container_name: celery-flower
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery flower --conf=flowerconfig.py
+    volumes:
+      - ./flower:/root/flower
+      - ../src/core:/usr/src/app
+    environment:
+      - DEBUG=1
+    networks:
+      - backroll-network
+    expose:
+      - "5555"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - "backroll_api"
+      - "worker_primary"
+    env_file:
+      - ./common/config/core/env
+
+
+  beat:
+    restart: on-failure
+    container_name: scheduler
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery beat -S redbeat.RedBeatScheduler
+    volumes:
+      - ../src/core:/usr/src/app
+    environment:
+      - DEBUG=1
+    networks:
+      - backroll-network
+    depends_on:
+      - "backroll_api"
+      - "worker_secondary"
+    env_file:
+      - ./common/config/core/env
+
+  front:
+    restart: on-failure
+    container_name: ui-dev
+    build: 
+      context: ../src/ui
+      dockerfile: dev.Dockerfile
+    working_dir: /app
+    volumes:
+      - ../src/ui:/app
+    stdin_open: true
+    tty: true
+    environment:
+      - DEBUG=1
+    ports:
+      - "8080:8080"
+    networks:
+      - backroll-network
+    depends_on:
+      - "backroll_api"
+    env_file:
+      - ./common/config/ui/env
+
+networks:
+  backroll-network:
