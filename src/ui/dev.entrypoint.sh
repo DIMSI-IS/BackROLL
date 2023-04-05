@@ -2,7 +2,7 @@
 
 export API_ENDPOINT_URL OPENID_ISSUER OPENID_CLIENTID OPENID_REALM
 
-file="./env"
+file=".env"
 
 export file
 if [ ! -f $file.tmpl ]; then

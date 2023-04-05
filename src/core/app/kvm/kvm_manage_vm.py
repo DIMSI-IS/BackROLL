@@ -31,8 +31,8 @@ def retrieve_virtualmachine(host):
     except:
       raise ValueError(f"Unable to connect to host with id {host['id']}")
     
-    xmlSysinfo = conn.getSysinfo()
-    dom = minidom.parseString('xmlSysinfo')
+    # xmlSysinfo = conn.getSysinfo()
+    # dom = minidom.parseString('xmlSysinfo')
     
     domains = conn.listAllDomains(0)
     domain_list = []

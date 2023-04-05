@@ -3,6 +3,18 @@ version: "2.3"
 ### This docker-compose file is intended for localhost development ###
 
 services:
+  sso:
+    restart: always
+    image: jboss/keycloak:16.1.1
+    networks:
+      - backroll-network
+    expose:
+      - "8081"
+    ports:
+      - "8081:8080"
+    env_file:
+      - ./common/config/sso/env
+
   redis:
     restart: always
     image: redis:7.0.2
@@ -26,6 +38,7 @@ services:
     networks:
       - backroll-network
     volumes:
+      - ./common/secret/:/root/.ssh:ro
       - ../src/core:/usr/src/app
     expose:
       - "5050"
