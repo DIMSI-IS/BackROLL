@@ -22,8 +22,6 @@ from redis import Redis
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
 from app import celery
-import paramiko
-import re
 
 from app.routes import host
 from app.routes import storage
@@ -32,8 +30,6 @@ from app.cloudstack import virtual_machine as cs_vm_command
 
 # KVM custom module import
 from app.kvm import kvm_manage_vm
-
-regex = "^((?!^i-).)*$"
 
 @celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
 def restore_disk_vm(self, info, backup_name):
@@ -85,14 +81,6 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
     os.chdir(f"{borg_repository}restore/{virtual_machine_info['name']}")
 
     try:
-      if re.search(regex, virtual_machine_info['name']):
-        host_ssh = paramiko.SSHClient()
-        host_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        host_ssh.connect(
-            hostname=hypervisor['ipaddress'],
-            username=hypervisor['username']
-      )
-
       # Extract selected borg archive
       cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
       process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
@@ -125,10 +113,10 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
       virtual_machine_diskName = virtual_machine_disk.split('/')[-1]
 
       # Power off guest VM
-      if re.search(regex, virtual_machine_info['name']):
-        kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
-      else:
+      if virtual_machine_info['cloudstack_instance']:
         cs_vm_command.stop_vm(virtual_machine_info['uuid'])
+      else:
+        kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
 
       # Replace existing diskfile with restored file
       os.system(f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
@@ -142,11 +130,11 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
       # Remove temporary folder used to extract borg archive
       os.system(f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}")
 
-      if re.search(regex, virtual_machine_info['name']):
-        kvm_manage_vm.start_vm(virtual_machine_info, hypervisor)
-      else:
-        # Power on guest VM
+      # Power on guest VM
+      if virtual_machine_info['cloudstack_instance']:
         cs_vm_command.start_vm(virtual_machine_info['uuid'])
+      else:
+        kvm_manage_vm.start_vm(virtual_machine_info, hypervisor)
 
     except Exception as e:
       # Remove restore artifacts

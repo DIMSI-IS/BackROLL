@@ -9,3 +9,4 @@ ssh/
 
 backroll-config.yml
 celerybeat-schedule
+secret.key

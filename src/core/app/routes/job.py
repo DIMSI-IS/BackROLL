@@ -46,7 +46,7 @@ def retrieve_job():
       },
     ]
   except Exception as e:
-    raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    raise ValueError(e)
 
 @app.get('/api/v1/jobs', status_code=202)
 def list_available_jobs(identity: Json = Depends(auth.valid_token)):

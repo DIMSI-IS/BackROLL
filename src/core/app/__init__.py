@@ -121,5 +121,6 @@ from app.routes import external_hooks
 from app.routes import backup_policy
 from app.routes import storage
 from app.routes import kickstart_backup
+from app.routes import connectors
 
 from app import main
