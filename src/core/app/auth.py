@@ -85,6 +85,7 @@ def valid_token(token: str = Security(oauth2_scheme)) -> Json:
 
 @app.post('/api/v1/login', status_code=200)
 def login(item: items_login):
+  # curl --data "grant_type=client_credentials&client_id=backroll_api&client_secret=TeaSv9Q0nG2r64w0QnSvtbYdx9hu1n6P" https://sso.dimsi.io/auth/realms/master/protocol/openid-connect/token
   app_id = item.app_id
   app_secret = item.app_secret
   url = f"""{os.getenv("OPENID_ISSUER")}/protocol/openid-connect/token"""

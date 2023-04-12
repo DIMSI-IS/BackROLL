@@ -111,6 +111,7 @@ def backup_creation(info):
       raise backup_error
   try:
     # Retrieve VM host info
+    ### print px
     host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
     # Launch backup sequence
     return backup_sequence(info, host_info)
@@ -121,7 +122,7 @@ def backup_creation(info):
 def single_vm_backup(virtual_machine_info):
   try:
       redis_instance = Redis(host='redis', port=6379)
-      unique_task_key = f'''vmlock-{virtual_machine_info}'''
+      unique_task_key = f'vmlock-{virtual_machine_info}'
       if not redis_instance.exists(unique_task_key):
           #No duplicated key found in redis - target IS NOT locked right now
           redis_instance.set(unique_task_key, "")

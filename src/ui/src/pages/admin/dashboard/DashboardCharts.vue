@@ -158,6 +158,7 @@ export default defineComponent({
             x.args.lastIndexOf("}")
         )
         result = "{" + mySubString.replaceAll("'", '"') + "}"
+        result = result.toLowerCase()
         return JSON.parse(result)
       } else if (x.name == 'Pool_VM_Backup') {
         const mySubString1 = x.args.substring(
@@ -166,6 +167,7 @@ export default defineComponent({
         )
         result = "{" + mySubString1 + "}"
         result = result.replaceAll("'", '"')
+        result = result.toLowerCase()
         result = JSON.parse(result)
         return result
       } else if (x.name == 'backup_subtask') {
@@ -175,6 +177,7 @@ export default defineComponent({
         )
         result = mySubString.replaceAll("'", '"')
         result = `{${result}}`
+        result = result.toLowerCase()
         result = JSON.parse(result)
         return result
       }

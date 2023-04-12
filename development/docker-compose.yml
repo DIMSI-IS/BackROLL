@@ -55,13 +55,14 @@ services:
     container_name: worker
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker -Q default --concurrency=4
+    command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery worker -n worker -Q default --concurrency=4
+    environment:
+      DEBUG: 1
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
-      - DEBUG=1
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
     networks:
       - backroll-network
@@ -76,12 +77,14 @@ services:
     container_name: worker-lrt
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
+    command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
+    environment:
+      DEBUG: 1
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
+      - ../src/core:/usr/src/app
     environment:
-      - DEBUG=1
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
       - ../src/core:/usr/src/app
     mem_limit: 8g
@@ -99,7 +102,7 @@ services:
     container_name: celery-flower
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery flower --conf=flowerconfig.py
+    command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery flower --conf=flowerconfig.py
     volumes:
       - ./flower:/root/flower
       - ../src/core:/usr/src/app
@@ -123,7 +126,7 @@ services:
     container_name: scheduler
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery beat -S redbeat.RedBeatScheduler
+    command: watchmedo auto-restart --directory=./app --pattern=*.py --recursive -- celery -A app.celery beat -S redbeat.RedBeatScheduler
     volumes:
       - ../src/core:/usr/src/app
     environment:
