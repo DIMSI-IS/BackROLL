@@ -64,6 +64,7 @@ def handle_task_success(task_id, msg):
 
   task_result = retrieve_task_info(task_id).decode('ascii')
   text = json.loads(task_result)['args']
+  print(text)
   left = "{"
   right = "}"
   arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"

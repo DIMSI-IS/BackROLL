@@ -71,6 +71,10 @@ export default {
           displayName: 'menu.storage',
         },
         {
+          name: 'connectors',
+          displayName: 'menu.connectors',
+        },
+        {
           name: 'externalhooks',
           displayName: 'menu.external-hooks',
         }

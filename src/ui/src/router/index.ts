@@ -131,6 +131,21 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('@/pages/admin/configuration/storage/UpdateStorage.vue')
           },
           {
+            name: 'connectors',
+            path: 'connectors',
+            component: () => import('@/pages/admin/configuration/connectors/Connectors.vue')
+          },
+          {
+            name: 'add connector',
+            path: '/admin/configuration/connectors/new',
+            component: () => import('@/pages/admin/configuration/connectors/AddConnector.vue')
+          },
+          {
+            name: 'update connector',
+            path: '/admin/configuration/connectors/:id',
+            component: () => import('@/pages/admin/configuration/connectors/UpdateConnector.vue')
+          },
+          {
             name: 'externalhooks',
             path: 'externalhooks',
             component: () => import('@/pages/admin/configuration/externalhooks/ExternalHooks.vue')

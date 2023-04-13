@@ -1,28 +1,31 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1>Hooks</h1>
+      <h1>Connectors</h1>
       <div class="mr-0 text-right">
         <va-button
           color="info"
-          @click="this.$router.push('/admin/configuration/externalhooks/new')"
+          @click="this.$router.push('/admin/configuration/connectors/new')"
         >
-          Add external hook
+          Add connector
         </va-button>
       </div>
     </va-card-title>
     <va-card-content>
       <va-data-table
-        :items="$store.state.resources.externalHookList"
+        :items="$store.state.resources.connectorList"
         :columns="columns"
       >
-        <template #cell(value)="{ value }">
-          {{ value ? '***MASKED***' : '' }}
+        <template #cell(name)="{ value }">
+          {{ value }}
+        </template>
+        <template #cell(url)="{ value }">
+          {{ value }}
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings" @click="this.$router.push(`/admin/configuration/externalhooks/${$store.state.resources.externalHookList[rowIndex].id}`)" />
-            <va-button icon="delete" @click="selectedHook = $store.state.resources.externalHookList[rowIndex], showDeleteModal = !showDeleteModal" />
+            <va-button icon="settings" @click="this.$router.push(`/admin/configuration/connectors/${$store.state.resources.connectorList[rowIndex].id}`)" />
+            <va-button icon="delete" @click="selectedConnector = $store.state.resources.connectorList[rowIndex], showDeleteModal = !showDeleteModal" />
           </va-button-group>
         </template>
       </va-data-table>
@@ -37,17 +40,17 @@
   </va-card>
   <va-modal
     v-model="showDeleteModal"
-    @ok="deleteHook()"
+    @ok="deleteConnector()"
   >
     <template #header>
       <h2>
         <va-icon name="warning" color="danger" />
-        Removing External hook
+        Removing connector
       </h2>
     </template>
     <hr>
     <div>
-      You are about to remove external hook <b>{{ JSON.parse(JSON.stringify(this.selectedHook)).name }}</b>.
+      You are about to remove connector <b>{{ JSON.parse(JSON.stringify(this.selectedConnector)).name }}</b>.
       <br>Please confirm action.
     </div>
   </va-modal>
@@ -64,28 +67,28 @@ export default defineComponent({
     return {
       columns: [
         { key: 'name'},
-        { key: 'value'},
+        { key: 'url'},
         { key: 'actions'}
       ],
       showDeleteModal: false,
-      selectedHook: null
+      selectedConnector: null
     }
   },
   computed: {
   },
   methods: {
-    deleteHook () {
+    deleteConnector () {
       const self = this
-      const hook = {...this.selectedHook}
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${hook.id}`, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
+      const connector = {...this.selectedConnector}
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/connectors/${connector.id}`, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
       .then(response => {
-        this.$store.dispatch("requestExternalHook", { token: this.$keycloak.token })
-        this.$vaToast.init(({ title: response.data.state, message: 'External hook has been successfully removed', color: 'success' }))
+        this.$store.dispatch("requestConnector", { token: this.$keycloak.token })
+        this.$vaToast.init(({ title: response.data.state, message: 'connector has been successfully removed', color: 'success' }))
       })
       .catch(function (error) {
         if (error.response) {
           console.log(error)
-          self.$vaToast.init(({ title: 'Unable to remove external hook', message: error.response.data.detail, color: 'danger' }))
+          self.$vaToast.init(({ title: 'Unable to remove connector', message: error.response.data.detail, color: 'danger' }))
         }
       })
     }

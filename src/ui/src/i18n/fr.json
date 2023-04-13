@@ -353,7 +353,8 @@
     "restore": "Restauration",
     "configuration": "Configuration",
     "policies": "Politiques de sauvegarde",
-    "storage": "Stockage"
+    "storage": "Stockage",
+    "connectors": "Connecteurs"
   },
   "messages": {
     "all": "See all messages",

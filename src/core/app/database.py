@@ -61,8 +61,7 @@ class Hosts(SQLModel, table=True):
   username: Optional[str] = None
   ssh: Optional[bool] = 0
   pool_id: uuid_pkg.UUID = Field(default=None, foreign_key="pools.id")
-  is_cloudstack_managed: Optional[bool] = 0
-  cs_agent_status: Optional[bool] = 0
+  connector_id: uuid_pkg.UUID = Field(default=None, foreign_key="connectors.id")
   tags: Optional[str] = None
   state: Optional[bool] = 0
 
@@ -73,9 +72,8 @@ class Hosts(SQLModel, table=True):
       "ipaddress": self.ipaddress,
       "username": self.username,
       "ssh": bool(self.ssh),
-      "is_cloudstack_managed": bool(self.is_cloudstack_managed),
-      "cs_agent_status": bool(self.cs_agent_status),
       "pool_id": str(self.pool_id),
+      "connector_id": str(self.connector_id),
       "tags": self.tags,
       "state": bool(self.state)
     }
@@ -95,7 +93,6 @@ class ExternalHooks(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   name: str
   value: str
-  provider: Optional[str] = "slack"
 
 class Connectors(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
@@ -103,13 +100,15 @@ class Connectors(SQLModel, table=True):
   url: str
   login: str
   password: str
-  state: Optional[bool] = 0
 
 @app.on_event("startup")
 async def startup_event():
   # If DB is not yet configured, proceed to initialization
   engine = init_db_connection()
   SQLModel.metadata.create_all(engine)
+
+  # Add default connectors
+  
 
 
 def init_db_connection():

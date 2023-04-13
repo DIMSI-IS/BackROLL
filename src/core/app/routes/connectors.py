@@ -16,6 +16,7 @@
 ## under the License.
 
 #!/usr/bin/env python
+import uuid as uuid_pkg
 from fastapi import HTTPException, Depends
 from pydantic import Json
 from sqlmodel import Session, select
@@ -23,15 +24,13 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Json
 from pathlib import Path
 
-import base64
-from cryptography.fernet import Fernet
-
 from app import app
 from app import celery
 
 from app import auth
 from app import database
 
+from app.database import Hosts
 from app.database import Connectors
 
 class items_create_connector(BaseModel):
@@ -39,6 +38,7 @@ class items_create_connector(BaseModel):
   url: str
   login: str
   password: str
+  
   class Config:
       schema_extra = {
           "example": {
@@ -49,18 +49,51 @@ class items_create_connector(BaseModel):
           }
       }
 
-def encrypt_password(password):
-  if not Path('./secret.key').is_file():
-    # Adding the salt to password
-    key = Fernet.generate_key()
-    file = open('./secret.key', 'wb+')
-    file.write(key)
-  else:
-    key = Path('./secret.key').read_text()
+def filter_connector_by_id(connector_id):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise ValueError(e)
+  try:
+    with Session(engine) as session:
+      statement = select(Connectors).where(Connectors.id == connector_id)
+      results = session.exec(statement)
+      storage = results.one()
+      if not storage:
+        raise ValueError(f'Connector with id {connector_id} not found')
+    return storage
+  except Exception as e:
+    raise ValueError(e)
 
-  # Encrypt a message
-  fernet = Fernet(key)
-  return fernet.encrypt(password.encode())
+@celery.task(name='Update connector')
+def api_update_connector(connector_id, name, url, login, password):
+  try:
+    engine = database.init_db_connection()
+  except:
+    raise ValueError('Unable to connect to database.')
+  with Session(engine) as session:
+    statement = select(Connectors).where(Connectors.id == connector_id)
+    results = session.exec(statement)
+    data_connector = results.one()
+  if not data_connector:
+    raise ValueError(f'Connector with id {connector_id} not found')
+  try:
+    if name:
+      data_connector.name = name
+    if url:
+      data_connector.url = url
+    if login:
+      data_connector.login = login
+    if password:
+      data_connector.password = password
+    with Session(engine) as session:
+      session.add(data_connector)
+      session.commit()
+      session.refresh(data_connector)
+    return jsonable_encoder(data_connector)
+  except Exception as e:
+    print(e)
+    raise ValueError(e)
 
 @celery.task(name='create connector')
 def api_create_connector(name, url, login, password):
@@ -95,12 +128,35 @@ def api_retrieve_connectors():
   except Exception as e:
     raise ValueError(e)
 
+@celery.task(name='Delete connector')
+def api_delete_connector(connector_id):
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise ValueError(e)
+  records = []
+  with Session(engine) as session:
+    statement = select(Hosts).where(Hosts.connector_id == connector_id)
+    results = session.exec(statement)
+    for host in results:
+      records.append(host)
+    if len(records) > 0:
+      raise ValueError('One or more hosts are linked to this connector')
+  try:
+    connector = filter_connector_by_id(connector_id)
+    with Session(engine) as session:
+      session.delete(connector)
+      session.commit()
+    return {'state': 'SUCCESS'}
+  except Exception as e:
+    raise ValueError(e)
+
 @app.post('/api/v1/connectors', status_code=201)
 def create_connector(item: items_create_connector, identity: Json = Depends(auth.valid_token)):
   name = item.name
   url = item.url
-  login = base64.b64encode(encrypt_password(item.login))
-  password = base64.b64encode(encrypt_password(item.password))
+  login = item.login
+  password = item.password
   return api_create_connector(name, url, login, password)
 
 @app.get('/api/v1/connectors', status_code=202)
@@ -108,16 +164,24 @@ def retrieve_connectors(identity: Json = Depends(auth.valid_token)):
   task = api_retrieve_connectors.delay()
   return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
 
+@app.patch('/api/v1/connectors/{connector_id}', status_code=200)
+def update_connector(connector_id, item: items_create_connector, identity: Json = Depends(auth.valid_token)):
+  try:
+      uuid_obj = uuid_pkg.UUID(connector_id)
+  except ValueError:
+      raise HTTPException(status_code=404, detail='Given uuid is not valid')
+  name = item.name
+  url = item.url
+  login = item.login
+  password = item.password
+  return api_update_connector(connector_id, name, url, login, password)
 
-# @app.delete('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
-# def delete_specific_virtual_machine_backup(virtual_machine_id, backup_name, identity: Json = Depends(auth.valid_token)):
-#   if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
-#   if not backup_name: raise HTTPException(status_code=404, detail='Backup not found')
-#   res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), manage_backup.remove_archive.s(virtual_machine_id, backup_name)).apply_async() 
-#   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+@app.delete('/api/v1/connectors/{connector_id}', status_code=200)
+def delete_connector(connector_id, identity: Json = Depends(auth.valid_token)):
+  try:
+      uuid_obj = uuid_pkg.UUID(connector_id)
+  except ValueError:
+      raise HTTPException(status_code=404, detail='Given uuid is not valid')
 
-# @app.get('/api/v1/virtualmachines/{virtual_machine_id}/repository', status_code=202)
-# def list_virtual_machine_repository(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
-#   if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
-#   res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), retrieve_virtual_machine_repository.s(virtual_machine_id)).apply_async() 
-#   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+  if not connector_id: raise HTTPException(status_code=404, detail='Pool not found')
+  return api_delete_connector(connector_id)

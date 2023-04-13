@@ -35,13 +35,11 @@ from app.database import Policies
 class items_create_external_hook(BaseModel):
   name: str
   value: str
-  provider: Optional[str] = "slack"
   class Config:
       schema_extra = {
           "example": {
               "name": "my notification method name",
               "value": "webhook url",
-              "provider": "slack",
           }
       }
 
@@ -63,13 +61,13 @@ def filter_external_hook_by_id(hook_id):
     raise ValueError(e)
 
 @celery.task(name='Create external_hook')
-def api_create_external_hook(name, value, provider):
+def api_create_external_hook(name, value):
   try:
     engine = database.init_db_connection()
   except Exception as e:
     raise ValueError(e)
   try:
-    new_external_hook = ExternalHooks(name=name, value=value, provider=provider)
+    new_external_hook = ExternalHooks(name=name, value=value)
     with Session(engine) as session:
         session.add(new_external_hook)
         session.commit()
@@ -93,7 +91,7 @@ def api_read_external_hook():
   return jsonable_encoder(records)
 
 @celery.task(name='Update external_hook')
-def api_update_external_hook(hook_id, name, value, provider):
+def api_update_external_hook(hook_id, name, value):
   try:
     engine = database.init_db_connection()
   except:
@@ -109,8 +107,6 @@ def api_update_external_hook(hook_id, name, value, provider):
       data_external_hook.name = name
     if value:
       data_external_hook.value = value
-    if provider:
-      data_external_hook.provider = provider
     with Session(engine) as session:
       session.add(data_external_hook)
       session.commit()
@@ -149,8 +145,7 @@ def api_delete_external_hook(hook_id):
 def create_external_hook(item: items_create_external_hook, identity: Json = Depends(auth.valid_token)):
   name = item.name
   value = item.value
-  provider = item.provider
-  return api_create_external_hook(name, value, provider)
+  return api_create_external_hook(name, value)
 
 
 @app.get('/api/v1/externalhooks', status_code=202)
@@ -166,8 +161,7 @@ def update_external_hook(hook_id, item: items_create_external_hook, identity: Js
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   name = item.name
   value = item.value
-  provider = item.provider
-  return api_update_external_hook(hook_id, name, value, provider)
+  return api_update_external_hook(hook_id, name, value)
 
 @app.delete('/api/v1/externalhooks/{hook_id}', status_code=200)
 def delete_external_hook(hook_id, identity: Json = Depends(auth.valid_token)):

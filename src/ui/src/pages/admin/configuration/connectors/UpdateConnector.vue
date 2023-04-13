@@ -1,17 +1,9 @@
 <template>
-  <va-card v-if="hook && $store.state.isexternalHookTableReady">
+  <va-card v-if="connector && $store.state.isconnectorTableReady">
     <va-card-title>
-      <h1>Updating external hook - {{ hook.name }}</h1>
+      <h1>Updating connector {{ connector.name }}</h1>
     </va-card-title>
     <va-card-content>
-      <va-alert
-        color="info"
-        icon="info"
-        dense
-      >
-        For now, the only external hook provider supported is Slack
-      </va-alert>
-      <br>
       <va-form
         ref="form"
         @validation="validation = $event"
@@ -23,9 +15,21 @@
         />
         <br>
         <va-input
-          v-model="updatedValues.value"
+          label="Endpoint URL"
+          v-model="updatedValues.url"
+          :rules="[value => (value && value.length > 0) || 'Field is required']"
+        />
+        <br>
+        <va-input
+          label="Login"
+          v-model="updatedValues.login"
+          :rules="[value => (value && value.length > 0) || 'Field is required']"
+        />
+        <br>
+        <va-input
+          v-model="updatedValues.password"
           :type="isPasswordVisible ? 'text' : 'password'"
-          label="Value"
+          label="Password"
           :rules="[value => (value && value.length > 0) || 'Field is required']"
         >
           <template #appendInner>
@@ -57,23 +61,25 @@ export default {
       validation: false,
       updatedValues: { 
         name: '',
-        value: '',
+        url: '',
+        login: '',
+        password: ''
       }
     }
   },
   watch: {
-    hook: function () {
-      this.updatedValues = {...this.hook}
+    connector: function () {
+      this.updatedValues = {...this.connector}
     },
     validation: function () {
       if (this.validation) {
-        this.updateHook()
+        this.updateConnector()
       }
     },
   },
   computed: {
-    hook () {
-      const result = this.$store.state.resources.externalHookList.filter((item) => {
+    connector () {
+      const result = this.$store.state.resources.connectorList.filter((item) => {
         return item.id == this.$route.params.id
       })
       console.log(result)
@@ -81,7 +87,7 @@ export default {
     },
   },
   mounted () {
-    this.updatedValues = {...this.hook}
+    this.updatedValues = {...this.connector}
   },
   methods: {
     isValid(value) {
@@ -91,12 +97,12 @@ export default {
         return true
       }
     },
-    updateHook() {
-      const hook = this.updatedValues
-      this.$store.dispatch("updateExternalHook", {
+    updateConnector() {
+      const connector = this.updatedValues
+      this.$store.dispatch("updateConnector", {
         vm: this,
         token: this.$keycloak.token,
-        hookValues: hook
+        connectorValues: connector
       })
     }
   }

@@ -55,6 +55,7 @@ class items_update_host(BaseModel):
   tags: Optional[str] = None
   ip_address: Optional[str] = None
   pool_id: Optional[uuid_pkg.UUID] = None
+  connector_id: Optional[uuid_pkg.UUID] = None
   class Config:
       schema_extra = {
           "example": {
@@ -120,7 +121,7 @@ def api_create_host(hostname, tags, ipaddress, pool_id):
   except Exception as e:
     raise ValueError(e)
 
-def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
+def api_update_host(host_id, hostname, tags, ipaddress, pool_id, connector_id):
   try:
     engine = database.init_db_connection()
   except:
@@ -145,6 +146,11 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
       data_host.ipaddress = ipaddress
     if pool_id:
       data_host.pool_id = pool_id
+    if connector_id:
+      data_host.connector_id = connector_id
+    else:
+      print("tamcefkok")
+      data_host.connector_id = None
     if tags:
       data_host.tags = tags
     with Session(engine) as session:
@@ -155,26 +161,6 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
   except Exception as e:
     print(e)
     raise ValueError(e)
-
-def is_cs_managed(hypervisor):
-  cloudstack_agent_info = {
-    "managed": False,
-    "status": False
-  }
-  client = paramiko.SSHClient()
-  client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-  client.connect(
-        hostname=hypervisor.ipaddress,
-        username=hypervisor.username
-  )
-  stdin, stdout, stderr = client.exec_command('systemctl list-units --type=service -all | grep "cloudstack-agent"')
-  if stdout.channel.recv_exit_status() == 0: cloudstack_agent_info["managed"] =  True
-  
-  stdin, stdout, stderr = client.exec_command('ps aux | grep -v grep | grep -q "cloudstack-agent"')
-  if stdout.channel.recv_exit_status() == 0: cloudstack_agent_info["status"] =  True
-  
-  if cloudstack_agent_info["managed"] or cloudstack_agent_info["status"]: return cloudstack_agent_info
-  else: return None
 
 @celery.task(name='List registered hosts')
 def retrieve_host():
@@ -193,9 +179,6 @@ def retrieve_host():
       HOST_UP  = True if os.system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null") == 0 else False
       if HOST_UP: host.state = 'Reachable'
       else: host.state = 'Unreachable'
-      cs_agent_info = is_cs_managed(host)
-      host.is_cloudstack_managed = cs_agent_info["managed"]
-      host.cs_agent_status = cs_agent_info["status"]
     return jsonable_encoder(records)
   except Exception as e:
     raise ValueError(e)
@@ -251,7 +234,11 @@ def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.
   tags = item.tags
   ip_address = item.ip_address
   pool_id = item.pool_id
-  return api_update_host(host_id, name, tags, ip_address, pool_id)
+  if item.connector_id:
+    connector_id = item.connector_id
+  else:
+    connector_id = None
+  return api_update_host(host_id, name, tags, ip_address, pool_id, connector_id)
 
 @app.delete('/api/v1/hosts/{host_id}', status_code=200)
 def delete_host(host_id, identity: Json = Depends(auth.valid_token)):

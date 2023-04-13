@@ -21,13 +21,15 @@ export default createStore({
     isbackupTaskTableReady: false,
     isrestoreTaskTableReady: false,
     isexternalHookTableReady: false,
+    isconnectorTableReady: false,
     // Resources list
     resources: {
       policyList: [],
       poolList: [],
       hostList: [],
       vmList: [],
-      externalHookList: []
+      externalHookList: [],
+      connectorList: []
     },
     jobList: [],
     backupTaskList: [],
@@ -279,7 +281,7 @@ export default createStore({
     updateJobList(context, taskList) {
       context.commit('jobList', taskList)
     },
-    // Ask and retrieve virtual machines from BackROLL API
+    // Ask and retrieve external hooks from BackROLL API
     async requestExternalHook(context, { token }) {
       const { data } = await axios.get(`${this.state.endpoint.api}/api/v1/externalhooks`, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}})
       context.dispatch("parseExternalHooks", { token: token, location: data.Location })
@@ -317,6 +319,46 @@ export default createStore({
     },
     updateExternalHooksList(context, externalHookList) {
       context.commit('externalHookList', externalHookList)
+    },
+
+    // Ask and retrieve connectors from BackROLL API
+    async requestConnector(context, { token }) {
+      const { data } = await axios.get(`${this.state.endpoint.api}/api/v1/connectors`, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}})
+      context.dispatch("parseConnectors", { token: token, location: data.Location })
+    },
+    async parseConnectors(context, { token, location }) {
+      const { data } = await axios.get(`${this.state.endpoint.api}${location}`, {headers: { 'Authorization': `Bearer ${token}` }})
+      if (data.state === 'PENDING' || data.state == 'STARTED') {
+        setTimeout(()=>{
+          context.dispatch("parseConnectors", { token: token, location: location })
+        },2000)
+      } else {
+        context.commit('loadingConnector', true)
+        if (data.state === 'SUCCESS') {
+          context.dispatch('updateConnectorsList', data.info)
+        } else if (data.state === 'FAILURE') {
+          console.error(data.status)
+        }
+      }
+    },
+    async updateConnector(context, { vm, token, connectorValues }) {
+      await axios.patch(`${this.state.endpoint.api}/api/v1/connectors/${connectorValues.id}`, { name: connectorValues.name, url: connectorValues.url, login: connectorValues.login, password: connectorValues.password }, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}})
+      .then(response => {
+        if (response.status === 200) {
+          context.dispatch("requestConnector", { token: token })
+          router.push('/admin/configuration/connectors')
+          vm.$vaToast.init(({ message: "Connector has been successfully updated", color: 'success' }))
+        }
+      })
+      .catch(function (error) {
+        if (error.response) {
+          console.error(error.response.data.detail)
+          vm.$vaToast.init(({ title: 'Error !', message: error.response.data.detail, color: 'danger' }))
+        }
+      })
+    },
+    updateConnectorsList(context, connectorList) {
+      context.commit('connectorList', connectorList)
     }
 
   },
@@ -365,6 +407,12 @@ export default createStore({
     },
     loadingExternalHook(state, loadingState) {
       state.isexternalHookTableReady = loadingState
+    },
+    connectorList(state, connectorList) {
+      state.resources.connectorList = connectorList
+    },
+    loadingConnector(state, loadingState) {
+      state.isconnectorTableReady = loadingState
     },
     backupTaskList(state, taskList) {
       state.backupTaskList = taskList

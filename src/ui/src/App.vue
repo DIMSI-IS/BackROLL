@@ -7,6 +7,7 @@ export default {
   name: 'app-main',
   props: [ 'refreshPool' ],
   mounted () {    
+    this.$store.dispatch("requestConnector", { token: this.$keycloak.token })
     this.$store.dispatch("requestPool", { token: this.$keycloak.token })
     this.$store.dispatch("requestHost", { token: this.$keycloak.token })
     this.$store.dispatch("requestPolicy", { token: this.$keycloak.token })

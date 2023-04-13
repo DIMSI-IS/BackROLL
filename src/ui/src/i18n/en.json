@@ -354,7 +354,8 @@
     "configuration": "Configuration",
     "policies": "Backup policies",
     "storage": "Storage",
-    "external-hooks": "External hooks"
+    "external-hooks": "External hooks",
+    "connectors": "Connectors"
   },
   "messages": {
     "all": "See all messages",
