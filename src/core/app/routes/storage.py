@@ -52,18 +52,26 @@ def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
     raise ValueError(e)
   try:
     with Session(engine) as session:
-      # Find host linked to vm
-      statement = select(Hosts).where(Hosts.id == virtual_machine_info['host'])
-      results = session.exec(statement)
-      host = results.one()
-      if not host:
-        raise ValueError(f"Host with id {virtual_machine_info['host']} not found")
-      # Find pool linked to host
-      statement = select(Pools).where(Pools.id == host.pool_id)
-      results = session.exec(statement)
-      pool = results.one()
-      if not pool:
-        raise ValueError(f"Pool with id {host_info['pool_id']} not found")
+      if 'host' in virtual_machine_info:
+        # Find host linked to vm
+        statement = select(Hosts).where(Hosts.id == virtual_machine_info['host'])
+        results = session.exec(statement)
+        host = results.one()
+        if not host:
+          raise ValueError(f"Host with id {virtual_machine_info['host']} not found")
+        # Find pool linked to host (KVM)
+        statement = select(Pools).where(Pools.id == host.pool_id)
+        results = session.exec(statement)
+        pool = results.one()
+        if not pool:
+          raise ValueError(f"Pool with id {host_info['pool_id']} not found")
+      else:
+        # Find pool linked to vm (CS)
+        statement = select(Pools).where(Pools.id == virtual_machine_info["pool_id"])
+        results = session.exec(statement)
+        pool = results.one()
+        if not pool:
+          raise ValueError(f"Pool with id {virtual_machine_info['pool_id']} not found")
       # Find policy linked to pool
       statement = select(Policies).where(Policies.id == pool.policy_id)
       results = session.exec(statement)

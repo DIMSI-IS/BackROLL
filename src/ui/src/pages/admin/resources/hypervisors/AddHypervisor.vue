@@ -53,9 +53,9 @@ export default {
         hostname: null,
         ipaddress: null,
         pool: null,
-        tags: null
+        tags: null,
       },
-      poolSelection: {}
+      poolSelection: {},
     }
   },
   watch: {
@@ -69,7 +69,8 @@ export default {
     selectData() {
       return this.$store.state.resources.poolList.map(x => ({
         text: x.name,
-        value: x.id
+        value: x.id,
+        is_managed: x.is_managed
       }))
     }
   },

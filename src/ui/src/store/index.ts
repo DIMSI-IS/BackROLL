@@ -77,7 +77,7 @@ export default createStore({
       }
     },
     async updatePool(context, { vm, token, poolValues }) {
-      await axios.patch(`${this.state.endpoint.api}/api/v1/pools/${poolValues.id}`, { name: poolValues.name, policy_id: poolValues.policy_id }, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}})
+      await axios.patch(`${this.state.endpoint.api}/api/v1/pools/${poolValues.id}`, poolValues, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}})
       .then(response => {
         if (response.status === 200) {
           context.dispatch("requestPool", { token: token })

@@ -42,12 +42,12 @@
           </va-chip>
         </template>
         <template #cell(host)="{ value }">
-          <va-chip size="small" square @click="this.$router.push('/admin/resources/hypervisors')">
+          <va-chip v-if="value" size="small" square @click="this.$router.push('/admin/resources/hypervisors')">
             {{ getHost(value).hostname }}
           </va-chip>
         </template>
         <template #cell(host_tag)="{ value }">
-          <va-chip size="small" square outline>
+          <va-chip v-if="value" size="small" square outline>
             {{ value }}
           </va-chip>
         </template>

@@ -25,9 +25,15 @@ import calendar
 import time
 import paramiko
 import shutil
+
+from app.routes import pool
+from app.routes import connectors
+
 # KVM custom module import
 from app.kvm import kvm_manage_snapshot
 
+# CS custom module import
+from app.cloudstack import virtual_machine as cs_manage_vm
 
 class borg_backup:
   """ Full sequence to backup all disks of a specified virtual machine
@@ -37,15 +43,15 @@ class borg_backup:
     self.info = {}
     self.info['name'] = vm_info.get('name', None)
     self.info['borg_repository'] = None
-    self.info['ip_address'] = host_info['ipaddress']
-    self.info['username'] = host_info['username']
+    if host_info: self.info['ip_address'] = host_info['ipaddress']
+    if host_info: self.info['username'] = host_info['username']
     self.info['vm_info'] = vm_info
-    self.info['host_info'] = host_info
+    if host_info: self.info['host_info'] = host_info
     self.info['backup_name'] = None
     self.virtual_machine = {}
     self.vm_name = ''
 
-    if self.info['ip_address'] != None and self.info['username'] != None:
+    if 'ip_address' in self.info and 'username' in self.info:
       # Starting hypervisor host ssh access
       self.host_ssh = paramiko.SSHClient()
       self.host_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -164,6 +170,10 @@ class borg_backup:
     
     self.info['backup_name'] = f'{disk_name}_{disk_source.split("/")[-1]}_{calendar.timegm(time.gmtime())}'
 
+    if "pool_id" in self.virtual_machine:
+      connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(self.virtual_machine["pool_id"]).connector_id)
+      disk_source = f'/mnt/{cs_manage_vm.listStorage(connector, disk)["id"]}/{disk_source}'
+
     cmd = f"""borg create \
         --log-json \
         --progress \
@@ -242,6 +252,28 @@ def borg_list_backup(virtual_machine, repository):
         result = '{"archives": [], "state": "unlocked"}'
     else:
       result = request.stdout.decode("utf-8")
+    return result
+  except ValueError as err:
+    print(err.args[0])
+    raise
+
+def borg_backup_info(virtual_machine, repository, backup_name):
+  try:
+    # Starting ssh access
+    command = f"borg info --json {repository}{virtual_machine}::{backup_name}"
+    request = subprocess.run(command.split(), capture_output=True)
+    result = ""
+    if request.returncode == 2:
+      print(request.stdout)
+      if 'lock' in request.stderr.decode("utf-8"):
+        result = '{"archive": [], "state": "locked"}'
+      else:
+        print(request.stdout)
+        result = f'{"archive": [], "error": "{request.stdout.decode("utf-8")}"}'
+    else:
+      result = request.stdout.decode("utf-8")
+      result = json.loads(result)
+      result = result['archives'][0]['stats']
     return result
   except ValueError as err:
     print(err.args[0])

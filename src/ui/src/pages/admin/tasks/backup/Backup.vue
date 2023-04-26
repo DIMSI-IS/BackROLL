@@ -169,36 +169,7 @@ export default defineComponent({
       }
     },
     retrieveArgs (x) {
-      let result = ''
-      if (x.name == 'Single_VM_Backup') {
-        const mySubString = x.args.substring(
-            x.args.lastIndexOf("{") + 1, 
-            x.args.lastIndexOf("}")
-        )
-        result = "{" + mySubString.replaceAll("'", '"') + "}"
-        result = result.toLowerCase()
-        return JSON.parse(result)
-      } else if (x.name == 'Pool_VM_Backup') {
-        const mySubString1 = x.args.substring(
-            x.args.lastIndexOf("{") + 1, 
-            x.args.lastIndexOf("}")
-        )
-        result = "{" + mySubString1 + "}"
-        result = result.replaceAll("'", '"')
-        result = result.toLowerCase()
-        result = JSON.parse(result)
-        return result
-      } else if (x.name == 'backup_subtask') {
-        const mySubString = x.args.substring(
-            x.args.lastIndexOf("{") + 1, 
-            x.args.lastIndexOf("}")
-        )
-        result = mySubString.replaceAll("'", '"')
-        result = `{${result}}`
-        result = result.toLowerCase()
-        result = JSON.parse(result)
-        return result
-      }
+      return JSON.parse(x.args)
     }
   }
 })

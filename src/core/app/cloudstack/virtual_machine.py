@@ -18,17 +18,8 @@
 from app.cloudstack import endpoint
 import eventlet
 
-def get_vm():
-  cs = endpoint.cs_admin()
-  try:
-    cscmd = cs.listvirtual_machines(listall=True)
-    return cscmd
-  except Exception as e:
-    print(e)
-    pass
-
-def start_vm(identity):
-  cs = endpoint.cs_admin()
+def start_vm(connector, identity):
+  cs = endpoint.cloudstack_connector(connector)
   try:
       cscmd = cs.startVirtualMachine(id=identity)
       jobID = cscmd["jobid"]
@@ -51,8 +42,8 @@ def start_vm(identity):
       result = {'data':[{'errortext': errorcode}]}
       return result
 
-def stop_vm(identity):
-  cs = endpoint.cs_admin()
+def stop_vm(connector, identity):
+  cs = endpoint.cloudstack_connector(connector)
   try:
       cscmd = cs.stopVirtualMachine(id=identity)
       jobID = cscmd["jobid"]
@@ -74,3 +65,44 @@ def stop_vm(identity):
       errorcode = str(Exception(fmt)).split(':')[1]
       result = {'data':[{'errortext': errorcode}]}
       return result
+
+def listStorage(connector, storage):
+    cs = endpoint.cloudstack_connector(connector)
+    cloudstack_storage_list = cs.listStoragePools(listall=True, id=storage["storageid"])
+    if "storagepool" in cloudstack_storage_list:
+      return cloudstack_storage_list["storagepool"][0]
+    else: return []
+
+def listPoweredOffVms(connector):
+  try:
+    cs = endpoint.cloudstack_connector(connector)
+    cloudstack_vm_list = cs.listVirtualMachines(listall=True, state="Stopped")
+    if "virtualmachine" in cloudstack_vm_list:
+      for vm in cloudstack_vm_list['virtualmachine']:
+        vm["uuid"] = vm["id"]
+        vm["id"] = -1
+        vm["cpus"] = vm["cpunumber"]
+        vm["mem"] = vm["memory"] * 1024
+        vm["name"] = vm["instancename"]
+        vm["pool_id"] = str(connector.pool_id)
+        vm["connector_id"] = str(connector.id)
+        for e in ['nic', 'details', 'guestosid', 'ostypeid', 'zoneid', 'userid', 'serviceofferingid', 'serviceofferingname', 'osdisplayname', 'pooltype']:
+          vm.pop(e)
+      return cloudstack_vm_list['virtualmachine']
+    else: return []
+  except Exception as e:
+    print(e)
+    print("Unable to connect to Cloudstack. Likely is a timeout issue or wrong url/credentials.")
+    return []
+    
+    
+def getDisk(connector, virtualmachine):
+    cs = endpoint.cloudstack_connector(connector)
+    cloudstack_disk_list = cs.listVolumes(virtualmachineid=virtualmachine["uuid"])
+    if "volume" in cloudstack_disk_list:
+      for disk in cloudstack_disk_list['volume']:
+        disk["device"] = disk["name"]
+        disk["source"] = disk["path"]
+      return cloudstack_disk_list["volume"]
+    else:
+      return []

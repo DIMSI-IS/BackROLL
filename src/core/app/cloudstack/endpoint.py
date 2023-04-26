@@ -15,11 +15,10 @@
 ## specific language governing permissions and limitations
 ## under the License.
 
-import os
 from cs import CloudStack
 
-def cs_admin():
-    return CloudStack(endpoint=os.getenv("CS_ENDPOINT"),
-                key=os.getenv("CS_USER_NAME"),
-                secret=os.getenv("CS_USER_PASSWORD"),
-                timeout=600)
+def cloudstack_connector(connector):
+    return CloudStack(endpoint=connector.url,
+                key=connector.login,
+                secret=connector.password,
+                timeout=15)

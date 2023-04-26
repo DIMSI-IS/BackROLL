@@ -26,112 +26,133 @@ from app.routes import storage
 from app.borg import borg_core
 from app.kvm import kvm_list_disk
 
+from app.routes import connectors
+from app.routes import pool
+
+from app.cloudstack import virtual_machine as cs_manage_vm
+
 @celery.task(queue='backup_tasks', name='backup_subtask', soft_time_limit=5400)
 def backup_subtask(info):
 
-  def backup_sequence(info, host_info):
+  def backup_sequence(info, host_info=None):
     # Initializing object
     backup_job = borg_core.borg_backup(info, host_info)
     try:
       # Retrieve VM info (name, id, disks, etc.)
       storage_repository = storage.retrieveStoragePathFromHostBackupPolicy(info)
       virtual_machine = info
-      virtual_machine['storage'] = kvm_list_disk.getDisk(info, host_info)
+      if host_info:
+        virtual_machine['storage'] = kvm_list_disk.getDisk(info, host_info)
+      else:
+        connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(virtual_machine["pool_id"]).connector_id)
+        virtual_machine['storage'] = cs_manage_vm.getDisk(connector, virtual_machine)
       backup_job.init(virtual_machine, storage_repository)
     except:
       raise
-    print(f"[{info['name']}] Pre-Flight checks incoming.")
-    if backup_job.check_if_snapshot():
-      print(f"[{info['name']}] VM is currently under snapshot. Checking disk files...")
-      for disk in virtual_machine['storage']:
-        if ".snap" in disk['source']:
-          print(f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
-          try:
-            # Blockcommit changes to original disk file
-            backup_job.blockcommit(disk)
-            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
-          except:
-            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
-            # Close connections
-            backup_job.close_connections()
-            del backup_job
-            raise
-          if backup_job.checking_files_trace(disk):
-            print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
-            # Clean remaining snapshot files
+    if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
+      print(f"[{info['name']}] Pre-Flight checks incoming.")
+      if backup_job.check_if_snapshot():
+        print(f"[{info['name']}] VM is currently under snapshot. Checking disk files...")
+        for disk in virtual_machine['storage']:
+          if ".snap" in disk['source']:
+            print(f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
             try:
+              # Blockcommit changes to original disk file
+              backup_job.blockcommit(disk)
+              print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
+            except:
+              print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
+              # Close connections
+              backup_job.close_connections()
+              del backup_job
+              raise
+            if backup_job.checking_files_trace(disk):
+              print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
+              # Clean remaining snapshot files
+              try:
+                backup_job.remove_snapshot_file(disk)
+                print(f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
+              except:
+                raise
+        backup_job.delete_snapshot()
+        print(f"[{info['name']}] Snapshot deleted.")
+      else:
+        for disk in virtual_machine['storage']:
+          if ".snap" in disk['source']:
+            print(f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
+            try:
+              # Blockcommit changes to original disk file
+              backup_job.blockcommit(disk)
+              print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
+            except:
+              print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
+              del backup_job
+              raise
+            if backup_job.checking_files_trace(disk):
+              print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
               backup_job.remove_snapshot_file(disk)
               print(f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
-            except:
-              raise
-      backup_job.delete_snapshot()
-      print(f"[{info['name']}] Snapshot deleted.")
-    else:
-      for disk in virtual_machine['storage']:
-        if ".snap" in disk['source']:
-          print(f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
+    
+      print(f"[{info['name']}] Virtual Machine is now in clean condition.")
+    print(f"[{info['name']}] Pre-Flight checks done...")
+    time.sleep(5)
+    if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
+      try:
+        # Create full VM snapshot
+        backup_job.create_snapshot()
+      except Exception as e:
+        raise e
+    if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
+      try:
+        # Check borg repository
+        backup_job.check_repository()
+        # Check borg repository lock status
+        backup_job.check_repository_lock()
+        # Loop through vm's disks
+        for disk in virtual_machine['storage']:
+          # Check if template (backing file) is backed up
+          backup_job.manage_backing_file(disk)
+          # Launch archive creation job
+          backup_job.create_archive(disk)
+          # Blockcommit changes to original disk file
+          backup_job.blockcommit(disk)
+          # Remove snapshot's remaining associated file
+          backup_job.remove_snapshot_file(disk)
+          # Borg Prune
+          backup_job.borg_prune(disk)
+          # Remove VM snapshot
+          backup_job.delete_snapshot()
+        # Return backup name
+        return backup_job.send_result()
+      except Exception as e:
+        for disk in virtual_machine['storage']:
           try:
             # Blockcommit changes to original disk file
             backup_job.blockcommit(disk)
-            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
-          except:
-            print(f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
-            del backup_job
-            raise
+          except Exception as e:
+            print(f"[{info['name']}] Unable to blockcommit {disk['device']} ({disk['source']}). Keep going...")
+            print(e)
           if backup_job.checking_files_trace(disk):
-            print(f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
-            backup_job.remove_snapshot_file(disk)
-            print(f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
-    print(f"[{info['name']}] Virtual Machine is now in clean condition.")
-    print(f"[{info['name']}] Pre-Flight checks done...")
-    time.sleep(5)
-    try:
-      # Create full VM snapshot
-      backup_job.create_snapshot()
-    except Exception as e:
-      raise e
-    try:
+            try:
+              # Clean remaining snapshot files
+              backup_job.remove_snapshot_file(disk)
+            except Exception as e:
+              # Close connections
+              backup_job.close_connections()
+              del backup_job
+              raise e
+        # Close connections
+        backup_job.close_connections()
+        del backup_job
+        raise e
+    else:
       # Check borg repository
       backup_job.check_repository()
       # Check borg repository lock status
       backup_job.check_repository_lock()
-      # Loop through vm's disks
       for disk in virtual_machine['storage']:
-        # Check if template (backing file) is backed up
-        backup_job.manage_backing_file(disk)
         # Launch archive creation job
         backup_job.create_archive(disk)
-        # Blockcommit changes to original disk file
-        backup_job.blockcommit(disk)
-        # Remove snapshot's remaining associated file
-        backup_job.remove_snapshot_file(disk)
-        # Borg Prune
-        backup_job.borg_prune(disk)
-      # Remove VM snapshot
-      backup_job.delete_snapshot()
-      # Return backup name
-      return backup_job.send_result()
-    except Exception as e:
-      for disk in virtual_machine['storage']:
-        try:
-          # Blockcommit changes to original disk file
-          backup_job.blockcommit(disk)
-        except Exception as e:
-          print(f"[{info['name']}] Unable to blockcommit {disk['device']} ({disk['source']}). Keep going...")
-          print(e)
-        if backup_job.checking_files_trace(disk):
-          try:
-            # Clean remaining snapshot files
-            backup_job.remove_snapshot_file(disk)
-          except Exception as e:
-            # Close connections
-            backup_job.close_connections()
-            del backup_job
-            raise e
-      # Close connections
-      backup_job.close_connections()
-      del backup_job
-      raise e
 
   try:
     redis_instance = Redis(host='redis', port=6379)
@@ -141,10 +162,13 @@ def backup_subtask(info):
       redis_instance.set(unique_task_key, "")
       redis_instance.expire(unique_task_key, 5400)
       try:
-        # Retrieve VM host info
-        host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
-        # Launch backup sequence
-        backup_sequence(info, host_info)
+        if 'host' in info:
+          # Retrieve VM host info
+          host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
+          # Launch backup sequence
+          backup_sequence(info, host_info)
+        else:
+          backup_sequence(info)
       except:
         raise
     else:

@@ -33,6 +33,8 @@ from app.backup_tasks import single_backup
 from app.routes import host
 from app.routes import virtual_machine
 
+from app import task_handler
+
 from app import auth
 from app import restore
 
@@ -51,28 +53,38 @@ class restorebackup_start(BaseModel):
 @celery.task(name='restore_task_jobs')
 def retrieve_restore_task_jobs():
   single_vm_payload = {"taskname": "VM_Restore_Disk"}
-  single_vm_response = requests.get('http://flower:5555/api/tasks', auth=HTTPBasicAuth(os.getenv('FLOWER_USER'), os.getenv('FLOWER_PASSWORD')), params=single_vm_payload)
+  single_vm_response = requests.get('http://flower:5555/api/tasks', params=single_vm_payload)
   single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
+  for key in single_vm_task:
+    json_key = single_vm_task[key]
+    json_key["args"] = task_handler.cleanArgs(json_key["args"])
+    if not json_key["args"].endswith("}"):
+      json_key["args"] += "}"
   return single_vm_task
 
 @celery.task(name='backuptask_jobs')
 def retrieve_backup_task_jobs():
   single_vm_payload = {"taskname": "	Single_VM_Backup"}
-  single_vm_response = requests.get('http://flower:5555/api/tasks', auth=HTTPBasicAuth(os.getenv('FLOWER_USER'), os.getenv('FLOWER_PASSWORD')), params=single_vm_payload)
+  single_vm_response = requests.get('http://flower:5555/api/tasks', params=single_vm_payload)
   pool_payload = {"taskname": "Pool_VM_Backup"}
-  pool_response = requests.get('http://flower:5555/api/tasks', auth=HTTPBasicAuth(os.getenv('FLOWER_USER'), os.getenv('FLOWER_PASSWORD')), params=pool_payload)
+  pool_response = requests.get('http://flower:5555/api/tasks', params=pool_payload)
   subtask_payload = {"taskname": "backup_subtask"}
-  subtask_response = requests.get('http://flower:5555/api/tasks', auth=HTTPBasicAuth(os.getenv('FLOWER_USER'), os.getenv('FLOWER_PASSWORD')), params=subtask_payload)
+  subtask_response = requests.get('http://flower:5555/api/tasks', params=subtask_payload)
   single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
   pool_vm_task = json.loads(pool_response.content.decode('ascii'))
   subtask = json.loads(subtask_response.content.decode('ascii'))
   aggregated_jobs_list = single_vm_task.copy()
   aggregated_jobs_list.update(pool_vm_task)
   aggregated_jobs_list.update(subtask)
+  for key in aggregated_jobs_list:
+    json_key = aggregated_jobs_list[key]
+    json_key["args"] = task_handler.cleanArgs(json_key["args"])
+    if not json_key["args"].endswith("}"):
+      json_key["args"] += "}"
   return aggregated_jobs_list
 
 def get_task_logs(task_id):
-  response = requests.get(f'http://flower:5555/api/task/info/{task_id}', auth=HTTPBasicAuth(os.getenv('FLOWER_USER'), os.getenv('FLOWER_PASSWORD')))
+  response = requests.get(f'http://flower:5555/api/task/info/{task_id}')
   return response.content
 
 @app.get('/api/v1/status/{task_id}', status_code=200)

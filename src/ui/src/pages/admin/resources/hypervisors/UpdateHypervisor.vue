@@ -32,21 +32,6 @@
           v-model="updatedValues.tags"
         />
 
-        <br>
-        <va-switch v-model="useConnector" size="small">
-          <template #innerLabel>
-            Use connector
-          </template>
-        </va-switch>
-
-        <br>
-        <va-select
-          v-if="useConnector"
-          label="Select Connector"
-          v-model="connectorSelection"
-          :options="selectConnectorData"
-        />
-
       </va-form>
       <br>
       <va-button
@@ -63,36 +48,24 @@
 export default {
   data () {
     return {
-      useConnector: false,
       validation: false,
       updatedValues: {
         hostname: null,
         ipaddress: null,
         pool: null,
-        connector_id: null,
         tags: null
       },
-      poolSelection: {},
-      connectorSelection: {}
+      poolSelection: {}
     }
   },
   mounted () {
     this.updatedValues = {...this.hypervisor}
     this.updatePool(this.updatedValues.pool_id)
-    this.updateConnector(this.updatedValues.connector_id)
   },
   watch: {
     hypervisor: function () {
       this.updatedValues = {...this.hypervisor}
       this.updatePool(this.updatedValues.pool_id)
-      this.updateConnector(this.updatedValues.connector_id)
-    },
-    updatedValues: function () {
-      if (this.updatedValues.connector_id) {
-        this.useConnector = true
-      } else {
-        this.useConnector = false
-      }
     },
     validation: function () {
       if (this.validation) {
@@ -102,11 +75,6 @@ export default {
     selectPoolData: function () {
       if (this.updatedValues.pool !== null) {
         this.updatePool(this.updatedValues.pool)
-      }
-    },
-    selectConnectorData: function () {
-      if (this.updatedValues.connector !== null) {
-        this.updateConnector(this.updatedValues.connector)
       }
     }
   },
@@ -120,13 +88,7 @@ export default {
     selectPoolData() {
       return this.$store.state.resources.poolList.map(x => ({
         text: x.name,
-        value: x.id
-      }))
-    },
-    selectConnectorData() {
-      return this.$store.state.resources.connectorList.map(x => ({
-        text: x.name,
-        value: x.id
+        value: x.id,
       }))
     }
   },
@@ -144,20 +106,9 @@ export default {
       })
       this.poolSelection = result[0]
     },
-    updateConnector(id) {
-      const result = this.selectConnectorData.filter((item) => {
-        return item.value == id
-      })
-      this.connectorSelection = result[0]
-    },
     updateHost() {
       const hypervisor = this.updatedValues
       hypervisor.pool_id = this.poolSelection.value
-      if (this.useConnector) {
-        hypervisor.connector_id = this.connectorSelection.value
-      } else {
-        hypervisor.connector_id = null
-      }
       this.$store.dispatch("updateHost", {
         vm: this,
         token: this.$keycloak.token,

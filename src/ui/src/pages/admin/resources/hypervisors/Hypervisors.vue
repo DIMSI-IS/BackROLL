@@ -19,16 +19,10 @@
         >
           <template #header(ssh)>SSH Connection</template>
           <template #header(pool_id)>Pool</template>
-          <template #header(connector_id)>Connector</template>
           <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
           <template #cell(pool_id)="{ value }">
             <va-chip v-if="getPool(value)" size="small" square @click="this.$router.push('/admin/resources/pools')">
               {{ getPool(value) }}
-            </va-chip>
-          </template>
-          <template #cell(connector_id)="{ value }">
-            <va-chip v-if="getConnector(value)" size="small" color="#7f1f90" square @click="this.$router.push('/admin/configuration/connectors')">
-              {{ getConnector(value) }}
             </va-chip>
           </template>
           <template #cell(ipaddress)="{ value }">
@@ -43,7 +37,7 @@
             </va-chip>
           </template>
           <template #cell(tags)="{ value }">
-            <va-chip size="small" square outline>
+            <va-chip v-if="value" size="small" square outline>
               {{ value }}
             </va-chip>
           </template>
@@ -60,7 +54,7 @@
             </va-button-group>
           </template>
         </va-data-table>
-        <div v-if="!$store.state.ishostTableReady && !$store.state.isconnectorTableReady" class="flex-center ma-3">
+        <div v-if="!$store.state.ishostTableReady" class="flex-center ma-3">
           <spring-spinner
             :animation-duration="2000"
             :size="30"
@@ -161,7 +155,6 @@ export default defineComponent({
       columns: [
         {key: 'hostname'},
         {key: 'pool_id', sortable: true},
-        {key: 'connector_id', sortable: true},
         {key: 'ipaddress'},
         {key: 'ssh'},
         {key: 'tags', sortable: true},
@@ -182,14 +175,6 @@ export default defineComponent({
   methods: {
     getPool (id) {
       const result = this.$store.state.resources.poolList.find(item => item.id === id)
-      if (result) {
-        return result.name.toUpperCase()
-      } else {
-        return null
-      }
-    },
-    getConnector (id) {
-      const result = this.$store.state.resources.connectorList.find(item => item.id === id)
       if (result) {
         return result.name.toUpperCase()
       } else {

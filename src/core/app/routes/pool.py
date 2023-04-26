@@ -17,6 +17,7 @@
 
 #!/usr/bin/env python
 import uuid as uuid_pkg
+from typing import Optional
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 from sqlmodel import Session, select
@@ -31,14 +32,29 @@ from app.database import Policies
 from app.database import Pools
 from app.database import Hosts
 
-class items_create_pool(BaseModel):
+class create_items_pool(BaseModel):
   name: str
   policy_id: uuid_pkg.UUID
+  connector_id: Optional[uuid_pkg.UUID] = None
   class Config:
       schema_extra = {
           "example": {
               "name": "example_pool",
               "policy_id": "49072d92-a39f-11ec-b909-0242ac120002",
+              "connector_id": "11ec-b909-0242ac120002-49072d92-a39f"
+          }
+      }
+
+class update_items_pool(BaseModel):
+  name: Optional[str] = None
+  policy_id: Optional[uuid_pkg.UUID] = None
+  connector_id: Optional[uuid_pkg.UUID] = None
+  class Config:
+      schema_extra = {
+          "example": {
+              "name": "example_pool",
+              "policy_id": "49072d92-a39f-11ec-b909-0242ac120002",
+              "connector_id": "11ec-b909-0242ac120002-49072d92-a39f"
           }
       }
 
@@ -59,19 +75,19 @@ def filter_pool_by_id(pool_id):
   except Exception as e:
     raise ValueError(e)
 
-def api_create_pool(name, policyid):
+def api_create_pool(item):
   try:
     engine = database.init_db_connection()
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Policies).where(Policies.id == policyid)
+    statement = select(Policies).where(Policies.id == item.policy_id)
     results = session.exec(statement)
     policy = results.first()
     if not policy:
-      raise ValueError(f'Policy with id {str(policyid)} not found')
+      raise ValueError(f'Policy with id {str(item.policy_id)} not found')
   try:
-    new_pool = Pools(name=name, policy_id=policyid)
+    new_pool = Pools(name=item.name, policy_id=item.policy_id, connector_id=item.connector_id)
     with Session(engine) as session:
         session.add(new_pool)
         session.commit()
@@ -81,7 +97,7 @@ def api_create_pool(name, policyid):
     raise ValueError(e)
 
 @celery.task(name='Update pool')
-def api_update_pool(pool_id, name, policy_id):
+def api_update_pool(pool_id, item):
   try:
     engine = database.init_db_connection()
   except:
@@ -93,18 +109,22 @@ def api_update_pool(pool_id, name, policy_id):
   if not data_pool:
     raise ValueError(f'Storage with id {pool_id} not found')
   try:
-    if name:
-      data_pool.name = name
-    if policy_id:
-      data_pool.policy_id = policy_id
+    if item.name:
+      data_pool.name = item.name
+    if item.policy_id:
+      data_pool.policy_id = item.policy_id
+    if item.connector_id:
+      data_pool.connector_id = item.connector_id
     with Session(engine) as session:
       session.add(data_pool)
       session.commit()
       session.refresh(data_pool)
     return jsonable_encoder(data_pool)
+  except ValueError as e:
+    print(e)
   except Exception as e:
     print(e)
-    raise ValueError(e)
+    raise Exception(e)
 
 def api_delete_pool(pool_id):
   try:
@@ -145,10 +165,8 @@ def retrieve_pool():
   return jsonable_encoder(records)
 
 @app.post('/api/v1/pools', status_code=201)
-def create_pool(item: items_create_pool, identity: Json = Depends(auth.valid_token)):
-  name = item.name
-  policy_id = item.policy_id
-  return api_create_pool(name, policy_id)
+def create_pool(item: create_items_pool, identity: Json = Depends(auth.valid_token)):
+  return api_create_pool(item)
 
 
 @app.get('/api/v1/pools', status_code=202)
@@ -157,14 +175,13 @@ def list_pools(identity: Json = Depends(auth.valid_token)):
     return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 @app.patch('/api/v1/pools/{pool_id}', status_code=200)
-def update_pool(pool_id, item: items_create_pool, identity: Json = Depends(auth.valid_token)):
+def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.valid_token)):
   try:
       uuid_obj = uuid_pkg.UUID(pool_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
-  name = item.name
-  policy_id = item.policy_id
-  return api_update_pool(pool_id, name, policy_id)
+  
+  return api_update_pool(pool_id, item)
 
 @app.delete('/api/v1/pools/{pool_id}', status_code=200)
 def delete_pool(pool_id, identity: Json = Depends(auth.valid_token)):

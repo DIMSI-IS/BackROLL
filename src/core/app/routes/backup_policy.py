@@ -238,7 +238,6 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
       data_backup_policy.retention_year = retention["year"]
     if storage:
       data_backup_policy.storage = storage
-    print(externalhook)
     if externalhook is not None:
       external_hooks.filter_external_hook_by_id(externalhook)
       data_backup_policy.externalhook = externalhook

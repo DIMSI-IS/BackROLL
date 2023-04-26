@@ -17,10 +17,16 @@
         :columns="columns"
       >
         <template #header(policy_id)>Assigned policy</template>
+        <template #header(connector_id)>Connector</template>
         <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
         <template #cell(policy_id)="{ value }">
           <va-chip size="small" square @click="this.$router.push('/admin/configuration/policies')">
             {{ getBackupPolicy(value).name.toUpperCase() }}
+          </va-chip>
+        </template>
+        <template #cell(connector_id)="{ value }">
+          <va-chip v-if="getConnector(value)" size="small" color="#7f1f90" square @click="this.$router.push('/admin/configuration/connectors')">
+            {{ getConnector(value) }}
           </va-chip>
         </template>
         <template #cell(actions)="{ rowIndex }">
@@ -70,6 +76,7 @@ export default defineComponent({
       columns: [
         { key: 'name'},
         { key: 'policy_id'},
+        { key: 'connector_id'},
         { key: 'actions' }
       ],
       showDeleteModal: false,
@@ -79,6 +86,14 @@ export default defineComponent({
   computed: {
   },
   methods: {
+    getConnector (id) {
+      const result = this.$store.state.resources.connectorList.find(item => item.id === id)
+      if (result) {
+        return result.name.toUpperCase()
+      } else {
+        return null
+      }
+    },
     deletePool () {
       const self = this
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/pools/${this.selectedPool.id}`, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})

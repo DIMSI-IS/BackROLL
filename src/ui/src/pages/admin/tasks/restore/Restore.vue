@@ -187,17 +187,7 @@ export default defineComponent({
       }
     },
     retrieveArgs (x) {
-      let result = ''
-      if (x.name === 'VM_Restore_Disk') {
-        const mySubString = x.args.substring(
-            0, 
-            x.args.lastIndexOf("}") + 1
-        )
-        result = mySubString.replaceAll('(', '')
-        result = result.replaceAll('{...}', '')
-        result = result.replaceAll("'", '"')
-      }
-      return JSON.parse(result)
+      return JSON.parse(x.args)
     }
   }
 })

@@ -28,8 +28,14 @@ from app.routes import storage
 from app.kvm import kvm_list_disk
 from app.cloudstack import virtual_machine as cs_vm_command
 
+from app.routes import pool
+from app.routes import connectors
+
 # KVM custom module import
 from app.kvm import kvm_manage_vm
+
+# CS custom module import
+from app.cloudstack import virtual_machine as cs_manage_vm
 
 @celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
 def restore_disk_vm(self, info, backup_name):
@@ -41,9 +47,14 @@ def restore_disk_vm(self, info, backup_name):
       redis_instance.set(unique_task_key, "")
       redis_instance.expire(unique_task_key, 5400)
       try:
-        # Retrieve VM host info
-        host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
-        vm_storage_info = kvm_list_disk.getDisk(info, host_info)
+        if "host" in info:
+          # Retrieve VM host info
+          host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
+          vm_storage_info = kvm_list_disk.getDisk(info, host_info)
+        else:
+          host_info = None
+          connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(info["pool_id"]).connector_id)
+          vm_storage_info = cs_manage_vm.getDisk(connector, info)
         try:
           restore_task(self, info, host_info, vm_storage_info, backup_name)
         except Exception:
@@ -79,6 +90,14 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
     # Go into directory
     os.chdir(f"{borg_repository}restore/{virtual_machine_info['name']}")
+    
+    connector = None
+
+    if "pool_id" in virtual_machine_info:
+      connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(virtual_machine_info["pool_id"]).connector_id)
+    else:
+      filtered_pool = pool.filter_pool_by_id(hypervisor["pool_id"])
+      connector = connectors.filter_connector_by_id(filtered_pool.connector_id)
 
     try:
       # Extract selected borg archive
@@ -91,50 +110,65 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
           break
         elif not output and process.poll() is not None:
           break
-
       # Loop through VM's disks to find filedisk
       for disk in vm_storage_info:
         if disk['device'] == disk_device:
           break
-      virtual_machine_disk = disk['source']
+      virtual_machine_disk = disk["source"]
 
       # Build path based on disk source path
-      path = virtual_machine_disk.split("/")
-      del path[-1]
-      del path[0]
-      kvm_storagepath = ""
-      for item in path:
-        kvm_storagepath += f"/{item}"
-      kvm_storagepath += "/"
+      if "host" in virtual_machine_info:
+        # For a KVM vm
+        path = virtual_machine_disk.split("/")
+        del path[-1]
+        del path[0]
+        kvm_storagepath = ""
+        for item in path:
+          kvm_storagepath += f"/{item}"
+        kvm_storagepath += "/"
+      else:
+        # For a powered off CS vm
+        kvm_storagepath = "/mnt/" + cs_manage_vm.listStorage(connector, disk)["id"] + "/"
       
 
       if virtual_machine_disk == None:
         raise ValueError('Unable to match backup with existing diskfile. Aborting restore job')
-      virtual_machine_diskName = virtual_machine_disk.split('/')[-1]
-
-      # Power off guest VM
-      if virtual_machine_info['cloudstack_instance']:
-        cs_vm_command.stop_vm(virtual_machine_info['uuid'])
+      
+      if "host" in virtual_machine_info:
+        virtual_machine_diskName = virtual_machine_disk.split('/')[-1]
       else:
-        kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
+        virtual_machine_diskName = disk["path"]
 
-      # Replace existing diskfile with restored file
-      os.system(f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
+      if "host" in virtual_machine_info:
+        # Power off guest VM
+        if virtual_machine_info['cloudstack_instance']:
+          cs_vm_command.stop_vm(connector, virtual_machine_info['uuid'])
+        else:
+          kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
 
-      # Fix chmod ownership of new qcow2 filedisk
-      os.system(f"chmod 644 {kvm_storagepath}{virtual_machine_diskName}-tmp")
+      try:
+        subprocess.run(['cp', virtual_machine_diskName, f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
+        # os.system(f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
 
-      # Replace disk by extracted backup
-      os.system(f"mv {kvm_storagepath}{virtual_machine_diskName}-tmp {kvm_storagepath}{virtual_machine_diskName}")
+        # Fix chmod ownership of new qcow2 filedisk
+        subprocess.run(['chmod', '644', f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
+        # os.system(f"chmod 644 {kvm_storagepath}{virtual_machine_diskName}-tmp")
 
-      # Remove temporary folder used to extract borg archive
-      os.system(f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}")
+        # Replace disk by extracted backup
+        subprocess.run(['mv', f"{kvm_storagepath}{virtual_machine_diskName}-tmp", f"{kvm_storagepath}{virtual_machine_diskName}"], check = True)
 
-      # Power on guest VM
-      if virtual_machine_info['cloudstack_instance']:
-        cs_vm_command.start_vm(virtual_machine_info['uuid'])
-      else:
-        kvm_manage_vm.start_vm(virtual_machine_info, hypervisor)
+        # Remove temporary folder used to extract borg archive
+        subprocess.run(['rm', "-rf", f"{borg_repository}restore/{virtual_machine_info['name']}"])
+        # os.system(f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}")
+      except Exception as e:
+        raise e
+
+      if "host" in virtual_machine_info:
+        # Power on guest VM
+        if virtual_machine_info['cloudstack_instance']:
+          cs_vm_command.start_vm(connector, virtual_machine_info['uuid'])
+        else:
+          kvm_manage_vm.start_vm(virtual_machine_info, hypervisor)
 
     except Exception as e:
       # Remove restore artifacts

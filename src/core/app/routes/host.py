@@ -46,7 +46,7 @@ class items_create_host(BaseModel):
               "name": "example_hostname",
               "tags": "production_server",
               "ip_address": "192.168.1.200",
-              "pool_id": "679b3dd4-a39f-11ec-b909-0242ac120002"
+              "pool_id": "679b3dd4-a39f-11ec-b909-0242ac120002",
           }
       }
 
@@ -55,14 +55,12 @@ class items_update_host(BaseModel):
   tags: Optional[str] = None
   ip_address: Optional[str] = None
   pool_id: Optional[uuid_pkg.UUID] = None
-  connector_id: Optional[uuid_pkg.UUID] = None
   class Config:
       schema_extra = {
           "example": {
               "name": "example_hostname",
               "tags": "production_server",
               "ip_address": "192.168.1.200",
-              "pool_id": "679b3dd4-a39f-11ec-b909-0242ac120002"
           }
       }
 
@@ -100,19 +98,19 @@ def filter_host_list_by_pool(host_list, pool_id):
       filtered_host_list.append(host)
   return filtered_host_list
 
-def api_create_host(hostname, tags, ipaddress, pool_id):
+def api_create_host(item):
   try:
     engine = database.init_db_connection()
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Pools).where(Pools.id == pool_id)
+    statement = select(Pools).where(Pools.id == item.pool_id)
     results = session.exec(statement)
     pool = results.first()
     if not pool:
-      raise ValueError(f'Pool with id {str(pool_id)} not found')
+      raise Exception(f'Pool with id {str(item.pool_id)} not found')
   try:
-    new_host = Hosts(hostname=hostname, tags=tags, ipaddress=ipaddress, pool_id=pool_id)
+    new_host = Hosts(hostname=item.hostname, tags=item.tags, ipaddress=item.ip_address, pool_id=item.pool_id)
     with Session(engine) as session:
         session.add(new_host)
         session.commit()
@@ -121,7 +119,7 @@ def api_create_host(hostname, tags, ipaddress, pool_id):
   except Exception as e:
     raise ValueError(e)
 
-def api_update_host(host_id, hostname, tags, ipaddress, pool_id, connector_id):
+def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
   try:
     engine = database.init_db_connection()
   except:
@@ -146,11 +144,6 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id, connector_id):
       data_host.ipaddress = ipaddress
     if pool_id:
       data_host.pool_id = pool_id
-    if connector_id:
-      data_host.connector_id = connector_id
-    else:
-      print("tamcefkok")
-      data_host.connector_id = None
     if tags:
       data_host.tags = tags
     with Session(engine) as session:
@@ -211,11 +204,7 @@ def getSSHPubKey():
 
 @app.post("/api/v1/hosts", status_code=201)
 def create_host(item: items_create_host, identity: Json = Depends(auth.valid_token)):
-  name = item.hostname
-  tags = item.tags
-  ip_address = item.ip_address
-  pool_id = item.pool_id
-  return api_create_host(name, tags, ip_address, pool_id)
+  return api_create_host(item)
 
 @app.get("/api/v1/hosts", status_code=202)
 # def list_hosts():
@@ -234,11 +223,7 @@ def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.
   tags = item.tags
   ip_address = item.ip_address
   pool_id = item.pool_id
-  if item.connector_id:
-    connector_id = item.connector_id
-  else:
-    connector_id = None
-  return api_update_host(host_id, name, tags, ip_address, pool_id, connector_id)
+  return api_update_host(host_id, name, tags, ip_address, pool_id)
 
 @app.delete('/api/v1/hosts/{host_id}', status_code=200)
 def delete_host(host_id, identity: Json = Depends(auth.valid_token)):

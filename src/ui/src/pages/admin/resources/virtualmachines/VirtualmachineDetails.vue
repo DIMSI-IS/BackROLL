@@ -71,6 +71,7 @@
             <div class="flex xs6">
               <div class="item">
                 <va-input
+                  v-if="hypervisor"
                   class="mb-4"
                   v-model="hypervisor.hostname"
                   label="Host"
@@ -334,10 +335,14 @@ export default defineComponent({
       return result[0]
     },
     pool () {
-      if (this.hypervisor.pool_id) {
-        return this.getPool(this.hypervisor.pool_id)
+      if (this.hypervisor) {
+        if (this.hypervisor.pool_id) {
+          return this.getPool(this.hypervisor.pool_id)
+        } else {
+          return null
+        }
       } else {
-        return null
+        return this.getPool(this.virtualMachine.pool_id)
       }
     },
     policy () {
@@ -399,7 +404,7 @@ export default defineComponent({
     restoreDiskFile: function () {
       const json = {
           "virtual_machine_id": this.virtualMachine.uuid,
-          "backup_id": this.selectedBackup.archive
+          "backup_name": this.selectedBackup.archive
         }
       axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/restore/${this.virtualMachine.uuid}`, json, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
       .then(response => {

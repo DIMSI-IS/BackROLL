@@ -46,12 +46,13 @@ class Pools(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   name: Optional[str] = None
   policy_id: uuid_pkg.UUID = Field(default=None, foreign_key="policies.id")
-
+  connector_id: uuid_pkg.UUID = Field(default=None, foreign_key="connectors.id")
   def to_json(self):
     return {
       "id": str(self.id),
       "name": self.name,
-      "policy_id": str(self.policy_id)
+      "policy_id": str(self.policy_id),
+      "ssh": bool(self.is_managed),
     }
 
 class Hosts(SQLModel, table=True):
@@ -61,7 +62,6 @@ class Hosts(SQLModel, table=True):
   username: Optional[str] = None
   ssh: Optional[bool] = 0
   pool_id: uuid_pkg.UUID = Field(default=None, foreign_key="pools.id")
-  connector_id: uuid_pkg.UUID = Field(default=None, foreign_key="connectors.id")
   tags: Optional[str] = None
   state: Optional[bool] = 0
 
@@ -73,7 +73,6 @@ class Hosts(SQLModel, table=True):
       "username": self.username,
       "ssh": bool(self.ssh),
       "pool_id": str(self.pool_id),
-      "connector_id": str(self.connector_id),
       "tags": self.tags,
       "state": bool(self.state)
     }

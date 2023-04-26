@@ -17,6 +17,7 @@
 
 #!/usr/bin/env python
 import os
+import re
 from datetime import datetime
 import json
 from requests.auth import HTTPBasicAuth
@@ -24,7 +25,6 @@ import requests
 import time
 
 from app import celery
-
 from celery.signals import task_failure, task_success
 
 from app.backup_tasks import single_backup
@@ -41,9 +41,28 @@ def list_running_tasks(application):
     return application.active()
 
 def retrieve_task_info(task_id):
-  response = requests.get(f"http://flower:5555/api/task/info/{task_id}", auth=HTTPBasicAuth(os.getenv('FLOWER_USER'), os.getenv('FLOWER_PASSWORD')))
+  response = requests.get(f"http://flower:5555/api/task/info/{task_id}")
   return response.content
 
+def cleanArgs(args):
+  argument = str(args)
+  if ", ...,)" in argument:
+    argument = argument[len('('):-len(', ...,)')]
+    argument = argument + "}"
+  elif ", ...)" in argument:
+    argument = argument[len('('):-len(', ...)')]
+    argument = argument + "}"
+  elif ",)" in argument:
+    argument = argument[len('('):-len(',)')]
+  elif "}," in argument:
+    argument = argument.split("},", 1)[0]
+  argument = argument.replace("'", '"')
+  argument = argument.replace("True", 'true')
+  argument = argument.replace("False", 'false')
+  argument = argument.replace("(", '')
+  argument = argument.replace(")", '')
+  argument.split("}", 1)[0]
+  return argument
 
 def convert(seconds):
   if type(seconds) != type(None):
@@ -62,20 +81,18 @@ def convert(seconds):
 @celery.task(name='Handle task success', max_retries=None)
 def handle_task_success(task_id, msg):
 
-  task_result = retrieve_task_info(task_id).decode('ascii')
+  task_result = retrieve_task_info(task_id).decode('ascii')  
   text = json.loads(task_result)['args']
-  print(text)
-  left = "{"
-  right = "}"
-  arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
-  arguments = arguments.replace("(", '')
-  arguments = arguments.replace(")", '')
-  arguments = arguments.replace("'", '"')
-  task_args = json.loads(arguments)
+  cleanedtext = cleanArgs(text)
+  task_args = json.loads(cleanedtext)
 
-  host = host_route.filter_host_by_id(task_args['host'])
-  pool = pool_route.filter_pool_by_id(host.pool_id)
-  policy = policy_route.filter_policy_by_id(pool.policy_id)
+  if "host" in task_args:
+    host = host_route.filter_host_by_id(task_args['host'])
+    pool = pool_route.filter_pool_by_id(host.pool_id)
+    policy = policy_route.filter_policy_by_id(pool.policy_id)
+  else:
+    pool = pool_route.filter_pool_by_id(task_args["pool_id"])
+    policy = policy_route.filter_policy_by_id(pool.policy_id)
   
   if policy.externalhook:
     hook = hook_route.filter_external_hook_by_id(policy.externalhook)
@@ -84,11 +101,8 @@ def handle_task_success(task_id, msg):
       time.sleep(10)
       task_result = retrieve_task_info(task_id).decode('ascii')
       text = json.loads(task_result)['args']
-      left = '{'
-      right = '}'
-      arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
-      arguments = arguments.replace("'", '"')
-      task_args = json.loads(arguments)
+      cleanedtext = cleanArgs(text)
+      task_args = json.loads(cleanedtext)
       context_smiley = "white_check_mark"
       alerting = ""
       duration_time = f"{convert(json.loads(task_result).get('runtime'))}"
@@ -147,13 +161,8 @@ def handle_task_failure(task_id, msg):
 
   task_result = retrieve_task_info(task_id).decode('ascii')
   text = json.loads(task_result)['args']
-  left = "{"
-  right = "}"
-  arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
-  arguments = arguments.replace("(", '')
-  arguments = arguments.replace(")", '')
-  arguments = arguments.replace("'", '"')
-  task_args = json.loads(arguments)
+  cleanedtext = cleanArgs(text)
+  task_args = json.loads(cleanedtext)
 
   host = host_route.filter_host_by_id(task_args['host'])
   pool = pool_route.filter_pool_by_id(host.pool_id)
@@ -164,6 +173,9 @@ def handle_task_failure(task_id, msg):
     time.sleep(10)
     task_result = retrieve_task_info(task_id).decode('ascii')
     text = json.loads(task_result)['args']
+    
+    print(text)
+    
     left = "{"
     right = "}"
     arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"

@@ -36,6 +36,13 @@ from app import task_handler
 from app.backup_tasks import pool_backup
 from app.database import Hosts
 
+from app.routes import connectors
+from app.routes import pool
+from app.cloudstack import virtual_machine as cs_manage_vm
+
+class connectorObject(object):
+  pass
+
 def getVMtobackup(pool_id):
   try:
     engine = database.init_db_connection()
@@ -43,7 +50,6 @@ def getVMtobackup(pool_id):
     raise
   virtual_machine_list = []
   try:
-    host_list = []
     with Session(engine) as session:
       statement = select(Hosts).where(Hosts.pool_id == pool_id)
       results = session.exec(statement)
@@ -58,10 +64,28 @@ def getVMtobackup(pool_id):
   except Exception:
     raise
 
+  # Query VM list from powered and reachable hypervisors
   ready_to_backup_list = []
   for vm in virtual_machine_list:
     if vm['state'] == 'Running' and int(vm['id']) != -1:
       ready_to_backup_list.append(vm)
+
+  # Check if pool has connector applied - if yes, retrieve powered off VM in cloudstack
+  connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(pool_id).connector_id)
+  if connector:
+    
+    connector_obj = connectorObject()
+    # Duplicate object connector to add pool_id property
+    connector_obj.id = connector.id
+    connector_obj.name = connector.name
+    connector_obj.url = connector.url 
+    connector_obj.login = connector.login
+    connector_obj.password = connector.password
+    connector_obj.pool_id = pool_id
+    
+    ready_to_backup_list += cs_manage_vm.listPoweredOffVms(connector_obj)
+
+  print(ready_to_backup_list)
 
   return ready_to_backup_list
 
