@@ -1,2 +1,5 @@
 # Avoid compromising secret information
-common/*
+common/**
+flower/**
+mariadb/**
+keycloak/**
