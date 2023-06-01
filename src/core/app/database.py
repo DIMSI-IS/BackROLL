@@ -17,10 +17,10 @@
 
 # MySQL Module Imports
 import sys
-import mysql.connector
+from urllib.parse import quote_plus
 import uuid as uuid_pkg
 from typing import Optional
-from sqlmodel import Field, SQLModel, create_engine, inspect
+from sqlmodel import Field, SQLModel, create_engine
 
 # Other imports
 import os
@@ -126,7 +126,7 @@ def init_db_connection():
   if not 'DB_BASE' in os.environ:
     sys.exit("Missing required environment variable: DB_BASE. Check your backroll_config.yml file")
   try:
-    mysql_url = f'''mysql+mysqlconnector://{os.getenv("DB_USER_NAME")}:{os.getenv("DB_USER_PASSWORD")}@{os.getenv("DB_IP")}:{os.getenv("DB_PORT")}/{os.getenv("DB_BASE")}'''
-    return create_engine(mysql_url)
+    mysql_url = f'''mysql+mysqlconnector://{os.getenv("DB_USER_NAME")}:%s@{os.getenv("DB_IP")}:{os.getenv("DB_PORT")}/{os.getenv("DB_BASE")}'''
+    return create_engine(mysql_url % quote_plus(os.getenv("DB_USER_PASSWORD")))
   except Exception as e:
     sys.exit(e)
