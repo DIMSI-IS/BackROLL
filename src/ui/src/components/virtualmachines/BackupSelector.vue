@@ -45,6 +45,7 @@ export default defineComponent({
         }))
         return result.sort().reverse()
       }
+      return [];
     },
   },
   methods: {
