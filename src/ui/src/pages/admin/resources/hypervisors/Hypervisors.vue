@@ -48,7 +48,7 @@
           </template>
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
-              <va-button v-if="$store.state.resources.hostList[rowIndex].ssh === 0" icon="link" @click="selectedHost = $store.state.resources.hostList[rowIndex], showConnectModal = !showConnectModal" />
+              <va-button v-if="!$store.state.resources.hostList[rowIndex].ssh" icon="link" @click="selectedHost = $store.state.resources.hostList[rowIndex], showConnectModal = !showConnectModal" />
               <va-button icon="settings" @click="this.$router.push(`/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`)" />
               <va-button icon="delete" @click="selectedHost = $store.state.resources.hostList[rowIndex], showDeleteModal = !showDeleteModal" />
             </va-button-group>
