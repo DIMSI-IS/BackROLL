@@ -16,24 +16,24 @@
 ## under the License.
 
 import os
-import requests
 import json
+import requests
 from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import OAuth2AuthorizationCodeBearer
 from starlette.config import Config
 from starlette.requests import Request
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import RedirectResponse
 import jwt
 from jwt import PyJWKClient
 from pydantic import Json, BaseModel
-from starlette.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
-from fastapi.security import OAuth2AuthorizationCodeBearer
 
 from app import app
 
 app.add_middleware(SessionMiddleware, secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xWTKGM""")
 
-config = Config('.env')
+config = Config(".env")
 oauth = OAuth(config)
 
 issuer = os.getenv("OPENID_ISSUER")
@@ -41,71 +41,72 @@ issuer = os.getenv("OPENID_ISSUER")
 CONF_URL = f"""{issuer}/.well-known/openid-configuration"""
 oauth.register(
     name="""openid_provider""",
-    client_id = os.getenv("OPENID_CLIENTID"),
-    client_secret = os.getenv("OPENID_CLIENTSECRET"),
+    client_id=os.getenv("OPENID_CLIENTID"),
+    client_secret=os.getenv("OPENID_CLIENTSECRET"),
     server_metadata_url=CONF_URL,
-    client_kwargs={
-        'scope': 'openid email profile'
-    }
+    client_kwargs={"scope": "openid email profile"},
 )
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=f"""{issuer}/protocol/openid-connect/auth""",
-    tokenUrl=f"""{issuer}/protocol/openid-connect/token"""
+    tokenUrl=f"""{issuer}/protocol/openid-connect/token""",
 )
 
+
 class items_login(BaseModel):
-  app_id: str
-  app_secret: str
-  class Config:
-      schema_extra = {
-          "example": {
-              "app_id": "openid application id",
-              "app_secret": "openid application secret"
-          }
-      }
+    app_id: str
+    app_secret: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "app_id": "openid application id",
+                "app_secret": "openid application secret",
+            }
+        }
+
 
 def valid_token(token: str = Security(oauth2_scheme)) -> Json:
-  url = f"""{issuer}/protocol/openid-connect/certs"""
-  jwks_client = PyJWKClient(url)
-  try:
-    signing_key = jwks_client.get_signing_key_from_jwt(token)
-    return jwt.decode(
-      token, signing_key.key,
-      issuer=issuer,
-      audience='account',
-      algorithms=["RS256"]
-    )
-  except Exception as e:
-    raise HTTPException(
-      status_code=status.HTTP_401_UNAUTHORIZED,
-      detail=str(e), # "Invalid authentication credentials",
-      headers={"WWW-Authenticate": "Bearer"},
-    )
+    url = f"""{issuer}/protocol/openid-connect/certs"""
+    jwks_client = PyJWKClient(url)
+    try:
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        return jwt.decode(
+            token,
+            signing_key.key,
+            issuer=issuer,
+            audience="account",
+            algorithms=["RS256"],
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),  # "Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
 
-@app.post('/api/v1/login', status_code=200)
+
+@app.post("/api/v1/login", status_code=200)
 def login(item: items_login):
-  # curl --data "grant_type=client_credentials&client_id=backroll_api&client_secret=TeaSv9Q0nG2r64w0QnSvtbYdx9hu1n6P" https://sso.dimsi.io/auth/realms/master/protocol/openid-connect/token
-  app_id = item.app_id
-  app_secret = item.app_secret
-  url = f"""{os.getenv("OPENID_ISSUER")}/protocol/openid-connect/token"""
-  payload = {
-    'grant_type': 'client_credentials',
-    'client_id': app_id,
-    'client_secret': app_secret
-  }
-  x = requests.post(url, data = payload)
-  token = json.loads(x.text)
-  return token
+    app_id = item.app_id
+    app_secret = item.app_secret
+    url = f"""{os.getenv("OPENID_ISSUER")}/protocol/openid-connect/token"""
+    payload = {
+        "grant_type": "client_credentials",
+        "client_id": app_id,
+        "client_secret": app_secret,
+    }
+    x = requests.post(url, data=payload, timeout=120)
+    token = json.loads(x.text)
+    return token
 
-@app.post('/api/v1/auth', status_code=200)
+
+@app.post("/api/v1/auth", status_code=200)
 def auth(identity: Json = Depends(valid_token)):
-  return {
-    'state': 'authenticated',
-    'jwt': identity
-  }
+    return {"state": "authenticated", "jwt": identity}
 
-@app.get('/api/v1/logout')
+
+@app.get("/api/v1/logout")
 def logout(request: Request):
-    request.session.pop('user', None)
-    return RedirectResponse(url='/')
+    request.session.pop("user", None)
+    return RedirectResponse(url="/")
