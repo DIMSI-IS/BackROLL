@@ -89,17 +89,20 @@ def handle_results(group_id):
       global_instance_list += instance_list["virtualmachines"]
   # This part is dedicated to retrieve VM using host related connectors (AKA Cloudstack discovery)
   for pool_id in pool_set:
-    connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(pool_id).connector_id)
-    if connector not in connector_list:
-      connector_obj = connectorObject()
-      # Duplicate object connector to add pool_id property
-      connector_obj.id = connector.id
-      connector_obj.name = connector.name
-      connector_obj.url = connector.url 
-      connector_obj.login = connector.login
-      connector_obj.password = connector.password
-      connector_obj.pool_id = pool_id
-      connector_list.append(connector_obj)
+    connector_id = pool.filter_pool_by_id(pool_id).connector_id
+    # if connector_id is not null, we need to retrieve connector object
+    if connector_id:
+      connector = connectors.filter_connector_by_id(connector_id)
+      if connector not in connector_list:
+        connector_obj = connectorObject()
+        # Duplicate object connector to add pool_id property
+        connector_obj.id = connector.id
+        connector_obj.name = connector.name
+        connector_obj.url = connector.url 
+        connector_obj.login = connector.login
+        connector_obj.password = connector.password
+        connector_obj.pool_id = pool_id
+        connector_list.append(connector_obj)
   for connector in connector_list:
     cs_vm_list += cs_manage_vm.listPoweredOffVms(connector)
   # Merge KVM and CS discovered virtual machines to a single array
