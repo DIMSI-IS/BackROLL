@@ -92,13 +92,17 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
     os.chdir(f"{borg_repository}restore/{virtual_machine_info['name']}")
     
     connector = None
+    pool_id = None
 
     if "pool_id" in virtual_machine_info:
-      connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(virtual_machine_info["pool_id"]).connector_id)
+      pool_id = virtual_machine_info["pool_id"]
     else:
-      filtered_pool = pool.filter_pool_by_id(hypervisor["pool_id"])
-      connector = connectors.filter_connector_by_id(filtered_pool.connector_id)
-
+      pool_id = hypervisor["pool_id"]
+    
+    connector_id = pool.filter_pool_by_id(pool_id).connector_id
+    if connector_id:
+      connector = connectors.filter_connector_by_id(connector_id)
+      
     try:
       # Extract selected borg archive
       cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""

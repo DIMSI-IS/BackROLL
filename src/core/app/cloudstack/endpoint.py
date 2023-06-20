@@ -18,6 +18,9 @@
 from cs import CloudStack
 
 def cloudstack_connector(connector):
+    if not connector:
+        raise ValueError("No connector provided")
+    
     return CloudStack(endpoint=connector.url,
                 key=connector.login,
                 secret=connector.password,
