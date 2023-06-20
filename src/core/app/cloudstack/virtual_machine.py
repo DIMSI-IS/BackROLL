@@ -33,9 +33,6 @@ def start_vm(connector, identity):
           raise ValueError(jobquery)
 
   except Exception as e:
-      ddata = e.response.json()
-      k,val = ddata.popitem()
-      status_code = e.error
       error_message = "HTTP {0} response from CloudStack.\nErrorcode {1}: {2}"
       fmt = error_message.format(e.error['errorcode'], e.error['cserrorcode'], e.error['errortext'])
       errorcode = str(Exception(fmt)).split(':')[1]
@@ -57,9 +54,6 @@ def stop_vm(connector, identity):
           raise ValueError(jobquery)
 
   except Exception as e:
-      ddata = e.response.json()
-      k,val = ddata.popitem()
-      status_code = e.error
       error_message = "HTTP {0} response from CloudStack.\nErrorcode {1}: {2}"
       fmt = error_message.format(e.error['errorcode'], e.error['cserrorcode'], e.error['errortext'])
       errorcode = str(Exception(fmt)).split(':')[1]
