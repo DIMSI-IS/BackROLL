@@ -1,0 +1,143 @@
+version: "3.9"
+
+services:
+
+  database:
+    image: 'mariadb:10.3'
+    env_file:
+      - database/env
+    volumes:
+      - database:/var/lib/mysql/
+    ports:
+      - 3306:3306
+
+  sso:
+    build: ./sso
+    env_file:
+      - ./sso/env
+    ports:
+      - 8081:8080
+      - 9990:9990
+
+  redis:
+    image: redis:7.0.2
+    container_name: redis
+    command: "redis-server"
+    expose:
+      - 6379
+    ports:
+      - 6379:6379
+
+  api:
+    container_name: core
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: "python3 run.py"
+    volumes:
+      - ../src/core:/usr/src/app
+    expose:
+      - 5050
+    ports:
+      - 5050:5050
+    depends_on:
+      - redis
+    env_file:
+      - ../common/config/core/env
+      - api/env
+
+  worker_primary:
+    container_name: worker
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4
+    volumes:
+      - ../common/secret/:/root/.ssh:ro
+      - /mnt:/mnt
+      - ../src/core:/usr/src/app
+    environment:
+      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+    depends_on:
+      - api
+    env_file:
+      - ../common/config/core/env
+
+  worker_secondary:
+    container_name: worker-lrt
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
+    volumes:
+      - ../common/secret/:/root/.ssh:ro
+      - /mnt:/mnt
+      - ../src/core:/usr/src/app
+    environment:
+      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+    depends_on:
+      - api
+      - worker_primary
+    env_file:
+      - ../common/config/core/env
+
+  flower:
+    container_name: celery-flower
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery flower --conf=flowerconfig.py
+    volumes:
+      - ../flower:/root/flower
+      - ../src/core:/usr/src/app
+    expose:
+      - 5555
+    ports:
+      - 5555:5555
+    depends_on:
+      - api
+      - worker_primary
+    env_file:
+      - ../common/config/core/env
+
+  beat:
+    container_name: scheduler
+    build: ../src/core
+    working_dir: /usr/src/app
+    command: celery -A app.celery beat -S redbeat.RedBeatScheduler
+    volumes:
+      - ../src/core:/usr/src/app
+    depends_on:
+      - api
+      - worker_secondary
+    env_file:
+      - ../common/config/core/env
+
+  front:
+    build: 
+      context: ../src/ui
+      dockerfile: dev.Dockerfile
+    working_dir: /app
+    # volumes:
+    #  - ../src/ui:/app
+    ports:
+      - 8080:8080
+    depends_on:
+      - api
+    env_file:
+      - ../common/config/ui/env
+      - front/env
+
+  dev-proxy:
+    build: ./dev-proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - SUDO_ACCESS=true
+      - PASSWORD_ACCESS=true
+      - USER_NAME=developer
+      - USER_PASSWORD=developer
+    ports:
+      - 2222:2222
+    profiles:
+      - dev-proxy
+
+volumes:
+  database:

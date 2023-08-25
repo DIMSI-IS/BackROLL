@@ -1,14 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-#export API_ENDPOINT_URL OPENID_ISSUER OPENID_CLIENTID OPENID_REALM
+# Loading environment files in accordance with the dependency order.
+source load_env.sh .env.tmpl
 
-file=".env.local"
-
-export file
-if [ ! -f $file.tmpl ]; then
-  cp $file $file.tmpl
-fi
-envsubst '$API_ENDPOINT_URL $OPENID_ISSUER $OPENID_CLIENTID $OPENID_REALM' < $file.tmpl > $file
-
-echo "Starting website"
+# Starting the web app.
 npm run serve

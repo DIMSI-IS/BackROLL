@@ -1,0 +1,5 @@
+DB_IP=database
+DB_PORT=3306
+DB_USER_NAME=backroll
+DB_USER_PASSWORD=backroll
+DB_BASE=backroll
