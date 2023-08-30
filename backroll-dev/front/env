@@ -2,4 +2,4 @@ API_ENDPOINT_URL=http://localhost:5050
 
 OPENID_ISSUER=http://localhost:8081
 OPENID_REALM=backroll
-OPENID_CLIENTID=backroll
+OPENID_CLIENTID=backroll-front

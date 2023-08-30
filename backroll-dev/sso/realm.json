@@ -10,7 +10,15 @@
   ],
   "clients": [
     {
-      "clientId": "backroll",
+      "clientId": "backroll-front",
+      "enabled": true,
+      "publicClient": true,
+      "baseUrl": "http://localhost:8080/admin/dashboard",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    },
+    {
+      "clientId": "backroll-api",
       "enabled": true,
       "publicClient": true,
       "redirectUris": ["*"],
