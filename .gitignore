@@ -3,3 +3,6 @@ common/**
 flower/**
 mariadb/**
 keycloak/**
+
+# Set line endings for shell scripts to LF
+*.sh text eol=lf
