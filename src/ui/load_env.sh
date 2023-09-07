@@ -9,4 +9,6 @@ do
   set -o allexport
   source $file
   set +o allexport
+  echo "… done."
 done
+echo "Environment loaded."
