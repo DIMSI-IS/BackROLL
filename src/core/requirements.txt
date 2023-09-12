@@ -64,7 +64,8 @@ py==1.11.0
 pyasn1==0.4.8
 pycparser==2.20
 pydantic==1.9.0
-PyJWT==2.3.0
+pyjwt[crypto]==2.8.0
+PyJWT==2.8.0
 PyNaCl==1.4.0
 pyparsing==2.4.6
 pytest==7.0.1
