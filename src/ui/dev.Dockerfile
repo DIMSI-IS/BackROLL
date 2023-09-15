@@ -1,8 +1,7 @@
 FROM node:14
 WORKDIR /app
 
-# TODO package-lock.json shouldn’t be need but it works better with it.
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm install --no-optional
 
 COPY . ./
