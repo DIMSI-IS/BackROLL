@@ -128,20 +128,20 @@ services:
     environment:
       - OPENID_ISSUER=http://${HOST_IP}:8081
 
-  dev-proxy:
-    build: ./dev-proxy
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - SUDO_ACCESS=true
-      - PASSWORD_ACCESS=true
-      - USER_NAME=developer
-      - USER_PASSWORD=developer
-    ports:
-      - 2222:2222
-    profiles:
-      - dev-proxy
+#  dev-proxy:
+#    build: ./dev-proxy
+#    environment:
+#      - PUID=1000
+#      - PGID=1000
+#      - TZ=Etc/UTC
+#      - SUDO_ACCESS=true
+#      - PASSWORD_ACCESS=true
+#      - USER_NAME=developer
+#      - USER_PASSWORD=developer
+#    ports:
+#      - 2222:2222
+#    profiles:
+#      - dev-proxy
 
 volumes:
   database:
