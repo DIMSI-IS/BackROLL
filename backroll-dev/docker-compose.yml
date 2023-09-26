@@ -44,6 +44,8 @@ services:
     env_file:
       - ../common/config/core/env
       - api/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   worker_primary:
     container_name: worker
@@ -123,6 +125,8 @@ services:
     env_file:
       - ../common/config/ui/env
       - front/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081
 
   dev-proxy:
     build: ./dev-proxy
