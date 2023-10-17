@@ -10,7 +10,6 @@ services:
       - database:/var/lib/mysql/
     ports:
       - 3306:3306
-
   sso:
     build: ./sso
     env_file:
@@ -20,7 +19,7 @@ services:
       - 9990:9990
 
   redis:
-    image: redis:7.0.2
+    image: redis:7.2
     container_name: redis
     command: "redis-server"
     expose:
@@ -51,40 +50,45 @@ services:
     container_name: worker
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker -Q default --concurrency=4
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info
     volumes:
       - ../common/secret/:/root/.ssh:ro
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     depends_on:
       - api
     env_file:
       - ../common/config/core/env
+      - api/env
+      
 
   worker_secondary:
     container_name: worker-lrt
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info
     volumes:
       - ../common/secret/:/root/.ssh:ro
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     depends_on:
       - api
       - worker_primary
     env_file:
       - ../common/config/core/env
+      - api/env
 
   flower:
     container_name: celery-flower
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery flower --conf=flowerconfig.py
+    command: celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
     volumes:
       - ../flower:/root/flower
       - ../src/core:/usr/src/app
@@ -97,12 +101,15 @@ services:
       - worker_primary
     env_file:
       - ../common/config/core/env
+      - api/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   beat:
     container_name: scheduler
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery beat -S redbeat.RedBeatScheduler
+    command: celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
     volumes:
       - ../src/core:/usr/src/app
     depends_on:
@@ -110,6 +117,9 @@ services:
       - worker_secondary
     env_file:
       - ../common/config/core/env
+      - api/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   front:
     build: 

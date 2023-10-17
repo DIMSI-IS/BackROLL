@@ -275,7 +275,7 @@ def create_backup_policy(item: backup_policy_create, identity: Json = Depends(au
   return api_create_backup_policy(name, description, schedule, retention, storage, externalhook)
 
 @app.get("/api/v1/backup_policies", status_code=202)
-def list_backup_policies():
+def list_backup_policies(identity: Json = Depends(auth.valid_token)):
     task = retrieve_backup_policies.delay()
     return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
 
