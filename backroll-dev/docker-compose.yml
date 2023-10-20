@@ -137,10 +137,11 @@ services:
       - front/env
     environment:
       - OPENID_ISSUER=http://${HOST_IP}:8081
+      - API_ENDPOINT_URL=http://${HOST_IP}:5050
 
 #  dev-proxy:
 #    build: ./dev-proxy
-#    environment:
+#    environment: 
 #      - PUID=1000
 #      - PGID=1000
 #      - TZ=Etc/UTC

@@ -1,2 +1,4 @@
 # Set line endings for shell scripts to LF
 *.sh text eol=lf
+*.env text eol=lf
+*.yml text eol=lf

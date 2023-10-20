@@ -13,15 +13,15 @@
       "clientId": "backroll-front",
       "enabled": true,
       "publicClient": true,
-      "baseUrl": "http://localhost:8080/admin/dashboard",
-      "redirectUris": ["http://localhost:8080/*"],
+      "baseUrl": "http://10.100.10.92:8080/admin/dashboard",
+      "redirectUris": ["http://10.100.10.92:8080/*"],
       "webOrigins": ["*"]
     },
     {
       "clientId": "backroll-api",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
-      "redirectUris": ["http://localhost:5050/*"],
+      "redirectUris": ["http://10.100.10.92:5050/*"],
       "webOrigins": ["*"],
       "serviceAccountsEnabled": true
     }
