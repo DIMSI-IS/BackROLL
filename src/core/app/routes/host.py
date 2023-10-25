@@ -199,7 +199,7 @@ def getSSHPubKey():
   try:
     pubkey = os.popen('cat ~/.ssh/id_rsa.pub').read()
     print("init ssh  " + os.popen("cat /etc/hostname").read())
-    return {'state': 'SUCCESS', 'info': {'public_key': "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDCxynK9Pl21o6s0vDtnrxiuVzKDuxBY1N0LKGJJwf1c8tfN0CLyDWQTj/MDEYIEBIBGpBA3BFLK+k4smLMQXGOXOsS43uN/woFlQkmwkwFk+YpiyWVdJEeyciFsNtKfcgyKAXNNzS6T1l893Vu3wH0DjXPIvIx3wH1csaVdctG6u5G0xF2fTwkz6/0h9B6PtaB6W/H7R2Bu7avAkx/QaFZCHdDac1bDQMAe5T3KR0xJUg3q2kx5no1ivuOJ5rc2/uIQUopM6Cje3+Ar8vxoXPqk8jgbE4WesXf7BGBG+KpywbgigcSqHKN/IAmfom+/co93/I1t9lov9a1pQ7tApX8QXAabge0t9V2/xcP1hvZldbSmUme6O14hIounFtbJ62pH839lwEZg1RxbFSWD42DfaQRMokg423kKzY0L22EEE1h0A4PEekSSXoluTJ8UT0SiFm/HOeWn3ttNc8PThL9Nud3T82zaYxkTrKHIFtAa+KBGOsrTWy3cnZu3KBhvgc= backupmaker-appliance"}}
+    return {'state': 'SUCCESS', 'info': {'public_key': pubkey}}
   except Exception as e:
     raise ValueError('Unable to retrieve appliance public key')
 

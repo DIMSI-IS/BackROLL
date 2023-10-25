@@ -50,9 +50,9 @@ services:
     container_name: worker
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod -R 644 ~/.ssh/id_rsa.pub && chmod -R 644 ~/.ssh/config
     volumes:
-      - ../common/secret/:/root/.ssh:ro
+      - ../common/secret/:/root/.ssh
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
@@ -69,9 +69,9 @@ services:
     container_name: worker-lrt
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod -R 644 ~/.ssh/id_rsa.pub && chmod -R 644 ~/.ssh/config
     volumes:
-      - ../common/secret/:/root/.ssh:ro
+      - ../common/secret/:/root/.ssh
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
