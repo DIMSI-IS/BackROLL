@@ -29,7 +29,10 @@ BackROLL 0.1.0 requires at least
 
 ## Get Started
 
-Coming soon... :smirk:
+Work in progress:
+- [development](backroll-dev/README.md)
+- [production](backroll-prod-local/README.md) (local sources)
+- [production](backroll-prod-hub/README.md) (from the Docker hub)
 
 ## Documentation
 The [latest documentation](https://backroll.readthedocs.io/) is hosted at Read The Docs, containing user guides, tutorials, and an API reference.

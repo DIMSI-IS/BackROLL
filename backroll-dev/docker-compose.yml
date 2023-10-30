@@ -41,7 +41,6 @@ services:
     depends_on:
       - redis
     env_file:
-      - ../common/config/core/env
       - api/env
     environment:
       - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
@@ -61,7 +60,6 @@ services:
     depends_on:
       - api
     env_file:
-      - ../common/config/core/env
       - api/env
       
 
@@ -81,7 +79,6 @@ services:
       - api
       - worker_primary
     env_file:
-      - ../common/config/core/env
       - api/env
 
   flower:
@@ -100,7 +97,6 @@ services:
       - api
       - worker_primary
     env_file:
-      - ../common/config/core/env
       - api/env
     environment:
       - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
@@ -116,7 +112,6 @@ services:
       - api
       - worker_secondary
     env_file:
-      - ../common/config/core/env
       - api/env
     environment:
       - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
@@ -133,7 +128,6 @@ services:
     depends_on:
       - api
     env_file:
-      - ../common/config/ui/env
       - front/env
     environment:
       - OPENID_ISSUER=http://${HOST_IP}:8081
