@@ -4,10 +4,10 @@ services:
 
   database:
     image: 'mariadb:10.3'
-    env_file:
-      - database/env
     volumes:
       - database:/var/lib/mysql/
+    env_file:
+      - database/env
     ports:
       - 3306:3306
   sso:
@@ -120,18 +120,17 @@ services:
     build: 
       context: ../src/ui
       dockerfile: dev.Dockerfile
-    working_dir: /app
-    # volumes:
-    #  - ../src/ui:/app
-    ports:
-      - 8080:8080
-    depends_on:
-      - api
+    volumes:
+      - ../src/ui:/app
     env_file:
       - front/env
     environment:
       - OPENID_ISSUER=http://${HOST_IP}:8081
       - API_ENDPOINT_URL=http://${HOST_IP}:5050
+    depends_on:
+      - api
+    ports:
+      - 8080:8080
 
 #  dev-proxy:
 #    build: ./dev-proxy

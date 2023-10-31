@@ -8,7 +8,7 @@ You need to start the docker compose project:
 1. Be shure you are in the right directory: `cd backroll-dev`
 2. Start the project with docker compose by specifing your local ip address: `HOST_IP=your.local.ip.address docker compose up`
 
-The local ip address is required to make the SSO work.
+The local ip address is required to make the SSO work. The first start is longer due to image building an container initialisation.
 
 ## User interface
 
