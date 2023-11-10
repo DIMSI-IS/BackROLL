@@ -43,8 +43,8 @@ services:
       - redis
     env_file:
       - api/env
-    environment:
-      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
+    # environment:
+    #   - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   worker_primary:
     container_name: worker
@@ -57,7 +57,7 @@ services:
       - ../src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
+      # - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     depends_on:
       - api
     env_file:
@@ -74,7 +74,7 @@ services:
       - ../src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
+      #- OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     depends_on:
       - api
       - worker_primary
@@ -98,8 +98,8 @@ services:
       - worker_primary
     env_file:
       - api/env
-    environment:
-      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
+    #environment:
+    # - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   beat:
     container_name: scheduler
@@ -113,8 +113,8 @@ services:
       - worker_secondary
     env_file:
       - api/env
-    environment:
-      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
+    # environment:
+    #   - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   front:
     build: 
@@ -129,9 +129,9 @@ services:
       - api
     env_file:
       - front/env
-    environment:
-      - OPENID_ISSUER=http://${HOST_IP}:8081
-      - API_ENDPOINT_URL=http://${HOST_IP}:5050
+    # environment:
+    #   - OPENID_ISSUER=http://${HOST_IP}:8081
+    #   - API_ENDPOINT_URL=http://${HOST_IP}:5050
 
 #  dev-proxy:
 #    build: ./dev-proxy
