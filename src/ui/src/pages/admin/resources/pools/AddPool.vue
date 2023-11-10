@@ -8,7 +8,7 @@
         <va-input label="Name" v-model="inputValue1"
           :rules="[value => (value && value.length > 0) || 'Field is required']" />
         <br>
-        <va-select label="Select policy" v-model="policySelection" :options="selectData"
+        <va-select label="Select policy" v-model="policySelection" :options="selectData" multiple
           :rules="[value => isValid(value) || 'Field is required']">
           <template #prependInner>
             <va-icon name="storage" size="small" color="primary" />
@@ -37,7 +37,7 @@
         connector: null,
         validation: false,
         inputValue1: null,
-        policySelection: {},
+        policySelection: [],
         connectorSelection: {}
       }
     },

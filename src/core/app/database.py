@@ -19,8 +19,8 @@
 import sys
 from urllib.parse import quote_plus
 import uuid as uuid_pkg
-from typing import Optional
-from sqlmodel import Field, SQLModel, create_engine
+from typing import Optional, List
+from sqlmodel import Field, SQLModel, Relationship, create_engine
 
 # Other imports
 import os
@@ -28,6 +28,16 @@ import json
 from app import app
 from app import celery as celeryWorker
 from app import celery
+
+class PoolPolicieLink(SQLModel, table=True):
+  policy_id: Optional[uuid_pkg.UUID] = Field(default=None, primary_key=True, nullable=False, foreign_key="policies.id")
+  pool_id: Optional[uuid_pkg.UUID] = Field(default=None, primary_key=True, nullable=False, foreign_key="pools.id")
+  def to_json(self):
+    return {
+      "policy_id": str(self.policy_id),
+      "pool_id": str(self.pool_id),
+      "ssh": bool(self.is_managed),
+    }
 
 class Policies(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
@@ -38,6 +48,7 @@ class Policies(SQLModel, table=True):
   retention_week: int
   retention_month: int
   retention_year: int
+  pools: List["Pools"] = Relationship(back_populates="policies", link_model=PoolPolicieLink)
   storage: uuid_pkg.UUID = Field(default=None, foreign_key="storage.id")
   externalhook: uuid_pkg.UUID = Field(default=None, foreign_key="externalhooks.id")
   enabled: Optional[bool] = 0
@@ -47,14 +58,16 @@ class Pools(SQLModel, table=True):
   name: Optional[str] = None
   policy_id: uuid_pkg.UUID = Field(default=None, foreign_key="policies.id")
   connector_id: uuid_pkg.UUID = Field(default=None, foreign_key="connectors.id")
+  policies: List[Policies] = Relationship(back_populates="pools", link_model=PoolPolicieLink)
   def to_json(self):
     return {
       "id": str(self.id),
       "name": self.name,
       "policy_id": str(self.policy_id),
+      "policies": self.policies,
       "ssh": bool(self.is_managed),
     }
-
+  
 class Hosts(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   hostname: str

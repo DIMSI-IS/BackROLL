@@ -88,6 +88,7 @@ def backup_creation(info):
       backup_job.check_repository_lock()
       # Loop through vm's disks
       for disk in virtual_machine['storage']:
+        print(f"disk : {disk}")
         if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
           # Check if template (backing file) is backed up
           backup_job.manage_backing_file(disk)

@@ -169,7 +169,7 @@ export default defineComponent({
       }
     },
     retrieveArgs (x) {
-      return JSON.parse(x.args)
+      return JSON.parse(x.args.replaceAll("None", "null"))
     }
   }
 })

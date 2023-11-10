@@ -17,7 +17,7 @@
 
 #!/usr/bin/env python
 import uuid as uuid_pkg
-from typing import Optional
+from typing import Optional, List
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 from sqlmodel import Session, select
@@ -35,12 +35,14 @@ from app.database import Hosts
 class create_items_pool(BaseModel):
   name: str
   policy_id: uuid_pkg.UUID
+  policies: List[uuid_pkg.UUID]
   connector_id: Optional[uuid_pkg.UUID] = None
   class Config:
       schema_extra = {
           "example": {
               "name": "example_pool",
               "policy_id": "49072d92-a39f-11ec-b909-0242ac120002",
+              "policies": ["49072d92-a39f-11ec-b909-0242ac120002", "49072d92-a39f-11ec-b909-0242ac120003"],
               "connector_id": "11ec-b909-0242ac120002-49072d92-a39f"
           }
       }
@@ -49,6 +51,7 @@ class update_items_pool(BaseModel):
   name: Optional[str] = None
   policy_id: Optional[uuid_pkg.UUID] = None
   connector_id: Optional[uuid_pkg.UUID] = None
+  policies: List[Policies] = None
   class Config:
       schema_extra = {
           "example": {
@@ -81,13 +84,13 @@ def api_create_pool(item):
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Policies).where(Policies.id == item.policy_id)
+    statement = select(Policies).where(Policies.id.in_(item.policies))
     results = session.exec(statement)
-    policy = results.first()
-    if not policy:
+    policies_obj = results
+    if not policies_obj:
       raise ValueError(f'Policy with id {str(item.policy_id)} not found')
   try:
-    new_pool = Pools(name=item.name, policy_id=item.policy_id, connector_id=item.connector_id)
+    new_pool = Pools(name=item.name, policy_id=item.policy_id, connector_id=item.connector_id, policies=policies_obj)
     with Session(engine) as session:
         session.add(new_pool)
         session.commit()

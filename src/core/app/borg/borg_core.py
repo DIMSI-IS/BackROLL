@@ -147,10 +147,14 @@ class borg_backup:
     kvm_manage_snapshot.createSnapshot(self.info['vm_info'], self.info['host_info'], snapshot_xml)
 
   def manage_backing_file(self, disk):
+    print(f"disk_source {disk['source']}")
     repository = self.info['borg_repository']
     vm_name = self.virtual_machine['name']
     request = subprocess.run(["qemu-img", "info", "--output=json", disk['source']], capture_output=True)
+    print(f"request : {request}")
+    print(f"request : {request.stdout}")
     qemu_img_info = request.stdout.decode("utf-8")
+    print(f"qemu_info : {qemu_img_info}")
     qemu_img_info = json.loads(qemu_img_info)
     if qemu_img_info.get('full-backing-filename'):
       print(f'[{vm_name}] Checking that {vm_name}\'s backing file has already been backed up')

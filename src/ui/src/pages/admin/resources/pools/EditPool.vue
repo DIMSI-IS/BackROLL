@@ -52,7 +52,7 @@
           this.updatePool()
         }
       },
-      selectData: function () {
+      selectDatas: function () {
         if (this.updatedValues.policy_id !== null) {
           this.updatePolicy(this.updatedValues.policy_id)
         }

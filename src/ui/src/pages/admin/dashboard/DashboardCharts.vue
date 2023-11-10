@@ -151,14 +151,14 @@ export default defineComponent({
       }
     },
     retrieveArgs (x) {
-      let result = ''
+      let result = x.args.replaceAll("None", "null");
       if (x.name == 'Single_VM_Backup') {
-        const mySubString = x.args.substring(
-            x.args.lastIndexOf("{") + 1, 
-            x.args.lastIndexOf("}")
-        )
-        result = "{" + mySubString.replaceAll("'", '"') + "}"
-        result = result.toLowerCase()
+        // const mySubString = x.args.substring(
+        //     x.args.lastIndexOf("{") + 1, 
+        //     x.args.lastIndexOf("}")
+        // )
+        // result = "{" + mySubString.replaceAll("'", '"') + "}"
+        // result = result.toLowerCase()
         return JSON.parse(result)
       } else if (x.name == 'Pool_VM_Backup') {
         const mySubString1 = x.args.substring(

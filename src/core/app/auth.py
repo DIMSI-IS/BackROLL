@@ -68,13 +68,13 @@ class items_login(BaseModel):
 
 def valid_token(token: str = Security(oauth2_scheme)) -> Json:
     # TODO Remove the printing if the bug is fixed.
-    print(f"Inspect token at https://jwt.io/#id_token={token}.")
+    #print(f"Inspect token at https://jwt.io/#id_token={token}.")
     url = f"""{issuer}/protocol/openid-connect/certs"""
-    print(f"{url=}")
+    #print(f"{url=}")
     jwks_client = PyJWKClient(url)
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)
-        print(f"{signing_key.key=}")
+        #print(f"{signing_key.key=}")
         return jwt.decode(
             token,
             signing_key.key,

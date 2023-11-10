@@ -53,11 +53,14 @@ def createSnapshot(virtual_machine, hypervisor, snapshot_xml):
     conn = kvm_connection.kvm_connection(hypervisor)
     dom = conn.lookupByID(virtual_machine['id'])
     flags = 208
-    dom.snapshotCreateXML(
+    test = dom.snapshotCreateXML(
       snapshot_xml,
       flags
     )
+    print(f"test = {test}")
+    print("snapshot ok")
   except Exception as snapshot_error:
+    print("snapshot ko")
     conn.close()
     raise snapshot_error
   conn.close()  
