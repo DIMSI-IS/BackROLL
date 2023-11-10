@@ -1,5 +1,6 @@
 # Avoid compromising secret information
-common/**
 flower/**
 mariadb/**
 keycloak/**
+common/secret/**
+install.sh
