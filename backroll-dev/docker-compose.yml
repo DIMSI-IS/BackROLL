@@ -34,6 +34,7 @@ services:
     command: "python3 run.py"
     volumes:
       - ../src/core:/usr/src/app
+      - ../common/secret/:/root/.ssh:ro
     expose:
       - 5050
     ports:
@@ -50,7 +51,7 @@ services:
     container_name: worker
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod -R 644 ~/.ssh/id_rsa.pub && chmod -R 644 ~/.ssh/config
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
     volumes:
       - ../common/secret/:/root/.ssh
       - /mnt:/mnt
@@ -63,13 +64,12 @@ services:
     env_file:
       - ../common/config/core/env
       - api/env
-      
 
   worker_secondary:
     container_name: worker-lrt
     build: ../src/core
     working_dir: /usr/src/app
-    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod -R 644 ~/.ssh/id_rsa.pub && chmod -R 644 ~/.ssh/config
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
     volumes:
       - ../common/secret/:/root/.ssh
       - /mnt:/mnt
@@ -126,8 +126,8 @@ services:
       context: ../src/ui
       dockerfile: dev.Dockerfile
     working_dir: /app
-    # volumes:
-    #  - ../src/ui:/app
+    volumes:
+      - ../src/ui/src:/app/src
     ports:
       - 8080:8080
     depends_on:
