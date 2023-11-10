@@ -21,6 +21,7 @@
         "clientId": "backroll-api",
         "enabled": true,
         "clientAuthenticatorType": "client-secret",
+        "secret": "7UjRzIcCRQBPOwl1HxI7YbMDTuipFjht",
         "redirectUris": ["http://localhost:5050/*"],
         "webOrigins": ["*"],
         "serviceAccountsEnabled": true

@@ -19,6 +19,7 @@ services:
   ## Optional if you already have a working keycloak environment
   sso:
     restart: always
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     build: ${PWD}/common/config/sso
     #image: jboss/keycloak:16.1.1
     networks:
