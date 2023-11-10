@@ -1,0 +1,1 @@
+# Production setup from the Docker Hub
