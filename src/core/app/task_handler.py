@@ -46,6 +46,7 @@ def retrieve_task_info(task_id):
 
 def cleanArgs(args):
   argument = str(args)
+
   if ", ...,)" in argument:
     argument = argument[len('('):-len(', ...,)')]
     argument = argument + "}"
@@ -61,6 +62,19 @@ def cleanArgs(args):
   argument = argument.replace("False", 'false')
   argument = argument.replace("(", '')
   argument = argument.replace(")", '')
+
+  if"{...}" in argument:
+    argument = argument.replace("{...}", "")
+  
+  if '...", ...}' in argument:
+    argument = argument.replace('...", ...}', '": "" }')
+
+  if "None" in argument:
+    argument = argument.replace("None", '"None"')
+
+  if", ...}" in argument:
+    argument = argument.replace(", ...}", ': ""')
+
   argument.split("}", 1)[0]
   return argument
 
@@ -161,6 +175,7 @@ def handle_task_failure(task_id, msg):
 
   task_result = retrieve_task_info(task_id).decode('ascii')
   text = json.loads(task_result)['args']
+  print("DEBUG TASK Failure: text: " + text)
   cleanedtext = cleanArgs(text)
   task_args = json.loads(cleanedtext)
 

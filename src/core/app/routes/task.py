@@ -17,6 +17,8 @@
 
 #!/usr/bin/env python
 import os
+import sys
+import logging
 import uuid as uuid_pkg
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
@@ -42,11 +44,15 @@ from app import restore
 class restorebackup_start(BaseModel):
   virtual_machine_id: str
   backup_name: str
+  storage: str
+  mode: str
   class Config:
       schema_extra = {
           "example": {
               "virtual_machine_id": "3414b922-a39f-11ec-b909-0242ac120002",
               "backup_name": "vda_VMDiskName_01092842912",
+              "storage": "path",
+              "mode": "simple"
           }
       }
 
@@ -151,8 +157,26 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   virtual_machine_id = item.virtual_machine_id
+  print("DEBUG ID VM : " + virtual_machine_id)
+  #print("virtual_machine_id: " + virtual_machine_id)
   backup_name = item.backup_name
-  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async() 
+  #print("backup_name: " + backup_name)
+  storage = item.storage
+  #print("storage: " + storage)
+  mode = item.mode
+  #print("mode: " + mode)
+  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, storage, mode)).apply_async() 
+  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async() 
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+
+@app.post('/api/v1/tasks/restorespecificpath', status_code=202)
+def start_vm_restoreSpecificPath(item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
+  virtual_machine_id = item.virtual_machine_id
+  backup_name = item.backup_name
+  storage = item.storage
+  mode = item.mode
+  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, storage, mode)).apply_async() 
+  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async() 
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.get('/api/v1/tasks/backup', status_code=200)

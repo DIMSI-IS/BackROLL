@@ -37,13 +37,14 @@ def retrieve_virtualmachine(host):
           is_cloudstack_instance = False
 
           # Check that VM is managed by CloudStack
-          raw_xml = domain.XMLDesc(0)
+          raw_xml = domain.XMLDesc(0)        
           xml = minidom.parseString(raw_xml)
           sysbios_xml  = xml.getElementsByTagName('system')
-          smbiosEntries  = sysbios_xml[0].getElementsByTagName('entry')
-          for smbiosEntry in smbiosEntries:
-            if "cloudstack" in str(smbiosEntry.firstChild.nodeValue).lower():
-              is_cloudstack_instance = True
+          if len(sysbios_xml) > 0:
+            smbiosEntries  = sysbios_xml[0].getElementsByTagName('entry')
+            for smbiosEntry in smbiosEntries:
+              if "cloudstack" in str(smbiosEntry.firstChild.nodeValue).lower():
+                is_cloudstack_instance = True
           
           # Ignoring VMs managed by CloudStack and name starting with r-/s- as these are VR or SystemVM
           if is_cloudstack_instance and not re.search("^((?!^r-)(?!^v-)(?!^s-).)*$", domain.name()): continue
@@ -84,8 +85,8 @@ def retrieve_virtualmachine(host):
 
             domain_list.append(instance)
 
-        conn.close()
-        return domain_list
+    conn.close()
+    return domain_list
       
 def stop_vm(virtual_machine, hypervisor):
   try:

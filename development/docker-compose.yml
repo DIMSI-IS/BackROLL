@@ -35,11 +35,13 @@ services:
     command: uvicorn app:app --host 0.0.0.0 --port 5050 --reload
     environment:
       DEBUG: 1
+      PYTHONUNBUFFERED: 1
     networks:
       - backroll-network
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - ../src/core:/usr/src/app
+      - /mnt:/mnt
     expose:
       - "5050"
     ports:
@@ -48,6 +50,8 @@ services:
       - "redis"
     env_file:
       - ./common/config/core/env
+    logging:
+      driver: local
 
 
   worker_primary:

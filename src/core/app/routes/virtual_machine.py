@@ -18,10 +18,12 @@
 #!/usr/bin/env python
 from fastapi import HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
-from pydantic import Json
+from pydantic import BaseModel, Json
 
 from celery.result import allow_join_result
 from celery import subtask, group, chain
+
+import logging
 
 import json
 
@@ -47,15 +49,29 @@ from app.cloudstack import virtual_machine as cs_manage_vm
 from app.kvm import kvm_manage_vm
 from app.kvm import kvm_list_disk
 
+import os
+
 class connectorObject(object):
     pass
 
+class VirtualMachineStorage:
+    def __init__(self, name, path):
+      self.name = name
+      self.path = path
+
+class VirtualMachineBackupsRequest(BaseModel):
+  virtualMachineName: str
+  storagePath: str
+
 @celery_app.task(name='Filter VMs list')
 def filter_virtual_machine_list(virtual_machine_list, virtual_machine_id):
+  print(virtual_machine_id)
+  vmToFind = {}
   for vm in virtual_machine_list:
+    print(vm['uuid'])
     if vm['uuid'] == virtual_machine_id:
-      break
-  return vm
+      vmToFind = vm
+  return vmToFind
 
 @celery_app.task(name='Parse Host instance(s)')
 def parse_host(host):
@@ -78,6 +94,7 @@ def handle_results(group_id):
   pool_set = set()
   connector_list = []
   cs_vm_list = []
+  
   # This part merge all hypervisors results into one global virtual machines list
   with allow_join_result():
     restored_group_result = celery_app.GroupResult.restore(group_id)
@@ -89,21 +106,30 @@ def handle_results(group_id):
       global_instance_list += instance_list["virtualmachines"]
   # This part is dedicated to retrieve VM using host related connectors (AKA Cloudstack discovery)
   for pool_id in pool_set:
-    connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(pool_id).connector_id)
-    if connector not in connector_list:
-      connector_obj = connectorObject()
-      # Duplicate object connector to add pool_id property
-      connector_obj.id = connector.id
-      connector_obj.name = connector.name
-      connector_obj.url = connector.url 
-      connector_obj.login = connector.login
-      connector_obj.password = connector.password
-      connector_obj.pool_id = pool_id
-      connector_list.append(connector_obj)
+    connector_id = pool.filter_pool_by_id(pool_id).connector_id
+    # if connector_id is not null, we need to retrieve connector object
+    if connector_id:
+      connector = connectors.filter_connector_by_id(connector_id)
+      if connector not in connector_list:
+        connector_obj = connectorObject()
+        # Duplicate object connector to add pool_id property
+        connector_obj.id = connector.id
+        connector_obj.name = connector.name
+        connector_obj.url = connector.url 
+        connector_obj.login = connector.login
+        connector_obj.password = connector.password
+        connector_obj.pool_id = pool_id
+        connector_list.append(connector_obj)
+
   for connector in connector_list:
-    cs_vm_list += cs_manage_vm.listPoweredOffVms(connector)
+    cs_vm_list += cs_manage_vm.listAllVms(connector)
+  
   # Merge KVM and CS discovered virtual machines to a single array
-  global_instance_list += cs_vm_list
+  
+  for vm in cs_vm_list:
+    if not any(x['uuid'] == vm['uuid'] for x in global_instance_list):
+      global_instance_list.append(vm)
+
   return global_instance_list
 
 @celery_app.task(name='List VMs backups', bind=True, max_retries=3)
@@ -176,6 +202,34 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
     return virtual_machine
   except Exception as e:
     raise ValueError(e)
+  
+@celery_app.task(name='List virtual machines folders', bind=True, max_retries=3)
+def retrieve_virtual_machine_paths(self):
+  try:
+    storagePaths = []
+    storagePathsFromDb = storage.retrieveStoragePathsFromDb()
+    print(storagePathsFromDb)
+    for path in storagePathsFromDb:
+      subFolders = os.scandir(path.path)
+      for subFolder in subFolders:
+        configFilePath = subFolder.path + "/config"
+        print("configFilePath _______ " + configFilePath)
+        if os.path.exists(configFilePath):
+          storagePaths.append(VirtualMachineStorage(subFolder.name, subFolder.path))
+    return storagePaths
+  
+  except Exception as e:
+    self.retry(countdown=1)
+    raise ValueError(e)
+  
+@celery_app.task(name='List virtual machine backups', bind=True)
+def retrieve_virtual_machine_backups_from_path(self, virtualMachineName:str, storagePath:str):
+  try:
+    backup_list = json.loads(borg_core.borg_list_backup(virtualMachineName, storagePath))
+    return backup_list
+  
+  except Exception as e:
+    raise ValueError(e)
 
 @app.get('/api/v1/virtualmachines/{virtual_machine_id}/breaklock', status_code=202)
 def break_virtual_machine_borg_lock(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
@@ -217,4 +271,13 @@ def list_virtual_machine_repository(virtual_machine_id, identity: Json = Depends
 def get_virtual_machine_backup_stats(virtual_machine_id, backup_name, identity: Json = Depends(auth.valid_token)):
   if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
   res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(), retrieve_virtual_machine_backup_stats.s(virtual_machine_id, backup_name)).apply_async() 
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+
+@app.get('/api/v1/virtualmachinespaths', status_code=202)
+def get_virtual_machine_paths(identity: Json = Depends(auth.valid_token)):
+  return {'paths': retrieve_virtual_machine_paths()}
+
+@app.post('/api/v1/virtualmachinebackupsfrompath', status_code=202)
+def get_virtual_machine_backups_from_path(virtualMachineBackupsRequest: VirtualMachineBackupsRequest, identity: Json = Depends(auth.valid_token)):
+  res = chain(retrieve_virtual_machine_backups_from_path.s(virtualMachineBackupsRequest.virtualMachineName, virtualMachineBackupsRequest.storagePath)).apply_async() 
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}

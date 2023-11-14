@@ -17,6 +17,7 @@
 
 #!/usr/bin/env python
 import shutil
+import os
 import uuid as uuid_pkg
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
@@ -44,6 +45,20 @@ class items_storage(BaseModel):
               "path": "/path/to/my/storage_backend"
           }
       }
+
+def retrieveStoragePathsFromDb():
+  try:
+    engine = database.init_db_connection()
+  except Exception as e:
+    raise ValueError(e)
+  storagePaths = []
+  # Get all storage define in storage bdd
+  with Session(engine) as session:
+    storagePathsRequest = select(Storage)
+    storagePathsFromDb = session.exec(storagePathsRequest)
+    for path in storagePathsFromDb:
+      storagePaths.append(path)
+  return storagePaths
 
 def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
   try:
