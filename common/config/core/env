@@ -1,5 +1,5 @@
 ### DATABASE CONFIGURATION [MANDATORY] ###
-DB_IP=database
+DB_IP=localhost
 DB_PORT=3306
 DB_USER_NAME=backroll
 DB_USER_PASSWORD=backroll
