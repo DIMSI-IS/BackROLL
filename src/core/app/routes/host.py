@@ -197,7 +197,7 @@ def api_delete_host(host_id):
 
 def getSSHPubKey():
   try:
-    pubkey = os.popen('cat ~/.ssh/id_rsa.pub').read()
+    pubkey = os.popen('cat /root/.ssh/id_rsa.pub').read()
     return {'state': 'SUCCESS', 'info': {'public_key': pubkey}}
   except Exception as e:
     raise ValueError('Unable to retrieve appliance public key')
@@ -235,6 +235,7 @@ def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
 
 @app.post('/api/v1/connect/{host_id}', status_code=200)
 def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.valid_token)):
+  print("init ssh  " + os.popen("cat /etc/hostname").read())
   ip_address = item.ip_address
   username = item.username
   return ssh.init_ssh_connection(host_id, ip_address, username)

@@ -19,7 +19,7 @@ services:
   ## Optional if you already have a working keycloak environment
   sso:
     restart: always
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    #image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     build: ${PWD}/common/config/sso
     #image: jboss/keycloak:16.1.1
     networks:
@@ -47,13 +47,14 @@ services:
 
   backroll_api:
     restart: on-failure
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ${PWD}/src/core
     container_name: core
     command: "python3 run.py"
     networks:
       - backroll-network
     volumes:
       - ${PWD}/src/core:/usr/src/app
+      - ${PWD}/common/secret/:/root/.ssh:ro
     expose:
       - 5050
     ports:
@@ -66,8 +67,8 @@ services:
 
   worker_primary:
     restart: on-failure
+    build: ${PWD}/src/core
     container_name: worker
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery worker -n worker -Q default --concurrency=4
     volumes:
       - ${PWD}/common/secret/:/root/.ssh:ro
@@ -86,7 +87,7 @@ services:
   worker_secondary:
     restart: on-failure
     container_name: worker-lrt
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ${PWD}/src/core
     command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
     volumes:
       - ${PWD}/common/secret/:/root/.ssh:ro
@@ -106,7 +107,7 @@ services:
   flower:
     restart: on-failure
     container_name: celery-flower
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ${PWD}/src/core
     command: celery -A app.celery flower --conf=flowerconfig.py
     volumes:
       - ${PWD}/flower:/root/flower
@@ -127,7 +128,7 @@ services:
   beat:
     restart: on-failure
     container_name: scheduler
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ${PWD}/src/core
     command: celery -A app.celery beat -S redbeat.RedBeatScheduler
     volumes:
       - ${PWD}/src/core:/usr/src/app
