@@ -66,6 +66,22 @@ def retrieve_restore_task_jobs():
     json_key["args"] = task_handler.cleanArgs(json_key["args"])
     if not json_key["args"].endswith("}"):
       json_key["args"] += "}"
+
+  vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
+  vm_retore_path_response = requests.get('http://flower:5555/api/tasks', params=vm_retore_path_payload)
+  vm_retore_path_task = json.loads(vm_retore_path_response.content.decode('ascii'))
+  for key in vm_retore_path_task:
+    json_key = vm_retore_path_task[key]
+    args = json_key["args"]
+    args = args.replace("(", '')
+    args = args.replace(")", '')
+    argsList = args.split(',')
+    vmPath = argsList[0].replace("'", '')
+    vmName = vmPath.split("/")[3]
+    jsonObject = '{ "name" : "' + vmName + '" }'
+    json_key["args"] = jsonObject
+
+  single_vm_task.update(vm_retore_path_task)
   return single_vm_task
 
 @celery.task(name='backuptask_jobs')
