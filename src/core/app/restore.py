@@ -16,7 +16,9 @@
 ## under the License.
 
 #!/usr/bin/env python
+import json
 import os
+import shutil
 import subprocess
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
@@ -208,106 +210,98 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
     raise e
 
-# def restore_task_mounted(self, info, hypervisor, disk_list, backup):
-def restore_to_path_task(self, virtual_machine_info, hypervisor, storage_path, backup_name):
+@celery.task(name='VM_Restore_To_Path', bind=True, max_retries=3, base=QueueOnce)
+def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, mode):
 
   print("restore_to_path_task")
-
-  borg_repository = storage_path + "/"
-
-  print("borg repo: " + borg_repository)
+  print("storage: " + storage_path)
+  print("backup: " + backup_name)
+  virtual_machine_path = virtual_machine_info
+  virtual_machine_complete_path = virtual_machine_info + "/"
+  print("virtual_machine_path: " + virtual_machine_path)
+  virtual_machine_name = os.path.basename(os.path.dirname(virtual_machine_complete_path))
+  print("virtual_machine_name: " + virtual_machine_name)
 
   try:
-
-    disk_device = backup_name.split('_')[0]
-
-    print("disk-device: " + disk_device)
-
-    print("vm name: " + virtual_machine_info['name'])
-
     # Remove existing files inside restore folder
-    command = f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}"
+    command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
     subprocess.run(command.split())  
 
     # Create temporary folder to extract borg archive
-    command = f"mkdir -p {borg_repository}restore/{virtual_machine_info['name']}"
+    command = f"mkdir -p {storage_path}/restore/{virtual_machine_name}"
     subprocess.run(command.split())
 
     # Go into directory
-    os.chdir(f"{borg_repository}restore/{virtual_machine_info['name']}")
+    os.chdir(f"{storage_path}/restore/{virtual_machine_name}")
+
+    cmd = f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}"""
+    process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    while True:
+      process.stdout.flush()
+      output = process.stdout.readline()
+      if output == '' and process.poll() is not None:
+        break
+      elif not output and process.poll() is not None:
+        break
     
-    connector = None
-    pool_id = None
+    diskList = os.popen("ls").read().split('\n')
+    disk = diskList[0]
+    print("Disk: " + disk)
+    storageList = storage.retrieve_storage()
+    repository = storageList[1]["path"]
+    print("repo : " + repository)
+    request = subprocess.run(["qemu-img", "info", "--output=json", disk], capture_output=True)
+    qemu_img_info = request.stdout.decode("utf-8")
+    qemu_img_info = json.loads(qemu_img_info)
+    if qemu_img_info.get('full-backing-filename'):
+      print(f'[{virtual_machine_name}] Checking that {virtual_machine_name}\'s backing file has already been backed up')
+      backing_file = qemu_img_info['full-backing-filename'].split('/')[-1]
+      print("backing file: " + backing_file)
+      
+      shutil.copy(f"{repository}template/{backing_file}", f"{storage_path}/restore/{backing_file}")
+      print(f'[{virtual_machine_name}] Backing up the backing file has successfully completed')
 
-    if "pool_id" in virtual_machine_info:
-      pool_id = virtual_machine_info["pool_id"]
-    else:
-      pool_id = hypervisor["pool_id"]
+      #rebase
+      dst = f"{storage_path}/restore/{backing_file}"
+      print("dst: " + dst)
+      print("disk: " + disk)
+      cmd = f"qemu-img rebase -f qcow2 -u -b {dst} {disk}"
+      print("cmd: " + cmd)
+      #rebaseRequest = subprocess.run(["qemu-img ", "rebase", "-f qcow2", "-u", "-b", dst, disk, "--output=json"], capture_output=True)
+      #rebaseRequest = subprocess.run(cmd, capture_output=True)
+      #rebaseRequest = subprocess.run([cmd], capture_output=True)
+      #qemu_img_rebase = rebaseRequest.stdout.decode("utf-8")
+      #qemu_img_rebase = json.loads(qemu_img_rebase)
+      rebaseResponse = os.popen(cmd).read().split('\n')
+      print("end rebase")
+  
+      # qemu info to check the rebase
+      request = subprocess.run(["qemu-img", "info", "--output=json", disk], capture_output=True)
+      qemu_img_info = request.stdout.decode("utf-8")
+      qemu_img_info = json.loads(qemu_img_info)
+      # check if ok
+      print("end info")
 
-    print("Pool id : " + pool_id)
-    
-    connector_id = pool.filter_pool_by_id(pool_id).connector_id
-    if connector_id:
-      connector = connectors.filter_connector_by_id(connector_id)
+      # qemu commit
+      cmd = f"qemu-img commit -f qcow2 {disk}"
+      #commitRequest = subprocess.run(["qemu-img ", "commit", "-f qcow2", "--output=json", disk], capture_output=True)
+      #qemu_img_commit = commitRequest.stdout.decode("utf-8")
+      #qemu_img_commit = json.loads(qemu_img_commit)
+      commitResponse = os.popen(cmd).read().split('\n')
+      print("end commit")
 
-    try:
-      # Extract selected borg archive
-      cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
-      processBorgExtract = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-      while True:
-        processBorgExtract.stdout.flush()
-        output = processBorgExtract.stdout.readline()
-        if output == '' and processBorgExtract.poll() is not None:
-          break
-        elif not output and processBorgExtract.poll() is not None:
-          break
+      #rename backring file
+      os.rename(f"{storage_path}/restore/{backing_file}", f"{storage_path}/restore/restore_{virtual_machine_name}")
 
-      # Process each file in extraction directory
-      # For each file exec qemu-img info
-      # if backing file faire suite algo sinon rien
-      rootPath = f"""{borg_repository}{virtual_machine_info['name']}"""
-      print(f"rootPath: {rootPath}")
-
-      for filename in os.listdir(borg_repository):
-        diskPath = f"""{rootPath}/{filename}"""
-        print(f"diskPath: {diskPath}")
-
-        getDiskInfoCmd = f"""qemu-img info {diskPath}"""
-        diskInfoData = subprocess.run(getDiskInfoCmd.split(), capture_output=True, shell=True, text=True)
-        diskInfo = diskInfoData.stdout
-        print(f"diskInfo: {diskInfo}")
-
-        indexBackingFile = diskInfo.find("backing file: ")
-        print(f"indexBackingFile: {indexBackingFile}")
-        indexFormatSpecificInformation = diskInfo.find("Format specific information")
-        print(f"indexFormatSpecificInformation: {indexFormatSpecificInformation}")
-
-        if indexBackingFile > 0:
-          backingFileValue = diskInfo[indexBackingFile:indexFormatSpecificInformation]
-          print(f"backingFileValue: {backingFileValue}")
-
-          if backingFileValue.len() > 0:
-            # Copy backing file in new folder
-            #subprocess.run(['cp', backingFileValue, "/mnt/eu-backup-cs/restore/"], check = True)
-
-            cmd = f"""quemu-img rebase \ -f qcow2 \ -u \ -b $new_backing_file_location \ {diskPath}"""
-            #subprocess.run(cmd.split())
-
-            cmd = f"""quemu-img info {diskPath}"""
-            #subprocess.run(cmd.split())
-
-            #subprocess.run(['rm', diskPath], check = True)
-
-    except:
-      raise    
-
+      # Remove restore artifacts
+      try:
+        command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
+        print("command: " + command)
+        request = subprocess.run(command.split())
+      except Exception as err:
+        print(err)
+        raise err
+    print("ok")
+    test = "test"
   except Exception as e:
-
-    # Remove restore artifacts
-    try:
-      command = f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}"
-      request = subprocess.run(command.split())
-    except Exception as err:
-      print(err)
-
     raise e

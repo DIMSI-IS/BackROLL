@@ -170,13 +170,14 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.post('/api/v1/tasks/restorespecificpath', status_code=202)
-def start_vm_restoreSpecificPath(item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
+def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
   virtual_machine_id = item.virtual_machine_id
   backup_name = item.backup_name
   storage = item.storage
   mode = item.mode
-  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, storage, mode)).apply_async() 
-  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async() 
+  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, storage, mode)).apply_async() 
+  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async()
+  res =  chain(restore.restore_to_path_task.s(virtual_machine_id, backup_name, storage, mode)).apply_async()
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.get('/api/v1/tasks/backup', status_code=200)
