@@ -67,10 +67,15 @@ sudo docker ps
 
 **Cloudstack Global Settings:**
 In Cloudstack's Global settings, fill the fields with the appropriate value:
+
 Backup framework provider plugin: *backroll*
+
 Backup plugin backroll config appname: *Name of your app name used for backroll api*
+
 Backup plugin backroll config password: *Secret for the backroll_api found in your oauth provider.*
+
 Backup plugin backroll config url: *URL of your backroll*
+
 
 **Cloudstack user:**
 Backroll use an API key and secret to communicate with Cloudstack.
@@ -81,10 +86,15 @@ Generate API Keys and Secret.
 **Backroll side:**
 In the backroll UI, under Configuration, select Connectors.
 Add a new connector and fill the field with the appropriate information:
+
 Name: *Name of your connector*
+
 Endpoint URL: *URL of your cloudstack instance*
+
 Login: *API_key of your user dedicated to backroll*
+
 Password: *API_secret of your user dedicated to backroll*
+
 
 ## Documentation
 The [latest documentation](https://backroll.readthedocs.io/) is hosted at Read The Docs, containing user guides, tutorials, and an API reference.
