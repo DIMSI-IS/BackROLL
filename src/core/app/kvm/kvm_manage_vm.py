@@ -27,8 +27,8 @@ from app.kvm import kvm_connection
 def retrieve_virtualmachine(host):
     try:
       conn = kvm_connection.kvm_connection(host)
-    except:
-      raise ValueError(f"Unable to connect to host with id {host['id']}")
+    except Exception as e:
+      raise ValueError(f"Unable to connect to host with id {host['id']} \n Exception : {e}")
     domains = conn.listAllDomains(0)
     domain_list = []
     if len(domains) != 0:
