@@ -2,7 +2,7 @@
 
 ## <img src="https://user-images.githubusercontent.com/49555363/194335646-85c5513e-cceb-4cc5-99f7-406c7a987156.svg" height="32px">
 
-Latest version  | 0.1.0
+Latest version  | 0.2.0
 ------------- | -------------
 Documentation  | https://backroll.readthedocs.io
 
@@ -28,8 +28,63 @@ BackROLL 0.1.0 requires at least
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
 
 ## Get Started
+### Requirements
+Backroll requires Docker and Docker Compose.
+Please refer to the official Docker documentation to install them.
+Install Docker https://docs.docker.com/engine/install/
+Install Docker compose https://docs.docker.com/compose/install/linux/
 
-Coming soon... :smirk:
+### Quick install
+This method uses a preconfigured oauth provider, for production environment please use your production oauth provider or harden the preconfigured oauth provider with SSL certificate, secure password, etc..
+Download the install-prod.sh script
+```bash
+wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.2.0/install-prod.sh
+```
+Allow the script execution
+```bash
+sudo chmod +x install-prod.sh
+```
+Start the script
+```bash
+sudo ./install-prod.sh
+```
+Change directory to the backroll install directory
+```bash
+cd your_backroll_path/install/
+```
+Start the docker-compose.yml, this will start all the containers.
+```bash
+sudo docker compose up -d
+```
+Verify that your container are running
+```bash
+sudo docker ps
+```
+
+
+## Backroll with Cloudstack
+### Configure the Backroll Plugin:
+
+**Cloudstack Global Settings:**
+In Cloudstack's Global settings, fill the fields with the appropriate value:
+Backup framework provider plugin: *backroll*
+Backup plugin backroll config appname: *Name of your app name used for backroll api*
+Backup plugin backroll config password: *Secret for the backroll_api found in your oauth provider.*
+Backup plugin backroll config url: *URL of your backroll*
+
+**Cloudstack user:**
+Backroll use an API key and secret to communicate with Cloudstack.
+Under accounts, create a user dedicated to backroll.
+Generate API Keys and Secret.
+
+
+**Backroll side:**
+In the backroll UI, under Configuration, select Connectors.
+Add a new connector and fill the field with the appropriate information:
+Name: *Name of your connector*
+Endpoint URL: *URL of your cloudstack instance*
+Login: *API_key of your user dedicated to backroll*
+Password: *API_secret of your user dedicated to backroll*
 
 ## Documentation
 The [latest documentation](https://backroll.readthedocs.io/) is hosted at Read The Docs, containing user guides, tutorials, and an API reference.
