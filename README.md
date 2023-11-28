@@ -27,10 +27,6 @@ BackROLL 0.2.0 requires at least
 - A MySQL/MariaDB database ( the default configuration deploys a mariaDB with docker compose )
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
 
-## Keycloak Compatibility
-Backroll is compatible with keycloak up to version 16.1.1.
-Our team is working to make Backroll compatible with the more recent releases of Keycloak.
-
 ## Get Started
 ### Docker and Docker compsoe
 Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.\
