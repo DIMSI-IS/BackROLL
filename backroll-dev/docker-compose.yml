@@ -1,3 +1,5 @@
+# TODO ssh keys
+
 version: "3.9"
 
 services:
@@ -8,8 +10,9 @@ services:
       - database:/var/lib/mysql/
     env_file:
       - database/env
-    ports:
-      - 3306:3306
+    expose:
+      - 3306
+
   sso:
     build: ./sso
     env_file:
@@ -20,75 +23,66 @@ services:
 
   redis:
     image: redis:7.2
-    container_name: redis
     command: "redis-server"
     expose:
       - 6379
-    ports:
-      - 6379:6379
 
   api:
-    container_name: core
     build: ../src/core
-    working_dir: /usr/src/app
     command: "python3 run.py"
     volumes:
       - ../src/core:/usr/src/app
       - ../common/secret/:/root/.ssh:ro
+    env_file:
+      - api/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     expose:
       - 5050
     ports:
       - 5050:5050
     depends_on:
       - redis
-    env_file:
-      - api/env
-    # environment:
-    #   - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   worker_primary:
-    container_name: worker
     build: ../src/core
-    working_dir: /usr/src/app
     command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
     volumes:
       - ../common/secret/:/root/.ssh
       - /mnt:/mnt
       - ../src/core:/usr/src/app
-    environment:
-      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-      # - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
-    depends_on:
-      - api
     env_file:
       - api/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
+    depends_on:
+      - api
 
   worker_secondary:
-    container_name: worker-lrt
     build: ../src/core
-    working_dir: /usr/src/app
     command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
     volumes:
       - ../common/secret/:/root/.ssh
       - /mnt:/mnt
       - ../src/core:/usr/src/app
+    env_file:
+      - api/env
     environment:
-      - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-      #- OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     depends_on:
       - api
       - worker_primary
-    env_file:
-      - api/env
 
   flower:
-    container_name: celery-flower
     build: ../src/core
-    working_dir: /usr/src/app
     command: celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
     volumes:
       - ../flower:/root/flower
       - ../src/core:/usr/src/app
+    env_file:
+      - api/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     expose:
       - 5555
     ports:
@@ -96,57 +90,34 @@ services:
     depends_on:
       - api
       - worker_primary
-    env_file:
-      - api/env
-    #environment:
-    # - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   beat:
-    container_name: scheduler
     build: ../src/core
-    working_dir: /usr/src/app
     command: celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
     volumes:
       - ../src/core:/usr/src/app
+    env_file:
+      - api/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
     depends_on:
       - api
       - worker_secondary
-    env_file:
-      - api/env
-    # environment:
-    #   - OPENID_ISSUER=http://${HOST_IP}:8081/realms/backroll
 
   front:
-    build: 
+    build:
       context: ../src/ui
       dockerfile: dev.Dockerfile
-    working_dir: /app
     volumes:
       - ../src/ui/src:/app/src
+    env_file:
+      - front/env
+    environment:
+      - OPENID_ISSUER=http://${HOST_IP}:8081
     ports:
       - 8080:8080
     depends_on:
       - api
-    env_file:
-      - front/env
-    # environment:
-    #   - OPENID_ISSUER=http://${HOST_IP}:8081
-    #   - API_ENDPOINT_URL=http://${HOST_IP}:5050
-
-#  dev-proxy:
-#    build: ./dev-proxy
-#    environment: 
-#      - PUID=1000
-#      - PGID=1000
-#      - TZ=Etc/UTC
-#      - SUDO_ACCESS=true
-#      - PASSWORD_ACCESS=true
-#      - USER_NAME=developer
-#      - USER_PASSWORD=developer
-#    ports:
-#      - 2222:2222
-#    profiles:
-#      - dev-proxy
 
 volumes:
   database:
