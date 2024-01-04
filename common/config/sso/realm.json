@@ -3,9 +3,9 @@
     "enabled": true,
     "users": [
       {
-        "username": "developer",
+        "username": "KEYCLOACK_DEFAULT_USER_USERNAME",
         "enabled": true,
-        "credentials": [{ "type": "password", "value": "developer" }]
+        "credentials": [{ "type": "password", "value": "KEYCLOACK_DEFAULT_USER_PASSWORD" }]
       }
     ],
     "clients": [
