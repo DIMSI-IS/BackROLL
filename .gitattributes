@@ -1,0 +1,4 @@
+# Setting line endings to LF.
+*.sh text eol=lf
+*.env text eol=lf
+*.yml text eol=lf

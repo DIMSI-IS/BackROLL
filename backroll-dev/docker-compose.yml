@@ -1,0 +1,124 @@
+version: "3.9"
+
+services:
+
+  database:
+    image: mariadb:10.3
+    volumes:
+      - database:/var/lib/mysql/
+    env_file:
+      - database.env
+  
+  redis:
+    image: redis:7.2
+    command: "redis-server"
+
+  sso:
+    build: ./sso
+    env_file:
+      - sso/_.env
+
+  proxy:
+    build: ./proxy
+    env_file:
+      - proxy/_.env
+    ports:
+      - 127.0.0.1:2222:2222
+
+  setup:
+    build: ./setup
+    volumes:
+      - ./setup/src:/app/src:ro
+      - ./ssh:/app/ssh
+
+  api:
+    build: ../src/core
+    command: "python3 run.py"
+    volumes:
+      - ../src/core:/usr/src/app
+      - ./ssh:/root/.ssh:ro
+    env_file:
+      - api.env
+    expose:
+      - 5050
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+      # database:
+      #   condition: service_healthy
+    # Compensates for the lack of database healthcheck.
+    restart: on-failure
+
+  worker_primary:
+    build: ../src/core
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
+    volumes:
+      - ./ssh:/root/.ssh
+      - storage:/mnt/storage
+      - ../src/core:/usr/src/app
+    env_file:
+      - api.env
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+
+  worker_secondary:
+    build: ../src/core
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
+    volumes:
+      - ./ssh:/root/.ssh
+      - storage:/mnt/storage
+      - ../src/core:/usr/src/app
+    env_file:
+      - api.env
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+      worker_primary:
+        condition: service_started
+
+  flower:
+    build: ../src/core
+    command: celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
+    volumes:
+      - ../flower:/root/flower
+      - ../src/core:/usr/src/app
+    env_file:
+      - api.env
+    expose:
+      - 5555
+    depends_on:
+      - api
+      - worker_primary
+
+  beat:
+    build: ../src/core
+    command: celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
+    volumes:
+      - ../src/core:/usr/src/app
+    env_file:
+      - api.env
+    depends_on:
+      - api
+      - worker_secondary
+
+  front:
+    build:
+      context: ../src/ui
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ../src/ui/src:/app/src
+    env_file:
+      - front.env
+    depends_on:
+      - api
+
+volumes:
+  database:
+  storage:
