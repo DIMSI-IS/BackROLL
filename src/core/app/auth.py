@@ -75,7 +75,7 @@ def valid_token(token: str = Security(oauth2_scheme)) -> Json:
             token,
             signing_key.key,
             issuer=issuer,
-            audience="account",
+            # audience="account", TODO Deal with audience.
             algorithms=["RS256"],
         )
     except Exception as exc:

@@ -29,6 +29,12 @@ BackROLL 0.1.0 requires at least
 
 ## Get Started
 
+### As a developer
+
+To start working on the BackROLL project, use the [development setup](./backroll-dev/README.md).
+
+### As an user
+
 Coming soon... :smirk:
 
 ## Documentation
