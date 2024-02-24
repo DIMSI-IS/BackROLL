@@ -53,7 +53,7 @@ services:
 
   worker_primary:
     build: ../src/core
-    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
+    command: bash worker_primary.command.sh
     volumes:
       - ./worker_primary/ssh:/root/.ssh
       - storage:/mnt/storage
@@ -68,7 +68,7 @@ services:
 
   worker_secondary:
     build: ../src/core
-    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
+    command: bash worker_secondary.command.sh
     volumes:
       - ./worker_secondary/ssh:/root/.ssh
       - storage:/mnt/storage
