@@ -197,7 +197,7 @@ def api_delete_host(host_id):
 
 def getSSHPubKey():
   try:
-    pubkey = os.popen('cat ~/.ssh/id_rsa.pub').read()
+    pubkey = os.popen('cat ~/.ssh/id.pub').read()
     return {'state': 'SUCCESS', 'info': {'public_key': pubkey}}
   except Exception as e:
     raise ValueError('Unable to retrieve appliance public key')

@@ -29,16 +29,16 @@ services:
     build: ./setup
     volumes:
       - ./setup/src:/app/src:ro
-      - ./ssh:/app/ssh
+      - .:/app/backroll-dev
 
   api:
     build: ../src/core
     command: "python3 run.py"
     volumes:
       - ../src/core:/usr/src/app
-      - ./ssh:/root/.ssh:ro
+      - ./api/ssh:/root/.ssh
     env_file:
-      - api.env
+      - core.env
     expose:
       - 5050
     depends_on:
@@ -53,13 +53,13 @@ services:
 
   worker_primary:
     build: ../src/core
-    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
+    command: celery -A app.celery worker -n worker -Q default --concurrency=4 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
     volumes:
-      - ./ssh:/root/.ssh
+      - ./worker_primary/ssh:/root/.ssh
       - storage:/mnt/storage
       - ../src/core:/usr/src/app
     env_file:
-      - api.env
+      - core.env
     depends_on:
       setup:
         condition: service_completed_successfully
@@ -68,13 +68,13 @@ services:
 
   worker_secondary:
     build: ../src/core
-    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id_rsa.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
+    command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2 --loglevel=info && chmod -R 600 ~/.ssh && chmod 644 ~/.ssh/id.pub && chmod 644 ~/.ssh/config && chown root:$USER ~/.ssh/config
     volumes:
-      - ./ssh:/root/.ssh
+      - ./worker_secondary/ssh:/root/.ssh
       - storage:/mnt/storage
       - ../src/core:/usr/src/app
     env_file:
-      - api.env
+      - core.env
     depends_on:
       setup:
         condition: service_completed_successfully
@@ -90,7 +90,7 @@ services:
       - ../flower:/root/flower
       - ../src/core:/usr/src/app
     env_file:
-      - api.env
+      - core.env
     expose:
       - 5555
     depends_on:
@@ -103,7 +103,7 @@ services:
     volumes:
       - ../src/core:/usr/src/app
     env_file:
-      - api.env
+      - core.env
     depends_on:
       - api
       - worker_secondary

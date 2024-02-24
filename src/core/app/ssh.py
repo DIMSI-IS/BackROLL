@@ -29,17 +29,25 @@ from app import database
 from app.database import Hosts
 from app.routes import host
 
-def init_ssh_connection(host_id, ip_address, username):
+
+def get_ssh_client(hostname, username):
+  key_filename = os.path.expanduser("~/.ssh/id")
+
   client = paramiko.SSHClient()
   client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+  client.connect(
+    hostname=hostname,
+    username=username,
+    key_filename=key_filename,
+  )
+  return client
 
-  keyfile = os.path.expanduser('~/.ssh/id_rsa.pub')
 
+def init_ssh_connection(host_id, ip_address, username):
   try:
-    client.connect(
+    client = get_ssh_client(
       hostname=ip_address,
       username=username,
-      key_filename = keyfile,
     )
     client.close()
   except Exception as e:
@@ -62,18 +70,17 @@ def init_ssh_connection(host_id, ip_address, username):
     session.refresh(data_host)
   return {'state': 'SUCCESS'}
 
+
 def remove_key(ip_address, username):
+  comment = "BackROLL"
+
   try:
-    hostname = "backroll-appliance"
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(
-        hostname=ip_address,
-        username=username,
+    client = get_ssh_client(
+      hostname=ip_address,
+      username=username,
     )
-    cmd = f'sed -i "/{hostname}/d" ~/.ssh/authorized_keys'
-    client.exec_command(cmd)
+    command = f'sed -i "/{comment}/d" ~/.ssh/authorized_keys'
+    client.exec_command(command)
     client.close()
-    return
   except Exception as e:
     raise ValueError(e)

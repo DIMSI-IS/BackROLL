@@ -36,7 +36,7 @@ docker compose start
 
 or else you can use the Docker Desktop UI, the Docker extension for Visual Studio Code or any other Docker UI.
 
-To re-generate the ssh key, delete `backroll-dev/ssh/id_rsa` before starting.
+To re-generate the ssh key, delete `backroll-dev/ssh/id` before starting.
 
 ## Building BackROLL again
 
