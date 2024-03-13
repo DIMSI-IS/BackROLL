@@ -45,6 +45,7 @@ If you have changed the source code of one of the containers, you may have to bu
 ```sh
 cd backroll-dev
 docker compose build sso
+docker compose create sso
 docker compose start sso
 ```
 
