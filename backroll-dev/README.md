@@ -13,7 +13,7 @@ docker compose up
 
 An automatic setup will generate an ssh key.
 
-The first start is longer than the next ones due to image building and containers’ initialisation.
+The first start is longer than the next ones due to image building and containers’ initialisation. Then the up command will continue to run to show you the logs.
 
 #### Note
 
@@ -53,13 +53,19 @@ docker compose start sso
 
 ### Proxy setup
 
-To access the various containers’ web interfaces, you internet browser needs to get into the compose project network. Create a proxy server by connecting to the proxy container:
+To access the various containers’ web interfaces, you internet browser needs to get into the compose project network.
+
+#### Running the proxy server
+
+Create a proxy server by connecting to the proxy container:
 
 ```sh
 ssh -p 2222 -D 1080 developer@localhost
 ```
 
-The password is `developer`.
+The password is `developer`. You must ensure that the command is running each time you start working on BackROLL.
+
+#### Connecting to the proxy server
 
 Now you need to configure your web browser to use the SOCKS v5 proxy at address `localhost` port `1080` and to use the proxy’s DNS. Feel free to use another port if it is more convenient for you.
 
