@@ -162,6 +162,10 @@ def handle_task_failure(task_id, msg):
   task_result = retrieve_task_info(task_id).decode('ascii')
   text = json.loads(task_result)['args']
   cleanedtext = cleanArgs(text)
+  print("#### DEBUG ####")
+  print(f"{cleanedtext=}")
+  print("#### DEBUG ####")
+  # TODO Crashes if host_tag is None.
   task_args = json.loads(cleanedtext)
 
   host = host_route.filter_host_by_id(task_args['host'])
