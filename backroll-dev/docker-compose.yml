@@ -1,5 +1,7 @@
 version: "3.9"
 
+name: ${USER:-default}_backroll-dev
+
 services:
 
   database:
