@@ -1,6 +1,6 @@
 version: "3.9"
 
-name: ${USER:-default}_backroll-dev
+name: ${USERNAME:-${USER:-someone}}_backroll-dev
 
 services:
 
@@ -32,6 +32,9 @@ services:
     volumes:
       - ./setup/src:/app/src:ro
       - .:/app/backroll-dev
+    environment:
+      - USER=$USER
+      - USERNAME=$USERNAME
 
   api:
     build: ../src/core
