@@ -89,17 +89,33 @@ def retrieve_virtualmachine(host):
         return domain_list
       
 def stop_vm(virtual_machine, hypervisor):
+  # TODO
+  print("#### DEBUG ####")
+  print("#### stop_vm ####")
+  print("#### DEBUG ####")
   try:
     conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByID(virtual_machine['id'])
+
+    # TODO
+    # dom = conn.lookupByID(virtual_machine['id'])
+    dom = conn.lookupByName("debian12-minimal")
+
     dom.destroy()
   except Exception as stopvm_error:
     raise stopvm_error
   
 def start_vm(virtual_machine, hypervisor):
+  # TODO
+  print("#### DEBUG ####")
+  print("#### start_vm ####")
+  print("#### DEBUG ####")
   try:
     conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByID(virtual_machine['id'])
+
+    # TODO
+    # dom = conn.lookupByID(virtual_machine['id'])
+    dom = conn.lookupByName("debian12-minimal")
+
     dom.destroy()
   except Exception as stopvm_error:
     raise stopvm_error

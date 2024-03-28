@@ -91,6 +91,16 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
     # Go into directory
     os.chdir(f"{borg_repository}restore/{virtual_machine_info['name']}")
     
+    # TODO
+    result = subprocess.run('pwd', capture_output=True)
+    print("#### DEBUG ####")
+    print(f"{result=}")
+    print("#### DEBUG ####")
+    result = subprocess.run('ls', capture_output=True)
+    print("#### DEBUG ####")
+    print(f"{result=}")
+    print("#### DEBUG ####")
+    
     connector = None
     pool_id = None
 
@@ -106,6 +116,12 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
     try:
       # Extract selected borg archive
       cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
+
+      # TODO
+      print("#### DEBUG ####")
+      print(f"{cmd=}")
+      print("#### DEBUG ####")
+
       process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
       while True:
         process.stdout.flush()
@@ -114,6 +130,17 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
           break
         elif not output and process.poll() is not None:
           break
+
+      # TODO
+      result = subprocess.run('pwd', capture_output=True)
+      print("#### DEBUG ####")
+      print(f"{result=}")
+      print("#### DEBUG ####")
+      result = subprocess.run('ls', capture_output=True)
+      print("#### DEBUG ####")
+      print(f"{result=}")
+      print("#### DEBUG ####")
+
       # Loop through VM's disks to find filedisk
       for disk in vm_storage_info:
         if disk['device'] == disk_device:
@@ -151,6 +178,17 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
           kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
 
       try:
+
+        # TODO
+        result = subprocess.run('pwd', capture_output=True)
+        print("#### DEBUG ####")
+        print(f"{result=}")
+        print("#### DEBUG ####")
+        result = subprocess.run('ls', capture_output=True)
+        print("#### DEBUG ####")
+        print(f"{result=}")
+        print("#### DEBUG ####")
+
         subprocess.run(['cp', virtual_machine_diskName, f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
         # os.system(f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
 
