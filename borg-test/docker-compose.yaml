@@ -1,0 +1,31 @@
+version: "3.9"
+
+name: ${USERNAME:-${USER:-someone}}_borg-test
+
+services:
+
+  debug_test_plan:
+    build: tester
+    profiles:
+      - debug
+
+  first_container:
+    build: tester
+    command: python3 src/main.py first
+    #command: echo "First Container Command"
+    volumes:
+      - ./tester/src:/app/src
+    #  - /home/borg_test_volume:/app/host_directory
+    #  - borg_test:/app/docker_volume
+
+  second_container:
+    build: tester
+    command: python3 src/main.py second
+    #command: echo "Second Container Command"
+    depends_on:
+      first_container:
+        condition: service_completed_successfully
+    volumes:
+      - ./tester/src:/app/src
+    #  - /home/borg_test_volume:/app/host_directory
+    #  - borg_test:/app/docker_volume
