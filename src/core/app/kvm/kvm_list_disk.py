@@ -27,7 +27,7 @@ def getDisk(virtual_machine, hypervisor):
 
   # TODO
   # dom = conn.lookupByID(virtual_machine['id'])
-  dom = conn.lookupByName("debian12-minimal")
+  dom = conn.lookupByName(virtual_machine['name'])
   
   raw_xml = dom.XMLDesc(0)
   xml = minidom.parseString(raw_xml)

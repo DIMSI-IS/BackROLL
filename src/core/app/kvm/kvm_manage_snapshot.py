@@ -26,7 +26,7 @@ def get_snapshot(vm_info, host_info):
 
     # TODO
     # dom = conn.lookupByID(vm_info['id'])
-    dom = conn.lookupByName("debian12-minimal")
+    dom = conn.lookupByName(vm_info['name'])
 
     flag = dom.hasCurrentSnapshot()
     json['snapshot'] = int(flag)
@@ -58,7 +58,7 @@ def createSnapshot(virtual_machine, hypervisor, snapshot_xml):
 
     # TODO
     # dom = conn.lookupByID(virtual_machine['id'])
-    dom = conn.lookupByName("debian12-minimal")
+    dom = conn.lookupByName(virtual_machine['name'])
 
     flags = 208
     dom.snapshotCreateXML(
@@ -76,7 +76,7 @@ def deleteSnapshot(virtual_machine, hypervisor):
 
     # TODO
     # dom = conn.lookupByID(virtual_machine['id'])
-    dom = conn.lookupByName("debian12-minimal")
+    dom = conn.lookupByName(virtual_machine['name'])
 
     snapshot = dom.snapshotLookupByName(f"""{virtual_machine['name']}.snap""")
     flags = 2
@@ -92,7 +92,7 @@ def blockCommit(virtual_machine, hypervisor, disk_info):
 
     # TODO
     # dom = conn.lookupByID(virtual_machine['id'])
-    dom = conn.lookupByName("debian12-minimal")
+    dom = conn.lookupByName(virtual_machine['name'])
     
     flags = 6
     dom.blockCommit(

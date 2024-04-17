@@ -98,9 +98,10 @@ def stop_vm(virtual_machine, hypervisor):
 
     # TODO
     # dom = conn.lookupByID(virtual_machine['id'])
-    dom = conn.lookupByName("debian12-minimal")
+    dom = conn.lookupByName(virtual_machine['name'])
 
-    dom.destroy()
+    if dom.isActive():
+       dom.destroy()
   except Exception as stopvm_error:
     raise stopvm_error
   
@@ -114,7 +115,7 @@ def start_vm(virtual_machine, hypervisor):
 
     # TODO
     # dom = conn.lookupByID(virtual_machine['id'])
-    dom = conn.lookupByName("debian12-minimal")
+    dom = conn.lookupByName(virtual_machine['name'])
 
     dom.destroy()
   except Exception as stopvm_error:

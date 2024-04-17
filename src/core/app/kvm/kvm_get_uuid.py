@@ -31,7 +31,7 @@ def retrieve_uuid(virtual_machine, hypervisor):
   try:
       # TODO
       # dom = conn.lookupByID(virtual_machine['id'])
-      dom = conn.lookupByName("debian12-minimal")
+      dom = conn.lookupByName(virtual_machine['name'])
   except libvirt.libvirtError as e:
       print(repr(e), file=sys.stderr)
       exit(1)
