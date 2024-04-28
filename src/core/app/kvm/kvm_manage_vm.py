@@ -117,6 +117,6 @@ def start_vm(virtual_machine, hypervisor):
     # dom = conn.lookupByID(virtual_machine['id'])
     dom = conn.lookupByName(virtual_machine['name'])
 
-    dom.destroy()
+    dom.create()
   except Exception as stopvm_error:
     raise stopvm_error
