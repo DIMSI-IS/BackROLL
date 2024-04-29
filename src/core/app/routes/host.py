@@ -18,7 +18,6 @@
 #!/usr/bin/env python
 import os
 import uuid as uuid_pkg
-import paramiko
 from typing import Optional
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel, Json
