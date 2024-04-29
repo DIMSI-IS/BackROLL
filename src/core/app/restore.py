@@ -16,7 +16,9 @@
 ## under the License.
 
 #!/usr/bin/env python
+import json
 import os
+import shutil
 import subprocess
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
@@ -38,7 +40,16 @@ from app.kvm import kvm_manage_vm
 from app.cloudstack import virtual_machine as cs_manage_vm
 
 @celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
-def restore_disk_vm(self, info, backup_name):
+def restore_disk_vm(self, info, backup_name, storage, mode):
+#def restore_disk_vm(self, info, backup_name):
+
+  if not info:
+    raise Exception("Virtual machine not found to process restore")
+  #mode = "single"
+  #storage = "test"
+  print("DEBUG $$$ vm uuid: " + info["uuid"])
+  for x in info:
+    print(x)
   try:
     redis_instance = Redis(host='redis', port=6379)
     unique_task_key = f'''vmlock-{info}'''
@@ -52,19 +63,30 @@ def restore_disk_vm(self, info, backup_name):
           host_info = jsonable_encoder(host.filter_host_by_id(info['host']))
           vm_storage_info = kvm_list_disk.getDisk(info, host_info)
         else:
+          print("DEBUG POOL ID")
           host_info = None
           connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(info["pool_id"]).connector_id)
           vm_storage_info = cs_manage_vm.getDisk(connector, info)
-        try:
-          restore_task(self, info, host_info, vm_storage_info, backup_name)
-        except Exception:
-          self.retry(countdown=3**self.request.retries)
+
+        if mode == "mounted":
+          try:
+            print("Debug - go to restore_to_path_task")
+            restore_to_path_task(self, info, host_info, storage, backup_name)
+          except Exception:
+            self.retry(countdown=3**self.request.retries)
+        else:
+          try:
+            print("Debug - go to restore_task")
+            restore_task(self, info, host_info, vm_storage_info, backup_name)
+          except Exception:
+            self.retry(countdown=3**self.request.retries)
       except:
         raise
     else:
       #Duplicated key found in redis - target IS locked right now
       raise ValueError("This task is already running / scheduled")
     redis_instance.delete(unique_task_key)
+    print("Debug - restore_disk_vm - start")
   except Exception as e:
     redis_instance.delete(unique_task_key)
     # potentially log error?
@@ -72,9 +94,10 @@ def restore_disk_vm(self, info, backup_name):
 
 # def restore_task(self, info, hypervisor, disk_list, backup):
 def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_name):
-
+  print("Debug - restore_task - start")    
   vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine_info)
   borg_repository = vm_storage["path"]
+  print("DEBUG borg_repository " + borg_repository)
 
   try:
 
@@ -179,7 +202,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
       command = f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}"
       request = subprocess.run(command.split())
       raise e
-
+    print("Debug - restore_task - end")
   except Exception as e:
 
     # Remove restore artifacts
@@ -189,4 +212,100 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
     except Exception as err:
       print(err)
 
+    raise e
+
+@celery.task(name='VM_Restore_To_Path', bind=True, max_retries=3, base=QueueOnce)
+def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, mode):
+
+  print("restore_to_path_task")
+  print("storage: " + storage_path)
+  print("backup: " + backup_name)
+  virtual_machine_path = virtual_machine_info
+  virtual_machine_complete_path = virtual_machine_info + "/"
+  print("virtual_machine_path: " + virtual_machine_path)
+  virtual_machine_name = os.path.basename(os.path.dirname(virtual_machine_complete_path))
+  print("virtual_machine_name: " + virtual_machine_name)
+
+  try:
+    # Remove existing files inside restore folder
+    command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
+    subprocess.run(command.split())  
+
+    # Create temporary folder to extract borg archive
+    command = f"mkdir -p {storage_path}/restore/{virtual_machine_name}"
+    subprocess.run(command.split())
+
+    # Go into directory
+    os.chdir(f"{storage_path}/restore/{virtual_machine_name}")
+
+    cmd = f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}"""
+    process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    while True:
+      process.stdout.flush()
+      output = process.stdout.readline()
+      if output == '' and process.poll() is not None:
+        break
+      elif not output and process.poll() is not None:
+        break
+    
+    diskList = os.popen("ls").read().split('\n')
+    disk = diskList[0]
+    print("Disk: " + disk)
+    storageList = storage.retrieve_storage()
+    repository = storageList[1]["path"]
+    print("repo : " + repository)
+    request = subprocess.run(["qemu-img", "info", "--output=json", disk], capture_output=True)
+    qemu_img_info = request.stdout.decode("utf-8")
+    qemu_img_info = json.loads(qemu_img_info)
+    if qemu_img_info.get('full-backing-filename'):
+      print(f'[{virtual_machine_name}] Checking that {virtual_machine_name}\'s backing file has already been backed up')
+      backing_file = qemu_img_info['full-backing-filename'].split('/')[-1]
+      print("backing file: " + backing_file)
+      
+      shutil.copy(f"{repository}template/{backing_file}", f"{storage_path}/restore/{backing_file}")
+      print(f'[{virtual_machine_name}] Backing up the backing file has successfully completed')
+
+      #rebase
+      dst = f"{storage_path}/restore/{backing_file}"
+      print("dst: " + dst)
+      print("disk: " + disk)
+      cmd = f"qemu-img rebase -f qcow2 -u -b {dst} {disk}"
+      print("cmd: " + cmd)
+      #rebaseRequest = subprocess.run(["qemu-img ", "rebase", "-f qcow2", "-u", "-b", dst, disk, "--output=json"], capture_output=True)
+      #rebaseRequest = subprocess.run(cmd, capture_output=True)
+      #rebaseRequest = subprocess.run([cmd], capture_output=True)
+      #qemu_img_rebase = rebaseRequest.stdout.decode("utf-8")
+      #qemu_img_rebase = json.loads(qemu_img_rebase)
+      rebaseResponse = os.popen(cmd).read().split('\n')
+      print("end rebase")
+  
+      # qemu info to check the rebase
+      request = subprocess.run(["qemu-img", "info", "--output=json", disk], capture_output=True)
+      qemu_img_info = request.stdout.decode("utf-8")
+      qemu_img_info = json.loads(qemu_img_info)
+      # check if ok
+      print("end info")
+
+      # qemu commit
+      cmd = f"qemu-img commit -f qcow2 {disk}"
+      #commitRequest = subprocess.run(["qemu-img ", "commit", "-f qcow2", "--output=json", disk], capture_output=True)
+      #qemu_img_commit = commitRequest.stdout.decode("utf-8")
+      #qemu_img_commit = json.loads(qemu_img_commit)
+      commitResponse = os.popen(cmd).read().split('\n')
+      print("end commit")
+
+      #rename backring file
+      os.rename(f"{storage_path}/restore/{backing_file}", f"{storage_path}/restore/restore_{virtual_machine_name}")
+
+      # Remove restore artifacts
+      try:
+        command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
+        print("command: " + command)
+        request = subprocess.run(command.split())
+      except Exception as err:
+        print(err)
+        raise err
+    print("ok")
+    test = "test"
+  except Exception as e:
     raise e

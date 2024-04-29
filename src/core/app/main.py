@@ -27,6 +27,8 @@ from app import app
 # Celery Imports
 from app import celery
 
+import logging, sys
+
 # Set this variable to "threading", "eventlet" or "gevent" to select the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
@@ -35,6 +37,7 @@ thread_lock = Lock()
 
 def main():
   app.run(app, debug=True)
+  logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 celery.conf.beat_schedule = {
     'daily_routine_cleaning_backups': {

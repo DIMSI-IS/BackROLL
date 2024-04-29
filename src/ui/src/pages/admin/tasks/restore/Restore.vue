@@ -147,7 +147,7 @@ export default defineComponent({
       return this.filteredTaskList.map(x => ({
         uuid: x.uuid,
         name: x.name.replaceAll('_', ' '),
-        target: this.retrieveArgs(x).name,
+        target: this.retrieveArgs(x),
         started: x.started,
         ipAddress: x.ip_address,
         runtime: x.runtime,
@@ -187,7 +187,20 @@ export default defineComponent({
       }
     },
     retrieveArgs (x) {
-      return JSON.parse(x.args)
+      if(x.args) {
+        let json = "";
+        try {
+          // console.log(x.args);
+          json = JSON.parse(x.args);
+          if(json){
+          return json.name;
+        }
+        } catch (error) {
+          console.error(error);
+          return "";
+        }  
+      }
+      return "";
     }
   }
 })

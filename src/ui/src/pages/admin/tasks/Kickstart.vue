@@ -38,7 +38,7 @@
             </span>
           </template>
         </va-timeline-item>
-        <va-timeline-item v-if="isValid(jobSelection)" color="success" :active="isValid(targetSelection) ? true : false">
+        <va-timeline-item v-if="isValid(jobSelection) && jobSelection.mode != 'mounted'" color="success" :active="isValid(targetSelection) ? true : false">
           <template #before>
             <span
               class="title title--info va-timeline-item__text"
@@ -88,7 +88,28 @@
             </va-card>
           </template>
         </va-timeline-item>
-
+        <va-timeline-item v-else-if="isValid(jobSelection) && jobSelection.mode == 'mounted'" color="success" :active="isValid(jobSelection) ? true : false">
+          <template #before>
+            <span
+              class="title title--info va-timeline-item__text"
+              :style="{color: 'info'}"
+            >
+              Select virtual machine
+            </span>            
+          </template>
+          <template #after>
+            <va-card
+              stripe
+              stripe-color="info"
+            >
+              <va-card-content>
+                <virtual-machine-selector
+                  v-model="virtualMachineSelection"
+                />
+              </va-card-content>
+            </va-card>
+          </template>
+        </va-timeline-item>
         <va-timeline-item color="success" v-if="isValid(targetSelection) && jobSelection.type === 'restore'" :active="isValid(backupSelection) ? true : false">
           <template #before>
             <va-card
@@ -97,9 +118,9 @@
             >
               <va-card-content>
                 <backup-selector
-                  v-if="isValid(targetSelection) && jobSelection.mode === 'single' && jobSelection.type === 'restore'"
+                  v-if="isValid(targetSelection) && jobSelection.type === 'restore'"
                   v-model="backupSelection"
-                  :virtualMachine="targetSelection.value"
+                  :virtualMachine="targetSelection.value" :job="jobSelection.mode"
                 />
               </va-card-content>
             </va-card>
@@ -112,6 +133,55 @@
               Select backup you want to restore
             </span>
           </template>
+        </va-timeline-item>
+        <va-timeline-item color="success" v-if="isValid(virtualMachineSelection) && jobSelection.type === 'restore'" :active="isValid(backupSelection) ? true : false">
+          <template #before>
+            <va-card
+              stripe
+              stripe-color="info"
+            >
+              <va-card-content>
+                <backup-selector
+                  v-if="isValid(virtualMachineSelection) && jobSelection.type === 'restore'"
+                  v-model="backupSelection"
+                  :virtualMachine="virtualMachineSelection.value" :job="jobSelection.mode"
+                />
+              </va-card-content>
+            </va-card>
+          </template>
+          <template #after>
+            <span
+              class="title title--info va-timeline-item__text"
+              :style="{color: 'info'}"
+            >
+              Select backup you want to restore
+            </span>
+          </template>
+        </va-timeline-item>
+
+        <va-timeline-item color="success" v-if="isValid(backupSelection) && jobSelection.mode === 'mounted'" :active="isValid(backupSelection) ? true : false">
+          <template #before>
+            <span
+              class="title title--info va-timeline-item__text"
+              :style="{color: 'info'}"
+            >
+              Select the storage where you want to restore
+            </span>
+          </template>
+          <template #after>
+            <va-card
+              stripe
+              stripe-color="info"
+            >
+              <va-card-content>
+                <storage-selector
+                  v-if="isValid(virtualMachineSelection) && jobSelection.type === 'restore'"
+                  v-model="storageSelection"
+                />
+              </va-card-content>
+            </va-card>
+          </template>
+          
         </va-timeline-item>
 
         <va-timeline-item>
@@ -134,23 +204,28 @@
 </template>
 <script>
 import BackupSelector from '@/components/virtualmachines/BackupSelector.vue'
+import VirtualMachineSelector from '@/components/virtualmachines/VirtualMachineSelector.vue'
+import StorageSelector from '@/components/virtualmachines/StorageSelector.vue'
 import axios from 'axios'
 import * as spinners from 'epic-spinners'
 
 export default {
   name: 'KickstartJob',
-  components: { ...spinners, BackupSelector },
+  components: { ...spinners, BackupSelector, VirtualMachineSelector, StorageSelector },
   data () {
     return {
       jobList: [],
       jobSelection: {},
       targetSelection: {},
-      backupSelection: {}
+      backupSelection: {},
+      virtualMachineSelection: {},
+      storageSelection: {},
     }
   },
   watch: {
     jobSelection: function () {
       this.targetSelection = {}
+      this.virtualMachineSelection = {}
     },
     targetSelection: function () {
       this.backupSelection = {}
@@ -187,34 +262,57 @@ export default {
       }
     },
     startJob () {
-      const self  = this
+      //const self  = this
       let route = null
       let args = {}
+      let url = null
       if (this.jobSelection.type === 'backup') {
         if (this.jobSelection.mode === 'single') {
           route = "/api/v1/tasks/singlebackup/"
+          url = `${this.$store.state.endpoint.api}${route}${this.targetSelection.value}`
         } else {
           route = "/api/v1/tasks/poolbackup/"
+          url = `${this.$store.state.endpoint.api}${route}${this.targetSelection.value}`
         }
       } else if (this.jobSelection.type === 'restore') {
-        route = "/api/v1/tasks/restore/"
-        args = {
-          virtual_machine_id: this.targetSelection.value,
-          backup_name: this.backupSelection.value
+        debugger
+        if(this.jobSelection.mode === 'mounted') {
+          route = "/api/v1/tasks/restorespecificpath"
+          url = `${this.$store.state.endpoint.api}${route}`
+          args = {
+            virtual_machine_id: this.virtualMachineSelection.value,
+            backup_name: this.backupSelection.value,
+            storage: this.storageSelection.value,
+            mode: this.jobSelection.mode
+          }
+        } else {
+          route = "/api/v1/tasks/restore/"
+          url = `${this.$store.state.endpoint.api}${route}${this.targetSelection.value}`
+          args = {
+            virtual_machine_id: this.targetSelection.value,
+            backup_name: this.backupSelection.value,
+            storage: "",
+            mode: this.jobSelection.mode
+          }
         }
+
       }
-      axios.post(`${this.$store.state.endpoint.api}${route}${this.targetSelection.value}`, args, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
+      axios.post(url, args, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
       .then(response => {
         this.$store.dispatch("requestBackupTask", { token: this.$keycloak.token })
         this.$store.dispatch("requestRestoreTask", { token: this.$keycloak.token })
-        this.$router.push('/admin/tasks/backup')
+        if (this.jobSelection.type === 'restore') {
+          this.$router.push('/admin/tasks/restore');
+        } else {
+          this.$router.push('/admin/tasks/backup');
+        }
         this.$vaToast.init(({ title: response.data.state, message: `Task has been successfully triggered`, color: 'success' }))
       })
       .catch(function (error) {
         if (error.response) {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
-          self.$vaToast.init(({ message: 'Task triggering has failed', title: 'Error', color: 'danger' }))
+          this.$vaToast.init({ message: 'Task triggering has failed', title: 'Error', color: 'danger' })
         }
       })
 

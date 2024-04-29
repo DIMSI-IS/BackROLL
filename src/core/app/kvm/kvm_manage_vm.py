@@ -37,7 +37,7 @@ def retrieve_virtualmachine(host):
           is_cloudstack_instance = False
 
           # Check that VM is managed by CloudStack
-          raw_xml = domain.XMLDesc(0)
+          raw_xml = domain.XMLDesc(0)        
           xml = minidom.parseString(raw_xml)
           sysbios_xml  = xml.getElementsByTagName('system')
           if len(sysbios_xml) > 0:
@@ -85,8 +85,8 @@ def retrieve_virtualmachine(host):
 
             domain_list.append(instance)
 
-        conn.close()
-        return domain_list
+    conn.close()
+    return domain_list
       
 def stop_vm(virtual_machine, hypervisor):
   try:
