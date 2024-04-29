@@ -3,17 +3,22 @@ version: "2.3"
 ### This docker-compose file is intended for localhost development ###
 
 services:
+  ## Optional if you already have a working keycloak environment
   sso:
     restart: always
-    image: jboss/keycloak:16.1.1
+    #image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ../common/config/sso
+    #image: jboss/keycloak:16.1.1
     networks:
       - backroll-network
     expose:
-      - "8081"
+      - 8081
+      - 9990
     ports:
-      - "8081:8080"
+      - 8081:8080
+      - 9990:9990
     env_file:
-      - ./common/config/sso/env
+      - ../common/config/sso/env
 
   redis:
     restart: always
@@ -39,7 +44,7 @@ services:
     networks:
       - backroll-network
     volumes:
-      - ./common/secret/:/root/.ssh:ro
+      - ../common/secret/:/root/.ssh:ro
       - ../src/core:/usr/src/app
       - /mnt:/mnt
     expose:
@@ -49,7 +54,7 @@ services:
     depends_on:
       - "redis"
     env_file:
-      - ./common/config/core/env
+      - ../common/config/core/env
     logging:
       driver: local
 
@@ -61,18 +66,17 @@ services:
     working_dir: /usr/src/app
     command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery worker -n worker -Q default --concurrency=4
     volumes:
-      - ./common/secret/:/root/.ssh:ro
+      - ../common/secret/:/root/.ssh:ro
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-      - DEBUG: 1
     networks:
       - backroll-network
     depends_on:
       - "backroll_api"
     env_file:
-      - ./common/config/core/env
+      - ../common/config/core/env
 
 
   worker_secondary:
@@ -82,13 +86,12 @@ services:
     working_dir: /usr/src/app
     command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
     volumes:
-      - ./common/secret/:/root/.ssh:ro
+      - ../common/secret/:/root/.ssh:ro
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
       - ../src/core:/usr/src/app
-      - DEBUG: 1
     mem_limit: 8g
     networks:
       - backroll-network
@@ -96,7 +99,7 @@ services:
       - "backroll_api"
       - "worker_primary"
     env_file:
-      - ./common/config/core/env
+      - ../common/config/core/env
 
 
   flower:
@@ -120,7 +123,7 @@ services:
       - "backroll_api"
       - "worker_primary"
     env_file:
-      - ./common/config/core/env
+      - ../common/config/core/env
 
 
   beat:
@@ -139,7 +142,7 @@ services:
       - "backroll_api"
       - "worker_secondary"
     env_file:
-      - ./common/config/core/env
+      - ../common/config/core/env
 
   front:
     restart: on-failure
@@ -161,7 +164,7 @@ services:
     depends_on:
       - "backroll_api"
     env_file:
-      - ./common/config/ui/env
+      - ../common/config/ui/env
 
 networks:
   backroll-network:
