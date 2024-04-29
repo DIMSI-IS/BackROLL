@@ -26,6 +26,8 @@ import time
 import paramiko
 import shutil
 
+from app import shell
+
 from app.routes import pool
 from app.routes import connectors
 
@@ -173,6 +175,13 @@ class borg_backup:
     if "pool_id" in self.virtual_machine:
       connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(self.virtual_machine["pool_id"]).connector_id)
       disk_source = f'/mnt/{cs_manage_vm.listStorage(connector, disk)["id"]}/{disk_source}'
+
+    # Detect file name if disk_source has no file extension.
+    [disk_source_directory, disk_source_file] = disk_source.rsplit('/', 1)
+    if '.' not in disk_source_file:
+      available_disk_sources = shell.run(f'find {disk_source_directory} -name "{disk_source_file}.*" | grep -E "/[^.]+\.[^.]+$"')
+      # TODO Pick the right one.
+      disk_source = available_disk_sources[0]
 
     cmd = f"""borg create \
         --log-json \
