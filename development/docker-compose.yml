@@ -60,14 +60,13 @@ services:
     build: ../src/core
     working_dir: /usr/src/app
     command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery worker -n worker -Q default --concurrency=4
-    environment:
-      DEBUG: 1
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
       - ../src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+      - DEBUG: 1
     networks:
       - backroll-network
     depends_on:
@@ -82,8 +81,6 @@ services:
     build: ../src/core
     working_dir: /usr/src/app
     command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
-    environment:
-      DEBUG: 1
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
@@ -91,6 +88,7 @@ services:
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
       - ../src/core:/usr/src/app
+      - DEBUG: 1
     mem_limit: 8g
     networks:
       - backroll-network
