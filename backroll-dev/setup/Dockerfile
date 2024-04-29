@@ -1,4 +1,4 @@
 FROM ubuntu:latest
-RUN apt update && apt install -y openssh-client
 WORKDIR /app
+RUN apt update && apt install -y openssh-client
 CMD ["bash", "src/main.sh"]

@@ -33,8 +33,9 @@ services:
       - ./setup/src:/app/src:ro
       - .:/app/backroll-dev
     environment:
-      - USER=$USER
-      - USERNAME=$USERNAME
+      # Suppress warnings with ${VAR:-}.
+      - USER=${USER:-}
+      - USERNAME=${USERNAME:-}
 
   api:
     build: ../src/core
@@ -62,6 +63,7 @@ services:
     volumes:
       - ./worker_primary/ssh:/root/.ssh
       - storage:/mnt/storage
+      - /var/lib/libvirt:/var/lib/libvirt
       - ../src/core:/usr/src/app
     env_file:
       - core.env
@@ -128,3 +130,9 @@ services:
 volumes:
   database:
   storage:
+  nfs:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=127.0.0.1,nolock,soft,rw
+      device: ":/mnt/backroll_storage"
