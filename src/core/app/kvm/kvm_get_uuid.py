@@ -19,22 +19,21 @@ import sys
 import libvirt
 
 from app.kvm import kvm_connection
+from kvm_connection import KvmLookupError
 
 def retrieve_uuid(virtual_machine, hypervisor):
   conn = None
   try:
-      conn = kvm_connection.kvm_connection(hypervisor)
+    conn = kvm_connection.kvm_connection(hypervisor)
   except libvirt.libvirtError as e:
-      print(repr(e), file=sys.stderr)
-      exit(1)
+    print(repr(e), file=sys.stderr)
+    exit(1)
   dom = None
   try:
-      # TODO
-      # dom = conn.lookupByID(virtual_machine['id'])
-      dom = conn.lookupByName(virtual_machine['name'])
-  except libvirt.libvirtError as e:
-      print(repr(e), file=sys.stderr)
-      exit(1)
+    dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+  except KvmLookupError as e:
+    print(repr(e), file=sys.stderr)
+    exit(1)
   uuid = dom.UUIDString()
   conn.close()
   return uuid

@@ -21,7 +21,8 @@ import subprocess
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
-from app import celery
+
+from app import celery, shell
 
 from app.routes import host
 from app.routes import storage
@@ -105,16 +106,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
       
     try:
       # Extract selected borg archive
-      cmd = f"""borg extract --sparse {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
-
-      process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-      while True:
-        process.stdout.flush()
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-          break
-        elif not output and process.poll() is not None:
-          break
+      shell.run(f"""borg extract --sparse {borg_repository}{virtual_machine_info['name']}::{backup_name}""")
 
       # Skip directories
       os.system('mv $(find -type f) ./')

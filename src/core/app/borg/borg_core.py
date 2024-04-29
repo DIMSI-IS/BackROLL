@@ -183,20 +183,7 @@ class borg_backup:
       # TODO Pick the right one.
       disk_source = available_disk_sources[0]
 
-    cmd = f"""borg create \
-        --log-json \
-        --progress \
-        {repository}{vm_name}::{self.info['backup_name']} \
-        {disk_source}"""
-
-    process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-    while True:
-      process.stdout.flush()
-      output = process.stdout.readline()
-      if output == '' and process.poll() is not None:
-        break
-      elif not output and process.poll() is not None:
-        break
+    shell.run(f"borg create --log-json --progress {repository}{vm_name}::{self.info['backup_name']} {disk_source}")
 
     print(f'[{vm_name}] Borg archive successfully created for {disk_name}')
 

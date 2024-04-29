@@ -19,3 +19,23 @@ import libvirt
 
 def kvm_connection(hypervisor):
   return libvirt.open(f"qemu+ssh://{hypervisor['username']}@{hypervisor['ipaddress']}/system")
+
+class KvmLookupError(Exception):
+  def __init__(self, errors):
+    self.errors = errors
+
+# TODO Wrap the libvirt connection ?
+def kvm_lookup(connection, virtual_machine):
+  errors = []
+
+  try:
+    return connection.lookupByID(virtual_machine['id'])
+  except Exception as e:
+    errors.append(e)
+  
+  try:
+    return connection.lookupByName(virtual_machine['name'])
+  except Exception as e:
+    errors.append(e)
+  
+  raise KvmLookupError(errors)
