@@ -44,39 +44,53 @@ def retrieve_task_info(task_id):
   response = requests.get(f"http://flower:5555/api/task/info/{task_id}")
   return response.content
 
+# def cleanArgs(args):
+#   argument = str(args)
+#   print(args)
+#   if ", ...,)" in argument:
+#     argument = argument[len('('):-len(', ...,)')]
+#     argument = argument + "}"
+#   elif ", ...)" in argument:
+#     argument = argument[len('('):-len(', ...)')]
+#     argument = argument + "}"
+#   elif ",)" in argument:
+#     argument = argument[len('('):-len(',)')]
+#   elif "}," in argument:
+#     argument = argument.split("},", 1)[0]
+#   argument = argument.replace("'", '"')
+#   argument = argument.replace("True", 'true')
+#   argument = argument.replace("False", 'false')
+#   argument = argument.replace("(", '')
+#   argument = argument.replace(")", '')
+
+#   if"{...}" in argument:
+#     argument = argument.replace("{...}", "")
+  
+#   if '...", ...}' in argument:
+#     argument = argument.replace('...", ...}', '": "" }')
+
+#   if "None" in argument:
+#     argument = argument.replace("None", '"None"')
+
+#   if", ...}" in argument:
+#     argument = argument.replace(", ...}", ': ""')
+
+#   argument.split("}", 1)[0]
+#   return argument
+
 def cleanArgs(args):
   argument = str(args)
-
-  if ", ...,)" in argument:
-    argument = argument[len('('):-len(', ...,)')]
-    argument = argument + "}"
-  elif ", ...)" in argument:
-    argument = argument[len('('):-len(', ...)')]
-    argument = argument + "}"
-  elif ",)" in argument:
-    argument = argument[len('('):-len(',)')]
-  elif "}," in argument:
-    argument = argument.split("},", 1)[0]
-  argument = argument.replace("'", '"')
-  argument = argument.replace("True", 'true')
-  argument = argument.replace("False", 'false')
-  argument = argument.replace("(", '')
-  argument = argument.replace(")", '')
-
-  if"{...}" in argument:
-    argument = argument.replace("{...}", "")
   
-  if '...", ...}' in argument:
-    argument = argument.replace('...", ...}', '": "" }')
-
-  if "None" in argument:
-    argument = argument.replace("None", '"None"')
-
-  if", ...}" in argument:
-    argument = argument.replace(", ...}", ': ""')
-
-  argument.split("}", 1)[0]
-  return argument
+  argument = argument.replace("},)", "})")
+  argument = argument.replace("...", "")
+  if ", 'displayvm': True" in argument :
+      argument = argument[0: argument.index(", 'displayvm': True")]
+      argument = argument + "})"
+  obj = eval(argument)
+  if isinstance(obj,dict):
+    return json.dumps(obj)
+  elif isinstance(obj,tuple) or isinstance(obj,list):
+    return json.dumps(obj[0])
 
 def convert(seconds):
   if type(seconds) != type(None):
