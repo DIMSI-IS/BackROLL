@@ -79,6 +79,8 @@ def generate_list_of_test(containers, volumes, nbAction):
                 allTest.append(test)
                 test = []
                 str_test = str_test + ')'
+                
+                #print(f"{str_test}")
                 nbTest += 1
 
             
@@ -131,5 +133,5 @@ def WriteAFile(path, jsonConverter):
 
 jsonC = generate_list_of_test('12', 'CHDN', 3)
 
-WriteAFile("../TestsFile.json", jsonC)
+WriteAFile("build/TestsFile.json", jsonC)
 #print(jsonC.ToString())

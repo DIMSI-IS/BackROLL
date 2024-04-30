@@ -1,0 +1,3756 @@
+{
+    "_allTests": [
+        {
+            "available_volume": "CC",
+            "actions1": [
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "CH",
+            "actions1": [
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "CH",
+            "actions1": [
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "CD",
+            "actions1": [
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "CD",
+            "actions1": [
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "CN",
+            "actions1": [
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "CN",
+            "actions1": [
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2C"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "HC",
+            "actions1": [
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "HC",
+            "actions1": [
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "HH",
+            "actions1": [
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "HD",
+            "actions1": [
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "HD",
+            "actions1": [
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "HN",
+            "actions1": [
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "HN",
+            "actions1": [
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2H"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "DC",
+            "actions1": [
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "DC",
+            "actions1": [
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "DH",
+            "actions1": [
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "DH",
+            "actions1": [
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "DD",
+            "actions1": [
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "DN",
+            "actions1": [
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "DN",
+            "actions1": [
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2D"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "NC",
+            "actions1": [
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "NC",
+            "actions1": [
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1C",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2C",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1C"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2C"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "NH",
+            "actions1": [
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "NH",
+            "actions1": [
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1H",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2H",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1H"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2H"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "ND",
+            "actions1": [
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "ND",
+            "actions1": [
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action1": "1D",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "1D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2D",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "1D"
+                                },
+                                {
+                                    "action3": "2N"
+                                },
+                                {
+                                    "action3": "2D"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "available_volume": "NN",
+            "actions1": [
+                {
+                    "action1": "1N",
+                    "actions2": [
+                        {
+                            "action2": "1N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        },
+                        {
+                            "action2": "2N",
+                            "actions3": [
+                                {
+                                    "action3": "1N"
+                                },
+                                {
+                                    "action3": "2N"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

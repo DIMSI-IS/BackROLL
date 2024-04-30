@@ -3,7 +3,6 @@ import json
 class Tests:
     
     _tests = []
-    _allTests = []
     
     def __init__(self, tests):
         self._tests = tests
@@ -33,7 +32,7 @@ class JsonConverter():
         for test in tests:
             
             if(test[1] != "_" and test[2] != "_" and test[3] != "_"):
-                if(jsonTest.available_volume != ""):
+                if(jsonTest.available_volume != "" and test[0] != lastVolumes):
                     allTests.append(jsonTest)
                 if(test[0] != lastVolumes):
                     jsonTest = Test(test[0], [test[1],test[2],test[3]])
