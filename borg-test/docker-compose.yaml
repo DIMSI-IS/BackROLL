@@ -11,7 +11,7 @@ services:
 
   first_container:
     build: tester
-    command: python3 src/main.py first
+    command: python3 src/main.py '12' 'CHDN' 3 "build/" "TestsFile.json"
     #command: echo "First Container Command"
     volumes:
       - ./tester/src:/app/src
@@ -20,7 +20,7 @@ services:
 
   second_container:
     build: tester
-    command: python3 src/main.py second
+    #command: python3 src/main.py second
     #command: echo "Second Container Command"
     depends_on:
       first_container:
