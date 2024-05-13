@@ -24,7 +24,7 @@ from app.kvm import kvm_connection
 def getDisk(virtual_machine, hypervisor):
   conn = kvm_connection.kvm_connection(hypervisor)
   json = []
-  dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+  dom = kvm_connection.lookup(conn, virtual_machine)
   raw_xml = dom.XMLDesc(0)
   xml = minidom.parseString(raw_xml)
   disk_types = xml.getElementsByTagName('disk')

@@ -24,8 +24,7 @@ class KvmLookupError(Exception):
   def __init__(self, errors):
     self.errors = errors
 
-# TODO Wrap the libvirt connection ?
-def kvm_lookup(connection, virtual_machine):
+def lookup(connection, virtual_machine):
   errors = []
 
   try:

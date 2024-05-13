@@ -90,12 +90,12 @@ def retrieve_virtualmachine(host):
       
 def stop_vm(virtual_machine, hypervisor):
   conn = kvm_connection.kvm_connection(hypervisor)
-  dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+  dom = kvm_connection.lookup(conn, virtual_machine)
   if dom.isActive():
       dom.destroy()
   
 def start_vm(virtual_machine, hypervisor):
   conn = kvm_connection.kvm_connection(hypervisor)
-  dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+  dom = kvm_connection.lookup(conn, virtual_machine)
   if not dom.isActive():
     dom.create()

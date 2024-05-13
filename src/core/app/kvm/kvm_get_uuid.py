@@ -30,7 +30,7 @@ def retrieve_uuid(virtual_machine, hypervisor):
     exit(1)
   dom = None
   try:
-    dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+    dom = kvm_connection.lookup(conn, virtual_machine)
   except KvmLookupError as e:
     print(repr(e), file=sys.stderr)
     exit(1)

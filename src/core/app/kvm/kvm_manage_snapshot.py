@@ -23,7 +23,7 @@ import time
 def get_snapshot(vm_info, host_info):
     conn = kvm_connection.kvm_connection(host_info)
     json = {'id': vm_info['id'], 'name': vm_info['name'], 'snapshot': []}
-    dom = kvm_connection.kvm_lookup(conn, vm_info)
+    dom = kvm_connection.lookup(conn, vm_info)
     flag = dom.hasCurrentSnapshot()
     json['snapshot'] = int(flag)
     conn.close()
@@ -51,7 +51,7 @@ def generate_xmlSnapshot(vm_name, vm_storage):
 def createSnapshot(virtual_machine, hypervisor, snapshot_xml):
   try:
     conn = kvm_connection.kvm_connection(hypervisor)
-    dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+    dom = kvm_connection.lookup(conn, virtual_machine)
     flags = 208
     dom.snapshotCreateXML(
       snapshot_xml,
@@ -65,7 +65,7 @@ def createSnapshot(virtual_machine, hypervisor, snapshot_xml):
 def deleteSnapshot(virtual_machine, hypervisor):
   try:
     conn = kvm_connection.kvm_connection(hypervisor)
-    dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+    dom = kvm_connection.lookup(conn, virtual_machine)
     snapshot = dom.snapshotLookupByName(f"""{virtual_machine['name']}.snap""")
     flags = 2
     snapshot.delete(flags)
@@ -77,7 +77,7 @@ def deleteSnapshot(virtual_machine, hypervisor):
 def blockCommit(virtual_machine, hypervisor, disk_info):
   try:
     conn = kvm_connection.kvm_connection(hypervisor)
-    dom = kvm_connection.kvm_lookup(conn, virtual_machine)
+    dom = kvm_connection.lookup(conn, virtual_machine)
     flags = 6
     dom.blockCommit(
       disk_info["device"],
