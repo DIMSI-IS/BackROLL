@@ -87,19 +87,15 @@ def retrieve_virtualmachine(host):
 
     conn.close()
     return domain_list
-      
+
 def stop_vm(virtual_machine, hypervisor):
-  try:
-    conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByName(virtual_machine['name'])
-    dom.destroy()
-  except Exception as stopvm_error:
-    raise stopvm_error
+  conn = kvm_connection.kvm_connection(hypervisor)
+  dom = conn.lookupByName(virtual_machine['name'])
+  if dom.isActive():
+      dom.destroy()
   
 def start_vm(virtual_machine, hypervisor):
-  try:
-    conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByName(virtual_machine['name'])
+  conn = kvm_connection.kvm_connection(hypervisor)
+  dom = conn.lookupByName(virtual_machine['name'])
+  if not dom.isActive():
     dom.create()
-  except Exception as stopvm_error:
-    raise stopvm_error
