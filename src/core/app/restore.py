@@ -126,7 +126,9 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
     connector_id = pool.filter_pool_by_id(pool_id).connector_id
     if connector_id:
       connector = connectors.filter_connector_by_id(connector_id)
-      
+    elif virtual_machine_info['cloudstack_instance']:
+      raise ValueError('You have to add a CloudStack connector.')
+
     try:
       # Extract selected borg archive
       cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
@@ -169,7 +171,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
       if "host" in virtual_machine_info:
         # Power off guest VM
-        if virtual_machine_info['cloudstack_instance']:
+        if connector_id:
           cs_vm_command.stop_vm(connector, virtual_machine_info['uuid'])
         else:
           kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
@@ -194,7 +196,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
       if "host" in virtual_machine_info:
         # Power on guest VM
-        if virtual_machine_info['cloudstack_instance']:
+        if connector_id:
           cs_vm_command.start_vm(connector, virtual_machine_info['uuid'])
         else:
           kvm_manage_vm.start_vm(virtual_machine_info, hypervisor)
