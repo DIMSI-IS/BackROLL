@@ -91,7 +91,7 @@ def retrieve_virtualmachine(host):
 def stop_vm(virtual_machine, hypervisor):
   try:
     conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByID(virtual_machine['id'])
+    dom = conn.lookupByName(virtual_machine['name'])
     dom.destroy()
   except Exception as stopvm_error:
     raise stopvm_error
@@ -99,7 +99,7 @@ def stop_vm(virtual_machine, hypervisor):
 def start_vm(virtual_machine, hypervisor):
   try:
     conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByID(virtual_machine['id'])
-    dom.destroy()
+    dom = conn.lookupByName(virtual_machine['name'])
+    dom.create()
   except Exception as stopvm_error:
     raise stopvm_error

@@ -52,7 +52,7 @@ class Pools(SQLModel, table=True):
       "id": str(self.id),
       "name": self.name,
       "policy_id": str(self.policy_id),
-      "ssh": bool(self.is_managed),
+      "connector_id": str(self.connector_id),
     }
 
 class Hosts(SQLModel, table=True):

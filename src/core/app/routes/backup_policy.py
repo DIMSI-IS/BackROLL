@@ -20,7 +20,7 @@ import json
 import uuid as uuid_pkg
 from croniter import croniter
 from typing import Optional
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import Depends, HTTPException, Security, status
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
 from pydantic import BaseModel, Json
@@ -159,15 +159,23 @@ def retrieve_backup_policies():
 def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled):
   try:
     engine = database.init_db_connection()
-  except:
-    raise ValueError('Unable to connect to database.')
+  except: 
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail='Unable to connect to database.',  # "Invalid authentication credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
   with Session(engine) as session:
     statement = select(Policies).where(Policies.id == policy_id)
     results = session.exec(statement)
     data_backup_policy = results.one()
 
   if not data_backup_policy:
-    raise ValueError(f'backup policy with id {policy_id} not found')
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=f'backup policy with id {policy_id} not found',  # "Invalid authentication credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
   task = "Kickstart_Pool_Backup"
   if schedule:
     split_cron = schedule.split()
@@ -187,7 +195,11 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
     raise ValueError(e)
 
   if data_backup_policy.enabled == 1:
-    if not data_pool: raise ValueError(f'backup policy with id {policy_id} has no pool associated to it')
+    if not data_pool: raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=f'backup policy with id {policy_id} has no pool associated to it',  
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     for pool in data_pool:
       currentPool = pool.to_json()
       try:
@@ -197,11 +209,23 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
         try:
           e.delete()
         except Exception as e:
-          raise ValueError(e)
+          raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),  
+            headers={"WWW-Authenticate": "Bearer"}
+          ) from e
       except:
-        raise ValueError(f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.')
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.',  
+            headers={"WWW-Authenticate": "Bearer"}
+          )
   if enabled == True:
-    if not data_pool: raise ValueError(f'backup policy with id {policy_id} has no pool associated to it')
+    if not data_pool: raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f'backup policy with id {policy_id} has no pool associated to it',  
+            headers={"WWW-Authenticate": "Bearer"}
+          )
     for pool in data_pool:
       try:
         data_host = []
@@ -210,7 +234,11 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
           results = session.exec(statement)
           for host in results:
             data_host.append(host)
-        if not data_host: raise ValueError(f'backup policy with id {policy_id} has one or more empty pool associated to it')
+        if not data_host: raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f'backup policy with id {policy_id} has one or more empty pool associated to it',  
+            headers={"WWW-Authenticate": "Bearer"}
+          )
       except Exception as e:
         raise ValueError(e)
       try:
