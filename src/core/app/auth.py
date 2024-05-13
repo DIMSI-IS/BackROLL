@@ -16,6 +16,7 @@
 ## under the License.
 
 import os
+import re
 import json
 import requests
 from fastapi import Depends, HTTPException, Security, status
@@ -36,7 +37,7 @@ app.add_middleware(SessionMiddleware, secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xW
 config = Config(".env")
 oauth = OAuth(config)
 
-issuer = os.getenv("OPENID_ISSUER")
+issuer = re.sub("/$", "", os.getenv("OPENID_ISSUER"))  # Python >= 3.9: str.removesuffix("/")
 
 CONF_URL = f"""{issuer}/.well-known/openid-configuration"""
 oauth.register(
