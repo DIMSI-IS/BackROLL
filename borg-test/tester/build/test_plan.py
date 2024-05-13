@@ -4,8 +4,11 @@ import os
 
 class JsonWriter:
 
-    def __init__(self, containers, volumes, nbAction, pathForJsonFile, fileName):
-        jsonC = self.generate_list_of_test(containers, volumes, nbAction)
+    def __init__(self, generate_a_list_of_test, jsonConverter, containers, volumes, nbAction, pathForJsonFile, fileName):
+        if generate_a_list_of_test:
+            jsonC = self.generate_list_of_test(containers, volumes, nbAction)
+        else:
+            jsonC = jsonConverter
         self.WriteAFile(pathForJsonFile+fileName, jsonC)
 
     def generate_list_of_test(self, containers, volumes, nbAction):

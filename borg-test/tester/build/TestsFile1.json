@@ -1,7 +1,8 @@
 {
     "_allTests": [
         {
-            "available_volume": "CC",
+            "depot_directory": "C",
+            "directory_save_file": "C",
             "actions1": [
                 {
                     "action1": "1C",
@@ -27,17 +28,7 @@
                                     "action3": "2C"
                                 }
                             ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "available_volume": "CH",
-            "actions1": [
-                {
-                    "action1": "1C",
-                    "actions2": [
+                        },
                         {
                             "action2": "1C",
                             "actions3": [
@@ -184,7 +175,8 @@
             ]
         },
         {
-            "available_volume": "CD",
+            "depot_directory": "C",
+            "directory_save_file": "D",
             "actions1": [
                 {
                     "action1": "1C",
@@ -335,7 +327,8 @@
             ]
         },
         {
-            "available_volume": "CN",
+            "depot_directory": "C",
+            "directory_save_file": "N",
             "actions1": [
                 {
                     "action1": "1C",
@@ -486,7 +479,8 @@
             ]
         },
         {
-            "available_volume": "HC",
+            "depot_directory": "H",
+            "directory_save_file": "C",
             "actions1": [
                 {
                     "action1": "1H",
@@ -637,7 +631,8 @@
             ]
         },
         {
-            "available_volume": "HH",
+            "depot_directory": "H",
+            "directory_save_file": "H",
             "actions1": [
                 {
                     "action1": "1H",
@@ -663,17 +658,7 @@
                                     "action3": "2H"
                                 }
                             ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "available_volume": "HD",
-            "actions1": [
-                {
-                    "action1": "1H",
-                    "actions2": [
+                        },
                         {
                             "action2": "1H",
                             "actions3": [
@@ -820,7 +805,8 @@
             ]
         },
         {
-            "available_volume": "HN",
+            "depot_directory": "H",
+            "directory_save_file": "N",
             "actions1": [
                 {
                     "action1": "1H",
@@ -971,7 +957,8 @@
             ]
         },
         {
-            "available_volume": "DC",
+            "depot_directory": "D",
+            "directory_save_file": "C",
             "actions1": [
                 {
                     "action1": "1D",
@@ -1122,7 +1109,8 @@
             ]
         },
         {
-            "available_volume": "DH",
+            "depot_directory": "D",
+            "directory_save_file": "H",
             "actions1": [
                 {
                     "action1": "1D",
@@ -1273,7 +1261,8 @@
             ]
         },
         {
-            "available_volume": "DD",
+            "depot_directory": "D",
+            "directory_save_file": "D",
             "actions1": [
                 {
                     "action1": "1D",
@@ -1299,17 +1288,7 @@
                                     "action3": "2D"
                                 }
                             ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "available_volume": "DN",
-            "actions1": [
-                {
-                    "action1": "1D",
-                    "actions2": [
+                        },
                         {
                             "action2": "1D",
                             "actions3": [
@@ -1450,17 +1429,7 @@
                                     "action3": "2N"
                                 }
                             ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "available_volume": "NC",
-            "actions1": [
-                {
-                    "action1": "1N",
-                    "actions2": [
+                        },
                         {
                             "action2": "1N",
                             "actions3": [
@@ -1607,7 +1576,8 @@
             ]
         },
         {
-            "available_volume": "NH",
+            "depot_directory": "N",
+            "directory_save_file": "H",
             "actions1": [
                 {
                     "action1": "1N",
@@ -1758,7 +1728,8 @@
             ]
         },
         {
-            "available_volume": "ND",
+            "depot_directory": "N",
+            "directory_save_file": "D",
             "actions1": [
                 {
                     "action1": "1N",
@@ -1909,7 +1880,8 @@
             ]
         },
         {
-            "available_volume": "NN",
+            "depot_directory": "N",
+            "directory_save_file": "N",
             "actions1": [
                 {
                     "action1": "1N",

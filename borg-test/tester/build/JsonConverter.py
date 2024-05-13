@@ -32,7 +32,7 @@ class JsonConverter():
         for test in tests:
             
             if(test[1] != "_" and test[2] != "_" and test[3] != "_"):
-                if(jsonTest.available_volume != "" and test[0] != lastVolumes):
+                if(jsonTest.depot_directory + jsonTest.directory_save_file != "" and test[0] != lastVolumes):
                     allTests.append(jsonTest)
                 if(test[0] != lastVolumes):
                     jsonTest = Test(test[0], [test[1],test[2],test[3]])
@@ -58,7 +58,19 @@ class JsonConverter():
     
 class Test():
     def __init__(self, available_volume, actions):
-        self.available_volume = available_volume
+        
+        if len(available_volume) > 0:
+            self.depot_directory = available_volume[0]
+
+            if len(available_volume) > 1:
+                self.directory_save_file = available_volume[1]
+            else:
+                self.directory_save_file = ""
+        else:
+            self.depot_directory = ""
+            self.directory_save_file = ""
+        
+
         self.actions1 = [Action1(actions[0],actions[1],actions[2])]
     
     def AddAction(self, actions):
