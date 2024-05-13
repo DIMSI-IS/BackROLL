@@ -53,6 +53,7 @@ services:
     networks:
       - backroll-network
     volumes:
+      - /mnt:/mnt
       - ./src/core:/usr/src/app
       - ./common/secret/:/root/.ssh:ro
     expose:
@@ -143,7 +144,7 @@ services:
   front:
     restart: on-failure
     container_name: ui
-    image: dimsicloud/backroll-ui:${BACKROLL_VERSION:-latest}
+    build: src/ui
     volumes:
       - ./src/ui:/app
     ports:
