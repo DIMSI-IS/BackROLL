@@ -5,4 +5,4 @@ COPY package*.json ./
 RUN npm install --no-optional
 
 COPY . .
-CMD ["npm", "run", "serve"]
+CMD [ "bash", "dev.entrypoint.sh"  ]
