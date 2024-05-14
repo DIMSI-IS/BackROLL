@@ -16,6 +16,7 @@
 ## under the License.
 
 import os
+import re
 import json
 import subprocess
 import os.path
