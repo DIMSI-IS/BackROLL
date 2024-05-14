@@ -156,9 +156,14 @@ class borg_backup:
     if qemu_img_info.get('full-backing-filename'):
       print(f'[{vm_name}] Checking that {vm_name}\'s backing file has already been backed up')
       backing_file = qemu_img_info['full-backing-filename'].split('/')[-1]
-      if not path.isfile(f"{repository}template/{backing_file}"):
+      template_path = f"{repository}template/{backing_file}"
+
+      if not path.exists(template_path):
+        os.makedirs(template_path)
+      
+      if not path.isfile(template_path):
         print(f'[{vm_name}] Backing up the backing file...')
-        shutil.copy(qemu_img_info['full-backing-filename'], f"{repository}template/{backing_file}")
+        shutil.copy(qemu_img_info['full-backing-filename'], template_path)
         print(f'[{vm_name}] Backing up the backing file has successfully completed')
 
   def create_archive(self, disk):
