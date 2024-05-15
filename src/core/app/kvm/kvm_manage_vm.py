@@ -27,8 +27,8 @@ from app.kvm import kvm_connection
 def retrieve_virtualmachine(host):
     try:
       conn = kvm_connection.kvm_connection(host)
-    except:
-      raise ValueError(f"Unable to connect to host with id {host['id']}")
+    except Exception as e:
+      raise ValueError(f"Unable to connect to host with id {host['id']} \n Exception : {e}")
     domains = conn.listAllDomains(0)
     domain_list = []
     if len(domains) != 0:
@@ -37,7 +37,7 @@ def retrieve_virtualmachine(host):
           is_cloudstack_instance = False
 
           # Check that VM is managed by CloudStack
-          raw_xml = domain.XMLDesc(0)
+          raw_xml = domain.XMLDesc(0)        
           xml = minidom.parseString(raw_xml)
           sysbios_xml  = xml.getElementsByTagName('system')
           if len(sysbios_xml) > 0:
@@ -85,21 +85,17 @@ def retrieve_virtualmachine(host):
 
             domain_list.append(instance)
 
-        conn.close()
-        return domain_list
-      
+    conn.close()
+    return domain_list
+
 def stop_vm(virtual_machine, hypervisor):
-  try:
-    conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByID(virtual_machine['id'])
-    dom.destroy()
-  except Exception as stopvm_error:
-    raise stopvm_error
+  conn = kvm_connection.kvm_connection(hypervisor)
+  dom = conn.lookupByName(virtual_machine['name'])
+  if dom.isActive():
+      dom.destroy()
   
 def start_vm(virtual_machine, hypervisor):
-  try:
-    conn = kvm_connection.kvm_connection(hypervisor)
-    dom = conn.lookupByID(virtual_machine['id'])
-    dom.destroy()
-  except Exception as stopvm_error:
-    raise stopvm_error
+  conn = kvm_connection.kvm_connection(hypervisor)
+  dom = conn.lookupByName(virtual_machine['name'])
+  if not dom.isActive():
+    dom.create()

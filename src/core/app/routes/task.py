@@ -17,12 +17,16 @@
 
 #!/usr/bin/env python
 import os
+import sys
+import logging
 import uuid as uuid_pkg
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+
+from typing import Optional
 
 from app import app
 from app import celery
@@ -42,11 +46,15 @@ from app import restore
 class restorebackup_start(BaseModel):
   virtual_machine_id: str
   backup_name: str
+  storage: Optional[str] = None
+  mode: Optional[str] = None
   class Config:
       schema_extra = {
           "example": {
               "virtual_machine_id": "3414b922-a39f-11ec-b909-0242ac120002",
               "backup_name": "vda_VMDiskName_01092842912",
+              "storage": "path",
+              "mode": "simple"
           }
       }
 
@@ -60,6 +68,22 @@ def retrieve_restore_task_jobs():
     json_key["args"] = task_handler.cleanArgs(json_key["args"])
     if not json_key["args"].endswith("}"):
       json_key["args"] += "}"
+
+  vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
+  vm_retore_path_response = requests.get('http://flower:5555/api/tasks', params=vm_retore_path_payload)
+  vm_retore_path_task = json.loads(vm_retore_path_response.content.decode('ascii'))
+  for key in vm_retore_path_task:
+    json_key = vm_retore_path_task[key]
+    args = json_key["args"]
+    args = args.replace("(", '')
+    args = args.replace(")", '')
+    argsList = args.split(',')
+    vmPath = argsList[0].replace("'", '')
+    vmName = vmPath.split("/")[3]
+    jsonObject = '{ "name" : "' + vmName + '" }'
+    json_key["args"] = jsonObject
+
+  single_vm_task.update(vm_retore_path_task)
   return single_vm_task
 
 @celery.task(name='backuptask_jobs')
@@ -151,8 +175,28 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   virtual_machine_id = item.virtual_machine_id
+  print("DEBUG ID VM : " + virtual_machine_id)
+  #print("virtual_machine_id: " + virtual_machine_id)
   backup_name = item.backup_name
-  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async() 
+  #print("backup_name: " + backup_name)
+  #storage = item.storage
+  #print("storage: " + storage)
+  #mode = item.mode
+  #print("mode: " + mode)
+  print(uuid_obj)
+  res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, '', '')).apply_async() 
+  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async() 
+  return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+
+@app.post('/api/v1/tasks/restorespecificpath', status_code=202)
+def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
+  virtual_machine_id = item.virtual_machine_id
+  backup_name = item.backup_name
+  storage = item.storage
+  mode = item.mode
+  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, storage, mode)).apply_async() 
+  #res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async()
+  res =  chain(restore.restore_to_path_task.s(virtual_machine_id, backup_name, storage, mode)).apply_async()
   return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 @app.get('/api/v1/tasks/backup', status_code=200)

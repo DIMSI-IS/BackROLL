@@ -1,5 +1,12 @@
 # Avoid compromising secret information
-common/**
 flower/**
 mariadb/**
 keycloak/**
+src/core/.env.dev
+src/core/.env.dev.tmpl
+src/core/.env.production.tmpl
+src/core/dev.entrypoint.sh
+src/core/dev.Dockerfile
+
+common/secret/**
+install.sh

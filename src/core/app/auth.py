@@ -36,7 +36,7 @@ app.add_middleware(SessionMiddleware, secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xW
 config = Config(".env")
 oauth = OAuth(config)
 
-issuer = os.getenv("OPENID_ISSUER")
+issuer = os.getenv("OPENID_ISSUER")  # TODO .removesuffix("/")
 
 CONF_URL = f"""{issuer}/.well-known/openid-configuration"""
 oauth.register(
@@ -67,18 +67,24 @@ class items_login(BaseModel):
 
 
 def valid_token(token: str = Security(oauth2_scheme)) -> Json:
+    # TODO Remove the printing if the bug is fixed.
+    #print(f"Inspect token at https://jwt.io/#id_token={token}.")
     url = f"""{issuer}/protocol/openid-connect/certs"""
+    #print(f"{url=}")
     jwks_client = PyJWKClient(url)
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)
+        #print(f"{signing_key.key=}")
         return jwt.decode(
             token,
             signing_key.key,
             issuer=issuer,
-            audience="account",
+            audience="account", 
             algorithms=["RS256"],
+            options={"verify_aud": False}
         )
     except Exception as exc:
+        print(f"{exc=}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=str(exc),  # "Invalid authentication credentials",

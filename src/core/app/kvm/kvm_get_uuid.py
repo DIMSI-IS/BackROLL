@@ -29,7 +29,7 @@ def retrieve_uuid(virtual_machine, hypervisor):
       exit(1)
   dom = None
   try:
-      dom = conn.lookupByID(virtual_machine['id'])
+      dom = conn.lookupByName(virtual_machine['name'])
   except libvirt.libvirtError as e:
       print(repr(e), file=sys.stderr)
       exit(1)

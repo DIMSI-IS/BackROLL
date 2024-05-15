@@ -3,38 +3,39 @@ version: "3.9"
 services:
 
   # ## Optional if you already have a working db server
-  # database:
-  #  image: 'mariadb:10.3'
-  #  container_name: database
-  #  networks:
-  #    - backroll-network
-  #  restart: always
-  #  ports:
-  #      - 3306:3306
-  #  volumes:
-  #      - ${PWD}/mariadb/:/var/lib/mysql/
-  #  env_file:
-  #    - ${PWD}/common/config/database/env
+  database:
+   image: 'mariadb:10.3'
+   container_name: database
+   networks:
+     - backroll-network
+   restart: always
+   ports:
+       - 3306:3306
+   volumes:
+       - ./mariadb/:/var/lib/mysql/
+   env_file:
+     - ./common/config/database/env
 
   ## Optional if you already have a working keycloak environment
-  #sso:
-  # restart: always
-  # container_name: sso
-  # image: jboss/keycloak:16.1.1
-  # networks:
-  #   - backroll-network
-  # expose:
-  #   - 8081
-  #   - 9990
-  # ports:
-  #   - 8081:8080
-  #   - 9990:9990
-  # env_file:
-  #   - ${PWD}/common/config/sso/env
+  sso:
+    restart: always
+    #image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ./common/config/sso
+    #image: jboss/keycloak:16.1.1
+    networks:
+      - backroll-network
+    expose:
+      - 8081
+      - 9990
+    ports:
+      - 8081:8080
+      - 9990:9990
+    env_file:
+      - ./common/config/sso/env
 
   redis:
     restart: always
-    image: redis:7.0.2
+    image: redis:7.2
     container_name: redis
     command: "redis-server"
     networks:
@@ -46,13 +47,15 @@ services:
 
   backroll_api:
     restart: on-failure
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ./src/core
     container_name: core
     command: "python3 run.py"
     networks:
       - backroll-network
     volumes:
-      - ${PWD}/src/core:/usr/src/app
+      - /mnt:/mnt
+      - ./src/core:/usr/src/app
+      - ./common/secret/:/root/.ssh:ro
     expose:
       - 5050
     ports:
@@ -60,18 +63,18 @@ services:
     depends_on:
       - redis
     env_file:
-      - ${PWD}/common/config/core/env
+      - ./common/config/core/env
 
 
   worker_primary:
     restart: on-failure
+    build: ./src/core
     container_name: worker
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery worker -n worker -Q default --concurrency=4
     volumes:
-      - ${PWD}/common/secret/:/root/.ssh:ro
+      - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
-      - ${PWD}/src/core:/usr/src/app
+      - ./src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
     networks:
@@ -79,37 +82,37 @@ services:
     depends_on:
       - backroll_api
     env_file:
-      - ${PWD}/common/config/core/env
+      - ./common/config/core/env
 
 
   worker_secondary:
     restart: on-failure
     container_name: worker-lrt
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ./src/core
     command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
     volumes:
-      - ${PWD}/common/secret/:/root/.ssh:ro
+      - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
+      - ./src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     depends_on:
       - backroll_api
       - worker_primary
     env_file:
-      - ${PWD}/common/config/core/env
+      - ./common/config/core/env
 
 
   flower:
     restart: on-failure
     container_name: celery-flower
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ./src/core
     command: celery -A app.celery flower --conf=flowerconfig.py
     volumes:
-      - ${PWD}/flower:/root/flower
-      - ${PWD}/src/core:/usr/src/app
+      - ./flower:/root/flower
+      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     expose:
@@ -120,30 +123,30 @@ services:
       - backroll_api
       - worker_primary
     env_file:
-      - ${PWD}/common/config/core/env
+      - ./common/config/core/env
 
 
   beat:
     restart: on-failure
     container_name: scheduler
-    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
+    build: ./src/core
     command: celery -A app.celery beat -S redbeat.RedBeatScheduler
     volumes:
-      - ${PWD}/src/core:/usr/src/app
+      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     depends_on:
       - backroll_api
       - worker_secondary
     env_file:
-      - ${PWD}/common/config/core/env
+      - ./common/config/core/env
 
   front:
     restart: on-failure
     container_name: ui
-    image: dimsicloud/backroll-ui:${BACKROLL_VERSION:-latest}
+    build: src/ui
     volumes:
-      - ${PWD}/src/ui:/app
+      - ./src/ui:/app
     ports:
       - 8080:80
     networks:
@@ -151,7 +154,7 @@ services:
     depends_on:
       - backroll_api
     env_file:
-      - ${PWD}/common/config/ui/env
+      - ./common/config/ui/env
 
 networks:
   backroll-network:

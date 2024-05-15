@@ -2,7 +2,7 @@
 
 ## <img src="https://user-images.githubusercontent.com/49555363/194335646-85c5513e-cceb-4cc5-99f7-406c7a987156.svg" height="32px">
 
-Latest version  | 0.1.0
+Latest version  | 0.2.0
 ------------- | -------------
 Documentation  | https://backroll.readthedocs.io
 
@@ -18,18 +18,77 @@ It's also
 - No agent on guests nor KVM hosts
 - Fully containerized with minimum maintenance needed
 
-## Our demo made during the CloudSTack European User Group (APRIL) 2022
+## Our demo made during the CloudStack European User Group (APRIL) 2022
 [![Watch the video](http://i3.ytimg.com/vi/Jg40h1YjALk/hqdefault.jpg)](https://www.youtube.com/watch?v=Jg40h1YjALk)
   
 ## What do I need?
-BackROLL 0.1.0 requires at least
-- A MySQL/MariaDB database
+BackROLL 0.2.0 requires at least
 - A server which can run Docker
+- A MySQL/MariaDB database ( the default configuration deploys a mariaDB with docker compose )
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
 
 ## Get Started
+### Docker and Docker compsoe
+Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.\
+Install Docker https://docs.docker.com/engine/install/ \
+Install Docker compose https://docs.docker.com/compose/install/linux/
 
-Coming soon... :smirk:
+### Quick install
+This method uses a preconfigured oauth provider in docker, for production environment please use your production oauth provider or harden the preconfigured oauth provider with SSL certificate, secure password, etc..
+
+Download the install-prod.sh script
+```bash
+wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.2.0/install-prod.sh
+```
+Allow the script execution
+```bash
+sudo chmod +x install-prod.sh
+```
+Start the script
+```bash
+sudo ./install-prod.sh
+```
+Change directory to the backroll install directory
+```bash
+cd your_backroll_path/install/
+```
+Start the docker-compose.yml, this will start all the containers.
+```bash
+sudo docker compose up -d
+```
+Verify that your container are running
+```bash
+sudo docker ps
+```
+
+
+## Backroll with Cloudstack
+### Configure the Backroll Plugin
+
+**Cloudstack Global Settings**\
+In Cloudstack's Global settings, fill the fields with the appropriate value:
+
+- Backup framework provider plugin: _backroll_
+- Backup plugin backroll config appname: _Name of your app name used for backroll api_
+- Backup plugin backroll config password: _Secret for the backroll_api found in your oauth provider._
+- Backup plugin backroll config url: _URL of your backroll_
+
+
+**Cloudstack user**\
+Backroll uses an API key and secret to communicate with Cloudstack.\
+In Cloudstack, under accounts, create a user dedicated to backroll.\
+Generate API Keys and Secret.
+
+
+**Backroll side**\
+In the backroll UI, under Configuration select Connectors.\
+Add a new connector and fill the field with the appropriate information:
+
+- Name: *Name of your connector*
+- Endpoint URL: *URL of your cloudstack instance*
+- Login: *API_key of your user dedicated to backroll*
+- Password: *API_secret of your user dedicated to backroll*
+
 
 ## Documentation
 The [latest documentation](https://backroll.readthedocs.io/) is hosted at Read The Docs, containing user guides, tutorials, and an API reference.

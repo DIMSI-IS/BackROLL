@@ -82,6 +82,30 @@ def listPoweredOffVms(connector):
         vm["connector_id"] = str(connector.id)
         for e in ['nic', 'details', 'guestosid', 'ostypeid', 'zoneid', 'userid', 'serviceofferingid', 'serviceofferingname', 'osdisplayname', 'pooltype']:
           vm.pop(e)
+        print
+      return cloudstack_vm_list['virtualmachine']
+    else: return []
+  except Exception as e:
+    print(e)
+    print("Unable to connect to Cloudstack. Likely is a timeout issue or wrong url/credentials.")
+    return []
+  
+def listAllVms(connector):
+  try:
+    cs = endpoint.cloudstack_connector(connector)
+    cloudstack_vm_list = cs.listVirtualMachines(listall=True)
+    if "virtualmachine" in cloudstack_vm_list:
+      for vm in cloudstack_vm_list['virtualmachine']:
+        vm["uuid"] = vm["id"]
+        vm["id"] = -1
+        vm["cpus"] = vm["cpunumber"]
+        vm["mem"] = vm["memory"] * 1024
+        vm["name"] = vm["instancename"]
+        vm["pool_id"] = str(connector.pool_id)
+        vm["connector_id"] = str(connector.id)
+        for e in ['nic', 'details', 'guestosid', 'ostypeid', 'zoneid', 'userid', 'serviceofferingid', 'serviceofferingname', 'osdisplayname', 'pooltype']:
+          vm.pop(e)
+        print
       return cloudstack_vm_list['virtualmachine']
     else: return []
   except Exception as e:

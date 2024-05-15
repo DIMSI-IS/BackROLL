@@ -16,6 +16,7 @@
 ## under the License.
 
 import os
+import re
 import json
 import subprocess
 import os.path
@@ -155,24 +156,31 @@ class borg_backup:
     if qemu_img_info.get('full-backing-filename'):
       print(f'[{vm_name}] Checking that {vm_name}\'s backing file has already been backed up')
       backing_file = qemu_img_info['full-backing-filename'].split('/')[-1]
-      if not path.isfile(f"{repository}template/{backing_file}"):
+      template_path = f"{repository}template/{backing_file}"
+
+      if not path.exists(template_path):
+        os.makedirs(template_path)
+      
+      if not path.isfile(template_path):
         print(f'[{vm_name}] Backing up the backing file...')
-        shutil.copy(qemu_img_info['full-backing-filename'], f"{repository}template/{backing_file}")
+        shutil.copy(qemu_img_info['full-backing-filename'], template_path)
         print(f'[{vm_name}] Backing up the backing file has successfully completed')
 
   def create_archive(self, disk):
     repository = self.info['borg_repository']
     vm_name = self.virtual_machine['name']
-    disk_source = ((disk['source']).split('.'))[0]
+    disk_source = disk['source']
+    disk_source_path_name = re.sub("\.qcow2$", "", disk_source) # Python >= 3.9: disk_source.removesuffix(".qcow2")
+    disk_source_file_name = disk_source_path_name.split("/")[-1]
     disk_name = disk['device']
 
     print(f'[{vm_name}] Creating borg archive for disk {disk_name}')
     
-    self.info['backup_name'] = f'{disk_name}_{disk_source.split("/")[-1]}_{calendar.timegm(time.gmtime())}'
+    self.info['backup_name'] = f'{disk_name}_{disk_source_file_name}_{calendar.timegm(time.gmtime())}'
 
     if "pool_id" in self.virtual_machine:
       connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(self.virtual_machine["pool_id"]).connector_id)
-      disk_source = f'/mnt/{cs_manage_vm.listStorage(connector, disk)["id"]}/{disk_source}'
+      disk_source = f'/mnt/{cs_manage_vm.listStorage(connector, disk)["id"]}/{disk_source_path_name}'
 
     cmd = f"""borg create \
         --log-json \

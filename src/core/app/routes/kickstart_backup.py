@@ -71,9 +71,9 @@ def getVMtobackup(pool_id):
       ready_to_backup_list.append(vm)
 
   # Check if pool has connector applied - if yes, retrieve powered off VM in cloudstack
-  connector = connectors.filter_connector_by_id(pool.filter_pool_by_id(pool_id).connector_id)
-  if connector:
-    
+  connector_id = pool.filter_pool_by_id(pool_id).connector_id
+  if connector_id:
+    connector = connectors.filter_connector_by_id(connector_id)
     connector_obj = connectorObject()
     # Duplicate object connector to add pool_id property
     connector_obj.id = connector.id
