@@ -19,10 +19,10 @@ export const defaultConfig = {
 }
 
 export const chartTypesMap = {
-  pie: 'pie-chart',
-  donut: 'donut-chart',
-  bubble: 'bubble-chart',
-  line: 'line-chart',
-  'horizontal-bar': 'horizontal-bar-chart',
-  'vertical-bar': 'vertical-bar-chart',
+  pie: 'Pie',
+  donut: 'Doughnut',
+  bubble: 'Bubble',
+  line: 'Line',
+  'horizontal-bar': 'Bar',
+  'vertical-bar': 'Bar',
 }

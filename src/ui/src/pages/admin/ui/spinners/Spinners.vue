@@ -49,7 +49,7 @@
             :key="item"
             class="flex sm6 xs12 lg3"
           >
-            <div class="text--center pb-4">
+            <div class="va-text-center pb-4">
               <div class="flex-center spinner-box">
                 <component
                   :animation-duration="speed"
@@ -71,7 +71,7 @@
 <script>
 import * as spinners from 'epic-spinners'
 import { mapGetters } from 'vuex'
-import { useGlobalConfig, getColor } from 'vuestic-ui'
+import { useGlobalConfig, useColors } from 'vuestic-ui'
 import VaIconFaster from '../../../../components/icons/VaIconFaster'
 import VaIconSlower from '../../../../components/icons/VaIconSlower'
 
@@ -109,7 +109,7 @@ export default {
     },
 
     computedSpinnersColor() {
-      return getColor(this.spinnersColor)
+      return useColors().getColor(this.spinnersColor)
     },
 
     speed () {

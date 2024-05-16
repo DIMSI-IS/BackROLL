@@ -7,7 +7,7 @@
           :title="$t('charts.verticalBarChart')"
         >
           <va-card-content>
-            <va-chart :data="verticalBarChartData" type="vertical-bar"/>
+            <va-chart :chartData="verticalBarChartData" type="bar" :options="verticalBarOption"/>
           </va-card-content>
         </va-card>
       </div>
@@ -17,7 +17,7 @@
           :title="$t('charts.horizontalBarChart')"
         >
           <va-card-content>
-            <va-chart :data="horizontalBarChartData" type="horizontal-bar"/>
+            <va-chart :chartData="horizontalBarChartData" type="bar" :options="horizontalBarOption"/>
           </va-card-content>
         </va-card>
       </div>
@@ -30,7 +30,7 @@
           :title="$t('charts.lineChart')"
         >
           <va-card-content>
-            <va-chart :data="lineChartData" type="line"/>
+            <va-chart :chartData="lineChartData" type="line"/>
           </va-card-content>
         </va-card>
       </div>
@@ -43,7 +43,7 @@
           :title="$t('charts.pieChart')"
         >
           <va-card-content>
-            <va-chart :data="pieChartData" type="pie"/>
+            <va-chart :chartData="pieChartData" type="pie"/>
           </va-card-content>
         </va-card>
       </div>
@@ -53,7 +53,7 @@
           :title="$t('charts.donutChart')"
         >
           <va-card-content>
-            <va-chart :data="donutChartData" type="donut"/>
+            <va-chart :chartData="donutChartData" type="donut"/>
           </va-card-content>
         </va-card>
       </div>
@@ -65,7 +65,7 @@
           :title="$t('charts.bubbleChart')"
         >
           <va-card-content>
-            <va-chart :data="bubbleChartData" type="bubble"/>
+            <va-chart :chartData="bubbleChartData" type="bubble"/>
           </va-card-content>
         </va-card>
       </div>
@@ -95,8 +95,14 @@ export default {
       verticalBarChartData: null,
       horizontalBarChartData: null,
       isMounted: false,
-    }
-  },
+      verticalBarOption: {
+        indexAxis: 'x',
+      },
+      horizontalBarOption: {
+        indexAxis: 'y',
+        }
+      }
+   },
   mounted() {
     this.isMounted = true
     this.bubbleChartData = getBubbleChartData(this.theme)

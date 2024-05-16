@@ -42,7 +42,7 @@
           </div>
         </va-card-title>
         <va-card-content v-if="!$store.state.isvmTableReady">
-          <div class="text--center pb-4">
+          <div class="va-text-center pb-4">
             <div class="flex-center spinner-box">
               <component
                 :animation-duration="1500"
@@ -55,7 +55,7 @@
           </div>
         </va-card-content>
         <va-card-content v-else>
-          <va-chart class="chart chart--donut" :data="configChart" type="donut"/>
+          <va-chart class="chart chart--donut" :chartData="configChart" type="donut"/>
         </va-card-content>
       </va-card>
     </div>
@@ -90,20 +90,22 @@ export default defineComponent({
   },
   mounted() {
     this.lineChartData = getLineChartData(this.theme)
-    this.donutChartData = getDonutChartData(this.theme, this.poolListName, this.vmListCountperPool)
+    console.log(this.vmListCountperPool);
+    this.donutChartData = getDonutChartData(this.theme, this.poolListName, this.vmListCountperPool);
+    console.log(this.donutChartData); 
   },
   watch: {
-    '$themes.success' () {
+    '$themes.variables.success' () {
       this.lineChartData = getLineChartData(this.theme)
       this.donutChartData = getDonutChartData(this.theme, this.poolListName, this.vmListCountperPool)
     },
 
-    '$themes.danger' () {
+    '$themes.variables.danger' () {
       this.lineChartData = getLineChartData(this.theme)
       this.donutChartData = getDonutChartData(this.theme, this.poolListName, this.vmListCountperPool)
     },
 
-    '$themes.warning' () {
+    '$themes.variables.warning' () {
       this.donutChartData = getDonutChartData(this.theme, this.poolListName, this.vmListCountperPool)
     }
   },
@@ -153,6 +155,7 @@ export default defineComponent({
     retrieveArgs (x) {
       let result = ''
       if (x.name == 'Single_VM_Backup') {
+        console.log(x);
         const mySubString = x.args.substring(
             x.args.lastIndexOf("{") + 1, 
             x.args.lastIndexOf("}")

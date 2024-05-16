@@ -2,21 +2,20 @@
   <div class="dashboard">
     <dashboard-charts />
     <dashboard-info-block />
-    <div class="row row-equal">
-      <div class="flex xs12 lg6">
+<!--     <div class="row row-equal">
+      <div class="flex xs12 lg6 gap-6">
         <dashboard-tabs @submit="addAddressToMap"/>
       </div>
-      <div class="flex xs12 lg6">
+      <div class="flex xs12 lg6 gap-6">
         <dashboard-map ref="dashboardMap"/>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script>
-import DashboardCharts from './DashboardCharts'
-import DashboardInfoBlock from './DashboardInfoBlock'
-
+import DashboardCharts from '@/pages/admin/dashboard/DashboardCharts'
+import DashboardInfoBlock from '@/pages/admin/dashboard/DashboardInfoBlock'
 export default {
   name: 'dashboard',
   components: {

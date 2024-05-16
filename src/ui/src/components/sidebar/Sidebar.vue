@@ -11,13 +11,12 @@
 
 <script>
 import { useGlobalConfig } from 'vuestic-ui';
-import MenuAccordion from './menu/MenuAccordion.vue';
-import MenuMinimized from './menu/MenuMinimized.vue';
-import NavigationRoutes from './NavigationRoutes';
+import MenuAccordion from '@/components/sidebar/menu/MenuAccordion';
+import MenuMinimized from '@/components/sidebar/menu/MenuMinimized';
+import NavigationRoutes from '@/components/sidebar/NavigationRoutes';
 
 
 export default {
-  name: "app-sidebar",
   components: {
     MenuAccordion,
     MenuMinimized,

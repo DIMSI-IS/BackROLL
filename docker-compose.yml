@@ -143,15 +143,22 @@ services:
   front:
     restart: on-failure
     container_name: ui
-    image: dimsicloud/backroll-ui:${BACKROLL_VERSION:-latest}
+    build: 
+      context: ./src/ui
+      dockerfile: dev.Dockerfile
+    working_dir: /app
     volumes:
       - ./src/ui:/app
+    stdin_open: true
+    tty: true
+    environment:
+      - DEBUG=1
     ports:
-      - 8080:80
+      - "8080:8080"
     networks:
       - backroll-network
     depends_on:
-      - backroll_api
+      - "backroll_api"
     env_file:
       - ./common/config/ui/env
 

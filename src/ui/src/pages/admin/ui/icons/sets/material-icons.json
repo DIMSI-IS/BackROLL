@@ -1,7 +1,7 @@
 {
   "name": "Material icons",
   "href": "material",
-  "prefix": "material-icons",
+  "prefix": "mdi",
   "lists": [
     {
       "name": "Icons",

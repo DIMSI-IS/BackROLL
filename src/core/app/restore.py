@@ -169,7 +169,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
       if "host" in virtual_machine_info:
         # Power off guest VM
-        if virtual_machine_info['cloudstack_instance']:
+        if connector_id:
           cs_vm_command.stop_vm(connector, virtual_machine_info['uuid'])
         else:
           kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)

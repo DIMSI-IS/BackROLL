@@ -19,7 +19,7 @@
         />
       </div>
       <div class="app-layout__page">
-        <div class="layout fluid gutter--xl">
+        <div class="layout fluid va-gutter--xl">
           <router-view/>
         </div>
       </div>
@@ -31,7 +31,7 @@
 import { useStore } from 'vuex';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { onBeforeRouteUpdate } from 'vue-router';
-import Sidebar from '@/components/sidebar/Sidebar';
+import Sidebar from '@/components/sidebar/Sidebar.vue';
 import Navbar from '@/components/navbar/Navbar.vue';
 
 

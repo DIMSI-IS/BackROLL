@@ -1,5 +1,7 @@
 type ColorThemes = {
-  [key: string]: string;
+  variables : {
+    [key: string]: string;
+  }
 };
 
 type Dataset = {

@@ -3,9 +3,9 @@
     "enabled": true,
     "users": [
       {
-        "username": "KEYCLOACK_DEFAULT_USER_USERNAME",
+        "username": "developer",
         "enabled": true,
-        "credentials": [{ "type": "password", "value": "KEYCLOACK_DEFAULT_USER_PASSWORD" }]
+        "credentials": [{ "type": "password", "value": "developer" }]
       }
     ],
     "clients": [
@@ -13,16 +13,16 @@
         "clientId": "backroll-front",
         "enabled": true,
         "publicClient": true,
-        "baseUrl": "http://IP_TO_REPLACE:8080/admin/dashboard",
-        "redirectUris": ["http://IP_TO_REPLACE:8080/*"],
+        "baseUrl": "http://10.100.10.29:8080/admin/dashboard",
+        "redirectUris": ["http://10.100.10.29:8080/*"],
         "webOrigins": ["*"]
       },
       {
         "clientId": "backroll-api",
         "enabled": true,
         "clientAuthenticatorType": "client-secret",
-        "secret": "CLIENT_SECRET_TO_REPLACE",
-        "redirectUris": ["http://IP_TO_REPLACE:5050/*"],
+        "secret": "bbf28cbe1c64d0e4d13d2c4066185567  -",
+        "redirectUris": ["http://10.100.10.29:5050/*"],
         "webOrigins": ["*"],
         "serviceAccountsEnabled": true
       }

@@ -66,7 +66,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~flag-icon-css/css/flag-icon.css";
+@import "flag-icons/css/flag-icons.min.css";
 
 .language-dropdown {
   cursor: pointer;

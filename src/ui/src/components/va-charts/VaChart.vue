@@ -3,24 +3,22 @@
     ref="chart"
     class='va-chart'
     :is="chartComponent"
-    :chartOptions="options"
-    :chart-data="data"
+    :options="options"
+    :data="chartData"
   />
 </template>
 
 <script>
-import PieChart from './chart-types/PieChart'
-import BubbleChart from './chart-types/BubbleChart'
-import DonutChart from './chart-types/DonutChart'
-import HorizontalBarChart from './chart-types/HorizontalBarChart'
-import VerticalBarChart from './chart-types/VerticalBarChart'
-import LineChart from './chart-types/LineChart'
 import { chartTypesMap } from './VaChartConfigs'
+import { Pie,Bubble, Doughnut, Bar , Line} from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement } from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
 
 export default {
   name: 'va-chart',
   props: {
-    data: {},
+    chartData: {},
     options: {},
     type: {
       validator (type) {
@@ -28,14 +26,10 @@ export default {
       },
     },
   },
-  components: {
-    PieChart,
-    LineChart,
-    VerticalBarChart,
-    HorizontalBarChart,
-    DonutChart,
-    BubbleChart,
+  mounted() {
+    console.log(this.chartData);
   },
+  components: { Pie,Bubble,Doughnut, Bar, Line } ,
   computed: {
     chartComponent () {
       return chartTypesMap[this.type]

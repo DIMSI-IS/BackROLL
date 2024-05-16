@@ -45,127 +45,127 @@ export default [
   },
   {
     "name": "angle_down",
-    "to": "fa4-angle-down"
+    "to": "material-icons-angle-down"
   },
   {
     "name": "angle_up",
-    "to": "fa4-angle-up"
+    "to": "material-icons-angle-up"
   },
   {
     "name": "bell",
-    "to": "fa4-bell"
+    "to": "material-icons-bell"
   },
   {
     "name": "bell_slash",
-    "to": "fa4-bell-slash"
+    "to": "material-icons-bell-slash"
   },
   {
     "name": "bug",
-    "to": "fa4-bug"
+    "to": "material-icons-bug"
   },
   {
     "name": "caret_down",
-    "to": "fa4-caret-down"
+    "to": "material-icons-caret-down"
   },
   {
     "name": "caret_up",
-    "to": "fa4-caret-up"
+    "to": "material-icons-caret-up"
   },
   {
     "name": "check_circle",
-    "to": "fa4-check_circle"
+    "to": "material-icons-check_circle"
   },
   {
     "name": "chevron-left",
-    "to": "fa4-chevron-left"
+    "to": "material-icons-chevron-left"
   },
   {
     "name": "chevron-right",
-    "to": "fa4-chevron-right"
+    "to": "material-icons-chevron-right"
   },
   {
     "name": "circle",
-    "to": "fa4-circle"
+    "to": "material-icons-circle"
   },
   {
     "name": "close",
-    "to": "fa4-close"
+    "to": "material-icons-close"
   },
   {
     "name": "cogs",
-    "to": "fa4-cogs"
+    "to": "material-icons-cogs"
   },
   {
     "name": "envelope",
-    "to": "fa4-envelope"
+    "to": "material-icons-envelope"
   },
   {
     "name": "eye",
-    "to": "fa4-eye"
+    "to": "material-icons-eye"
   },
   {
     "name": "gear",
-    "to": "fa4-gear"
+    "to": "material-icons-gear"
   },
   {
     "name": "google",
-    "to": "fa4-google"
+    "to": "material-icons-google"
   },
   {
     "name": "map",
-    "to": "fa4-map"
+    "to": "material-icons-map"
   },
   {
     "name": "map_marker",
-    "to": "fa4-map-marker"
+    "to": "material-icons-map-marker"
   },
   {
     "name": "mars",
-    "to": "fa4-mars"
+    "to": "material-icons-mars"
   },
   {
     "name": "minus",
-    "to": "fa4-minus"
+    "to": "material-icons-minus"
   },
   {
     "name": "music",
-    "to": "fa4-music"
+    "to": "material-icons-music"
   },
   {
     "name": "pencil",
-    "to": "fa4-pencil"
+    "to": "material-icons-pencil"
   },
   {
     "name": "print",
-    "to": "fa4-print"
+    "to": "material-icons-print"
   },
   {
     "name": "refresh",
-    "to": "fa4-refresh"
+    "to": "material-icons-refresh"
   },
   {
     "name": "search",
-    "to": "fa4-search"
+    "to": "material-icons-search"
   },
   {
     "name": "trash",
-    "to": "fa4-trash"
+    "to": "material-icons-trash"
   },
   {
     "name": "user",
-    "to": "fa4-user"
+    "to": "material-icons-user"
   },
   {
     "name": "venus",
-    "to": "fa4-venus"
+    "to": "material-icons-venus"
   },
   {
     "name": "volume_off",
-    "to": "fa4-volume-off"
+    "to": "material-icons-volume-off"
   },
   {
     "name": "volume_up",
-    "to": "fa4-volume-up"
+    "to": "material-icons-volume-up"
   },
   {
     "name": "first_page",
@@ -173,7 +173,7 @@ export default [
   },
   {
     "name": "github",
-    "to": "fa4-github"
+    "to": "material-icons-github"
   },
   {
     "name": "glyphicon_envelope",
@@ -245,7 +245,7 @@ export default [
   },
   {
     "name": "loop",
-    "to": "loop"
+    "to": "fa-arrow-rotate-left"
   },
   {
     "name": "maki_art_gallery",

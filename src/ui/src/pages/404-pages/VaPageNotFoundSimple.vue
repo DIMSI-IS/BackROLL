@@ -11,7 +11,7 @@
 
 <script>
 import NavbarLogo from '@/components/navbar-logo'
-import VaPageNotFound from './VaPageNotFound'
+import VaPageNotFound from '@/pages/404-pages/VaPageNotFound'
 
 export default {
   name: 'vuestic-page-not-found-simple',

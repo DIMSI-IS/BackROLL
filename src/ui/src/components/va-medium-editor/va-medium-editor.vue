@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, ref, onMounted, onBeforeUnmount, type Ref } from 'vue'
 import MediumEditor from 'medium-editor'
 
 export default defineComponent({

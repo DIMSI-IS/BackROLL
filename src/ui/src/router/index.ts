@@ -1,10 +1,10 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import AppLayout from '@/layout/app-layout.vue'
 
 import RouteViewComponent from './route-view.vue'
 import UIRoute from '@/pages/admin/ui/route'
 
-const routes: Array<RouteRecordRaw> = [
+const routes = [
   {
     path: "/",
     redirect: { name: 'dashboard' },
@@ -173,7 +173,7 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createMemoryHistory(/*process.env.BASE_URL*/),
   //  mode: process.env.VUE_APP_ROUTER_MODE_HISTORY === 'true' ? 'history' : 'hash',
   routes
 })

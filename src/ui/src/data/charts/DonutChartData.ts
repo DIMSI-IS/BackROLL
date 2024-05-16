@@ -4,18 +4,19 @@ let generatedData: {
 }
 
 export const getDonutChartData = (themes: ColorThemes, poolLabels: string[], poolData: number[]) => {
+  console.log(themes, poolData, poolData);
   if (generatedData) {
-    generatedData.datasets[0].backgroundColor = [themes.danger, themes.info, themes.primary]
+    generatedData.datasets[0].backgroundColor = [themes.variables.danger, themes.variables.info, themes.variables.primary]
   } else {
     generatedData = {
       labels: poolLabels,
       datasets: [{
         label: 'VM distribution by pool',
-        backgroundColor: [themes.primary, themes.warning],
+        backgroundColor: [themes.variables.primary, themes.variables.warning],
         data: poolData,
       }],
     }
   }
-
+  console.log(themes, poolData, poolData);
   return generatedData
 }

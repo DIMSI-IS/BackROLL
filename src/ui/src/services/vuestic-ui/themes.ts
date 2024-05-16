@@ -12,16 +12,18 @@ export const COLOR_THEMES = [
   {
     name: THEME_NAMES.LIGHT,
     colors: {
-      primary: '#154ec1',
-      secondary: '#767c88',
-      background: '#f6f7f6',
-      success: '#3d9209',
-      info: '#2c82e0',
-      danger: '#e42222',
-      warning: '#ffd43a',
-      white: '#ffffff',
-      dark: '#262824',
-      gray: '#767c88',
+      variables :{
+        primary: '#154ec1',
+        secondary: '#767c88',
+        background: '#f6f7f6',
+        success: '#3d9209',
+        info: '#2c82e0',
+        danger: '#e42222',
+        warning: '#ffd43a',
+        white: '#ffffff',
+        dark: '#262824',
+        gray: '#767c88',
+      }
     },
     components: {
       VaNavbar: {

@@ -32,10 +32,10 @@ export const getLineChartData = (themes: ColorThemes, firstMonth: number) => {
   const size = getSize()
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
   const yLabels = generateYLabels()
-
+  console.log(themes);
   if (generatedData) {
-    generatedData.datasets[0].backgroundColor = colorToRgba(themes.primary, 0.6)
-    generatedData.datasets[1].backgroundColor = colorToRgba(themes.info, 0.6)
+    generatedData.datasets[0].backgroundColor = colorToRgba(themes.variables.primary, 0.6)
+    generatedData.datasets[1].backgroundColor = colorToRgba(themes.variables.info, 0.6)
     if (firstMonth && firstMonthIndex !== firstMonth) {
       generatedData.labels.shift()
       generatedData.datasets.forEach((dataset) => {
@@ -49,13 +49,13 @@ export const getLineChartData = (themes: ColorThemes, firstMonth: number) => {
       datasets: [
         {
           label: yLabels[0],
-          backgroundColor: colorToRgba(themes.primary, 0.6),
+          backgroundColor: colorToRgba(themes.variables.primary, 0.6),
           borderColor: 'transparent',
           data: generateArray(size - firstMonthIndex),
         },
         {
           label: yLabels[1],
-          backgroundColor: colorToRgba(themes.info, 0.6),
+          backgroundColor: colorToRgba(themes.variables.info, 0.6),
           borderColor: 'transparent',
           data: generateArray(size),
         },

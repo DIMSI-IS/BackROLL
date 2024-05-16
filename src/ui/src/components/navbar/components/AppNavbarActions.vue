@@ -7,7 +7,7 @@
       to='/admin/tasks/backup'
       shadow
     >
-      <va-icon name="loop" spin="counter-clockwise" />
+      <va-icon name="material-icons-repeat" spin="counter-clockwise" />
       <span style="font-style: bold; padding-left: 5px;">
         {{ pendingTaskNumber }}
       </span>
