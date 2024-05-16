@@ -30,8 +30,8 @@ BackROLL 0.3.0 requires at least
 ## Get Started
 ### Docker and Docker compsoe
 Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.\
-Install Docker https://docs.docker.com/engine/install/ \
-Install Docker compose https://docs.docker.com/compose/install/linux/
+- Install Docker https://docs.docker.com/engine/install/ 
+- Install Docker compose https://docs.docker.com/compose/install/linux/
 
 ### Quick install
 This method uses a preconfigured oauth provider in docker, for production environment please use your production oauth provider or harden the preconfigured oauth provider with SSL certificate, secure password, etc..
@@ -59,6 +59,45 @@ sudo docker compose up -d
 Verify that your container are running
 ```bash
 sudo docker ps
+```
+
+## Backroll Configuration
+### Storage configuration
+To perform backup and restore tasks, Backroll's workers need an access to the VMs storage and to a backup storage. \
+By default in the docker-compose.yml, /mnt/ is mapped to /mnt/ in the workers.
+
+
+#### VM Storage configuration
+On the backroll VM, mount the VMs storage to a path that is mapped in docker-compose.yml.
+
+Example using a NFS storage:
+
+```bash
+# Create directory under /mnt/
+mkdir /mnt/VM_storage
+
+# Mount using NFS, to make the mount persistent, edit fstab with corresponding values
+mount -v -t nfs -o nolock NFS_server:/nfs_share1 /mnt/VM_storage
+
+```
+
+
+#### Backup Storage configuration
+On the backroll VM, mount the backup storage to a path that is mapped in docker-compose.yml.\
+Then in Backroll UI, Configuration > Storage > Add new storage > Input Name and the path > Validate\
+
+Example using a NFS storage:
+
+
+```bash
+# Create directory under /mnt/
+mkdir /mnt/backup_storage
+
+# Mount using NFS, to make the mount persistent, edit fstab with corresponding values
+mount -v -t nfs -o nolock NFS_server:/nfs_backup_share1 /mnt/backup_storage
+
+Then add your storage in the Backroll UI.
+
 ```
 
 
