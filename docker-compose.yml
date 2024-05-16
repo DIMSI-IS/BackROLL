@@ -1,37 +1,7 @@
-version: "3.9"
+version: 3.9
 
-services:
-
-  # ## Optional if you already have a working db server
-  database:
-   image: 'mariadb:10.3'
-   container_name: database
-   networks:
-     - backroll-network
-   restart: always
-   ports:
-       - 3306:3306
-   volumes:
-       - ./mariadb/:/var/lib/mysql/
-   env_file:
-     - ./common/config/database/env
-
-  ## Optional if you already have a working keycloak environment
-  sso:
-    restart: always
-    #image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
-    build: ./common/config/sso
-    #image: jboss/keycloak:16.1.1
-    networks:
-      - backroll-network
-    expose:
-      - 8081
-      - 9990
-    ports:
-      - 8081:8080
-      - 9990:9990
-    env_file:
-      - ./common/config/sso/env
+services: 
+    
 
   redis:
     restart: always
