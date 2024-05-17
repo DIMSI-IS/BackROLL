@@ -61,9 +61,9 @@ services:
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
+      - ./src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
-      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     depends_on:
