@@ -1,7 +1,6 @@
-version: 3.9
+version: "3.9"
 
 services: 
-    
 
   redis:
     restart: always
@@ -17,7 +16,7 @@ services:
 
   backroll_api:
     restart: on-failure
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     container_name: core
     command: "python3 run.py"
     networks:
@@ -35,11 +34,10 @@ services:
     env_file:
       - ./common/config/core/env
 
-
   worker_primary:
     restart: on-failure
-    build: ./src/core
     container_name: worker
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery worker -n worker -Q default --concurrency=4
     volumes:
       - ./common/secret/:/root/.ssh:ro
@@ -58,14 +56,14 @@ services:
   worker_secondary:
     restart: on-failure
     container_name: worker-lrt
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
     volumes:
       - ./common/secret/:/root/.ssh:ro
       - /mnt:/mnt
-      - ./src/core:/usr/src/app
     environment:
       - BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes
+      - ./src/core:/usr/src/app
     networks:
       - backroll-network
     depends_on:
@@ -78,7 +76,7 @@ services:
   flower:
     restart: on-failure
     container_name: celery-flower
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery flower --conf=flowerconfig.py
     volumes:
       - ./flower:/root/flower
@@ -99,7 +97,7 @@ services:
   beat:
     restart: on-failure
     container_name: scheduler
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery beat -S redbeat.RedBeatScheduler
     volumes:
       - ./src/core:/usr/src/app
@@ -114,7 +112,7 @@ services:
   front:
     restart: on-failure
     container_name: ui
-    build: src/ui
+    image: dimsicloud/backroll-ui:${BACKROLL_VERSION:-latest}
     volumes:
       - ./src/ui:/app
     ports:
