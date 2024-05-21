@@ -1,0 +1,40 @@
+services:
+
+  setup:
+    build: ./setup
+    volumes:
+      - ./setup/src:/app/src:ro
+
+  sso:
+    build: ./sso
+
+  api:
+    build: ../src/core
+    volumes:
+      - ../src/core:/usr/src/app
+
+  worker_primary:
+    build: ../src/core
+    volumes:
+      - ../src/core:/usr/src/app
+
+  worker_secondary:
+    build: ../src/core
+    volumes:
+      - ../src/core:/usr/src/app
+
+  flower:
+    build: ../src/core
+    volumes:
+      - ../src/core:/usr/src/app
+
+  beat:
+    build: ../src/core
+    volumes:
+      - ../src/core:/usr/src/app
+
+  front:
+    build:
+      context: ../src/ui
+    volumes:
+      - ../src/ui/src:/app/src

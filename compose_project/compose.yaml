@@ -1,0 +1,88 @@
+services:
+
+  database:
+    image: mariadb:10.3
+    env_file:
+      - database.env
+    volumes:
+      - database:/var/lib/mysql/
+
+  redis:
+    image: redis:7.2
+    command: "redis-server"
+
+  setup:
+    environment:
+      # Suppress warnings with ${VAR:-}.
+      - USER=${USER:-}
+      - USERNAME=${USERNAME:-}
+    volumes:
+      - .:/app/compose-project
+
+  sso:
+    profiles:
+      - sso
+    env_file:
+      - sso/_.env
+
+  api:
+    depends_on:
+      redis:
+        condition: service_started
+      setup:
+        condition: service_completed_successfully
+      # database:
+      #   condition: service_healthy
+    # Compensates for the lack of database healthcheck.
+    restart: on-failure
+    command: "python3 run.py"
+    env_file:
+      - core.env
+    volumes:
+      - ./api/ssh:/root/.ssh
+  
+  worker_primary:
+    depends_on:
+      - api
+    command: bash worker_primary.command.sh
+    env_file:
+      - core.env
+    volumes:
+      - ./worker_primary/ssh:/root/.ssh
+      - /var/lib/libvirt:/var/lib/libvirt
+
+  worker_secondary:
+    depends_on:
+      - worker_primary
+    command: bash worker_secondary.command.sh
+    env_file:
+      - core.env
+    volumes:
+      - ./worker_secondary/ssh:/root/.ssh
+      - /var/lib/libvirt:/var/lib/libvirt
+
+  flower:
+    depends_on:
+      - worker_primary
+    command: celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
+    env_file:
+      - core.env
+    volumes:
+      - flower:/root/flower
+
+  beat:
+    depends_on:
+      - worker_secondary
+    command: celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
+    env_file:
+      - core.env
+
+  front:
+    depends_on:
+      - api
+    env_file:
+      - front.env
+
+volumes:
+  database:
+  flower:

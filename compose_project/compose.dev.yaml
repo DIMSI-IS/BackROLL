@@ -1,0 +1,33 @@
+name: ${USERNAME:-${USER:-someone}}_backroll-dev
+
+services:
+
+  proxy:
+    build: ./proxy
+    env_file:
+      - proxy/_.env
+    ports:
+      - 127.0.0.1:2222-2244:2222
+
+  worker_primary:
+    volumes:
+      - docker_storage:/mnt/docker_storage
+      - nfs_storage:/mnt/nfs_storage
+
+  worker_secondary:
+    volumes:
+      - docker_storage:/mnt/docker_storage
+      - nfs_storage:/mnt/nfs_storage
+
+  front:
+    build:
+      dockerfile: dev.Dockerfile
+
+volumes:
+  docker_storage:
+  nfs_storage:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=127.0.0.1,nolock,soft,rw
+      device: ":/mnt/backroll_docker_storage"
