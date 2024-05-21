@@ -1,5 +1,6 @@
 import sys
 sys.path.append(sys.path[0]+"/../build")
+print(sys.path)
 from test_plan import JsonWriter as jw
 import JsonConverter as jc
 from exec_tests import ExecTests as exet
