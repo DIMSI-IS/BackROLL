@@ -17,7 +17,7 @@ services:
       - USER=${USER:-}
       - USERNAME=${USERNAME:-}
     volumes:
-      - .:/app/compose-project
+      - .:/app/compose_project
 
   sso:
     profiles:

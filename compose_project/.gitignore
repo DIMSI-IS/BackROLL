@@ -1,1 +1,6 @@
 backroll-compose.env
+
+ssh/*
+!ssh/config
+
+*/ssh

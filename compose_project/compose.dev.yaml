@@ -12,12 +12,10 @@ services:
   worker_primary:
     volumes:
       - docker_storage:/mnt/docker_storage
-      - nfs_storage:/mnt/nfs_storage
 
   worker_secondary:
     volumes:
       - docker_storage:/mnt/docker_storage
-      - nfs_storage:/mnt/nfs_storage
 
   front:
     build:
@@ -25,9 +23,3 @@ services:
 
 volumes:
   docker_storage:
-  nfs_storage:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=127.0.0.1,nolock,soft,rw
-      device: ":/mnt/backroll_docker_storage"
