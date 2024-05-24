@@ -1,6 +1,11 @@
+# The user can override this default name with the “-p” option.
+name: ${USERNAME:-${USER:-someone}}_backroll-$BACKROLL_MODE
+
 services:
 
   database:
+    profiles:
+      - database
     image: mariadb:10.3
     env_file:
       - database.env

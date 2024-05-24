@@ -19,15 +19,32 @@ backroll-setup() {
 
 backroll-compose() {
     source backroll-compose.env
+    export BACKROLL_MODE=$BACKROLL_MODE
+    # Write “--profile” for each profile for a better error message when “$@” is empty.
     case $BACKROLL_MODE in
         dev)
-            docker compose -f compose.yaml -f compose.source.yaml -f compose.dev.yaml $@
+            docker compose \
+                -f compose.yaml \
+                -f compose.source.yaml \
+                -f compose.dev.yaml \
+                --profile database \
+                --profile sso \
+                $@
             ;;
         prod-source)
-            docker compose -f compose.yaml -f compose.source.yaml -f compose.prod-source.yaml $@
+            docker compose \
+                -f compose.yaml \
+                -f compose.source.yaml \
+                -f compose.prod-source.yaml \
+                ${BACKROLL_DATABASE:+ --profile database} \
+                ${BACKROLL_SSO:+ --profile sso} \
+                $@
             ;;
         prod-hub)
-            docker compose -f compose.yaml -f compose.prod-hub.yaml $@
+            docker compose \
+               -f compose.yaml \
+               -f compose.prod-hub.yaml \
+               $@
             ;;
         *)
             echo "Invalid backroll-compose.env: expected BACKROLL_MODE=dev|prod-source|prod-hub"
