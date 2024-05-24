@@ -45,8 +45,6 @@ services:
       - ./api/ssh:/root/.ssh
     env_file:
       - core.env
-    expose:
-      - 5050
     depends_on:
       setup:
         condition: service_completed_successfully
