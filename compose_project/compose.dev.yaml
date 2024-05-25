@@ -1,5 +1,13 @@
 services:
 
+  database:
+    env_file:
+      - database.dev.env
+
+  sso:
+    env_file:
+      - sso/_.dev.env
+
   proxy:
     build: ./proxy
     env_file:
@@ -7,17 +15,35 @@ services:
     ports:
       - 127.0.0.1:2222-2244:2222
 
+  api:
+    env_file:
+      - core.dev.env
+
   worker_primary:
+    env_file:
+      - core.dev.env
     volumes:
       - docker_storage:/mnt/docker_storage
 
   worker_secondary:
+    env_file:
+      - core.dev.env
     volumes:
       - docker_storage:/mnt/docker_storage
+  
+  flower:
+    env_file:
+      - core.dev.env
+  
+  beat:
+    env_file:
+      - core.dev.env
 
   front:
     build:
       dockerfile: dev.Dockerfile
+    env_file:
+      - front.dev.env
 
 volumes:
   docker_storage:

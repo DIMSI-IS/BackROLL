@@ -3,17 +3,16 @@
 complete -W "dev prod-source prod-hub" backroll-setup
 backroll-setup() {
     local backroll_mode=$1
-
-    # Unset variables.
-    local use_provided_db=
-    local use_provided_sso=
-
     case $backroll_mode in
         dev)
-            # TODO Define default variables.
-            # TODO Deal with sso.
+            sed 's/_backroll_mode/dev/' backroll-compose.template.env > backroll-compose.env
+            cp sso/realm.dev.json sso/realm.json
             ;;
         prod-source|prod-hub)
+            # Unset variables.
+            local use_provided_db=
+            local use_provided_sso=
+
             local provided_db="Use the MariaDB provided by BackROLL."
             local existing_db="Use your existing MariaDB."
             select choice in "$provided_db" "$existing_db"; do
@@ -45,21 +44,21 @@ backroll-setup() {
                         ;;
                 esac
             done
+
+            for path_name in backroll-compose core database front; do
+                local dest=$path_name.env
+                cp $path_name.template.env $dest
+
+                for var_name in backroll_mode use_provided_db use_provided_sso; do
+                    sed -i 's/_'$var_name'/'${!var_name}'/' $dest
+                done
+            done
             ;;
         *)
             echo "Invalid backroll_mode argument: expected dev|prod-source|prod-hub"
             return 1
             ;;
     esac
-
-    for path_name in backroll-compose core database front; do
-        local dest=$path_name.env
-        cp $path_name.template.env $dest
-
-        for var_name in backroll_mode use_provided_db use_provided_sso; do
-            sed -i 's/_'$var_name'/'${!var_name}'/' $dest
-        done
-    done
 }
 
 backroll-compose() {
@@ -79,6 +78,7 @@ backroll-compose() {
         prod-source)
             echo docker compose \
                 -f compose.yaml \
+                -f compose.env.yaml \
                 -f compose.source.yaml \
                 -f compose.prod-source.yaml \
                 ${USE_PROVIDED_DB:+ --profile database} \
@@ -88,6 +88,7 @@ backroll-compose() {
         prod-hub)
             docker compose \
                -f compose.yaml \
+               -f compose.env.yaml \
                -f compose.prod-hub.yaml \
                $@
             ;;
