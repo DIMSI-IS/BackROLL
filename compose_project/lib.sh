@@ -2,19 +2,51 @@
 
 complete -W "dev prod-source prod-hub" backroll-setup
 backroll-setup() {
-    cp backroll-compose.template.env backroll-compose.env
-    sed -i 's/BACKROLL_MODE=$/BACKROLL_MODE='"$1"'/' backroll-compose.env
-    case $1 in
+    local backroll_mode=$1
+    case $backroll_mode in
         dev)
-            
             ;;
-        prod-source)
-            
+        prod-source|prod-hub)
+            local provided_db="Use the MariaDB provided by BackROLL."
+            local existing_db="Use your existing MariaDB."
+            select choice in "$provided_db" "$existing_db"; do
+                case $choice in
+                    $provided_db)
+                        echo "prov"
+                        break
+                        ;;
+                    $existing_db)
+                        echo "exis"
+                        break
+                        ;;
+                esac
+            done
+
+            local provided_sso="Use the Keycloak provided by BackROLL."
+            local existing_sso="Use your existing Keycloak."
+            select choice in "$provided_sso" "$existing_sso"; do
+                case $choice in
+                    $provided_sso)
+                        echo "prov"
+                        break
+                        ;;
+                    $existing_sso)
+                        echo "exis"
+                        break
+                        ;;
+                esac
+            done
             ;;
-        prod-hub)
-            
+        *)
+            echo "Invalid backroll_mode argument: expected dev|prod-source|prod-hub"
+            return 1
             ;;
     esac
+
+    cp backroll-compose.template.env backroll-compose.env
+    sed -i 's/_backroll_mode/'"$backroll_mode"'/' backroll-compose.env
+
+    
 }
 
 backroll-compose() {
