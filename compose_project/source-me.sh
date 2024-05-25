@@ -3,8 +3,15 @@
 complete -W "dev prod-source prod-hub" backroll-setup
 backroll-setup() {
     local backroll_mode=$1
+
+    # Unset variables.
+    local use_provided_db=
+    local use_provided_sso=
+
     case $backroll_mode in
         dev)
+            # TODO Define default variables.
+            # TODO Deal with sso.
             ;;
         prod-source|prod-hub)
             local provided_db="Use the MariaDB provided by BackROLL."
@@ -12,11 +19,12 @@ backroll-setup() {
             select choice in "$provided_db" "$existing_db"; do
                 case $choice in
                     $provided_db)
-                        echo "prov"
+                        use_provided_db=defined
+                        # TODO
                         break
                         ;;
                     $existing_db)
-                        echo "exis"
+                        # TODO
                         break
                         ;;
                 esac
@@ -27,11 +35,12 @@ backroll-setup() {
             select choice in "$provided_sso" "$existing_sso"; do
                 case $choice in
                     $provided_sso)
-                        echo "prov"
+                        use_provided_sso=defined
+                        # TODO
                         break
                         ;;
                     $existing_sso)
-                        echo "exis"
+                        # TODO
                         break
                         ;;
                 esac
@@ -43,10 +52,14 @@ backroll-setup() {
             ;;
     esac
 
-    cp backroll-compose.template.env backroll-compose.env
-    sed -i 's/_backroll_mode/'"$backroll_mode"'/' backroll-compose.env
+    for path_name in backroll-compose core database front; do
+        local dest=$path_name.env
+        cp $path_name.template.env $dest
 
-    
+        for var_name in backroll_mode use_provided_db use_provided_sso; do
+            sed -i 's/_'$var_name'/'${!var_name}'/' $dest
+        done
+    done
 }
 
 backroll-compose() {
@@ -64,12 +77,12 @@ backroll-compose() {
                 $@
             ;;
         prod-source)
-            docker compose \
+            echo docker compose \
                 -f compose.yaml \
                 -f compose.source.yaml \
                 -f compose.prod-source.yaml \
-                ${BACKROLL_DATABASE:+ --profile database} \
-                ${BACKROLL_SSO:+ --profile sso} \
+                ${USE_PROVIDED_DB:+ --profile database} \
+                ${USE_PROVIDED_SSO:+ --profile sso} \
                 $@
             ;;
         prod-hub)
