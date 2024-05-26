@@ -7,10 +7,14 @@ services:
   sso:
     env_file:
       - sso/_.env
+    ports:
+      - 8081:8080
+      - 9990:9990
 
   api:
     env_file:
       - core.env
+    # TODO Port ? Accessed from outside ?
   
   worker_primary:
     env_file:
