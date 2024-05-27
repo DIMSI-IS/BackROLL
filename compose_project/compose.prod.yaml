@@ -14,7 +14,8 @@ services:
   api:
     env_file:
       - core.env
-    # TODO Port ? Accessed from outside ?
+    ports:
+      - 5050:5050
   
   worker_primary:
     env_file:
