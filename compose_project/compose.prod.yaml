@@ -36,3 +36,5 @@ services:
   front:
     env_file:
       - front.env
+    ports:
+      - 80:80
