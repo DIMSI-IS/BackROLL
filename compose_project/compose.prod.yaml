@@ -14,16 +14,22 @@ services:
   api:
     env_file:
       - core.env
+    volumes:
+      - /mnt:/mnt
     ports:
       - 5050:5050
   
   worker_primary:
     env_file:
       - core.env
+    volumes:
+      - /mnt:/mnt
 
   worker_secondary:
     env_file:
       - core.env
+    volumes:
+      - /mnt:/mnt
 
   flower:
     env_file:
