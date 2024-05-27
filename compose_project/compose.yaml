@@ -36,25 +36,23 @@ services:
       #   condition: service_healthy
     # Compensates for the lack of database healthcheck.
     restart: on-failure
-    command: "python3 run.py"
+    command: bash api.command.sh
     volumes:
-      - ./api/ssh:/root/.ssh
+      - ./ssh:/root/shared_ssh
   
   worker_primary:
     depends_on:
       - api
     command: bash worker_primary.command.sh
     volumes:
-      - ./worker_primary/ssh:/root/.ssh
-      - /var/lib/libvirt:/var/lib/libvirt
+      - ./ssh:/root/shared_ssh
 
   worker_secondary:
     depends_on:
       - worker_primary
     command: bash worker_secondary.command.sh
     volumes:
-      - ./worker_secondary/ssh:/root/.ssh
-      - /var/lib/libvirt:/var/lib/libvirt
+      - ./ssh:/root/shared_ssh
 
   flower:
     depends_on:

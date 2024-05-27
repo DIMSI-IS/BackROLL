@@ -13,11 +13,4 @@ for key_type in rsa ed25519; do
   fi
 done
 
-echo "Copying ssh directory…"
-for container in api worker_primary worker_secondary; do
-    mkdir -p "$host_directory/$container/ssh"
-    cp "$host_directory/ssh/"* "$host_directory/$container/ssh/"
-done
-echo "…done."
-
 echo "BackROLL configuration is done."

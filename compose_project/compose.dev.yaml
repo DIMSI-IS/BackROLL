@@ -18,18 +18,22 @@ services:
   api:
     env_file:
       - core.dev.env
+    volumes:
+      - /var/lib/libvirt:/var/lib/libvirt
 
   worker_primary:
     env_file:
       - core.dev.env
     volumes:
       - docker_storage:/mnt/docker_storage
+      - /var/lib/libvirt:/var/lib/libvirt
 
   worker_secondary:
     env_file:
       - core.dev.env
     volumes:
       - docker_storage:/mnt/docker_storage
+      - /var/lib/libvirt:/var/lib/libvirt
   
   flower:
     env_file:

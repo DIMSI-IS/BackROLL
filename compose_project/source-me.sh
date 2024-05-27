@@ -5,7 +5,7 @@ backroll-setup() {
     local backroll_mode=$1
     case $backroll_mode in
         dev)
-            sed 's/_backroll_mode/dev/' backroll-compose.template.env > backroll-compose.env
+            sed 's/_backroll_mode/dev/' backroll-compose.env.template > backroll-compose.env
             cp sso/realm.dev.json sso/realm.json
             ;;
         prod-source|prod-hub)
@@ -16,8 +16,8 @@ backroll-setup() {
             local host_ip=$(hostname -I | awk '{print $1}') # TODO Or use hostname ?
 
             echo "#### Database configuration ####"
-            local provided_db="Use the MariaDB provided by BackROLL."
-            local existing_db="Use your existing MariaDB."
+            local provided_db="Use the MariaDB database provided by BackROLL."
+            local existing_db="Use your existing MariaDB database. (preview)"
             select choice in "$provided_db" "$existing_db"; do
                 case $choice in
                     "$provided_db"|"$existing_db")
@@ -70,7 +70,7 @@ backroll-setup() {
 
             echo "#### SSO configuration ####"
             local provided_sso="Use the Keycloak provided by BackROLL."
-            local existing_sso="Use your existing Keycloak."
+            local existing_sso="Use your existing Keycloak. (preview)"
             select choice in "$provided_sso" "$existing_sso"; do
                 case $choice in
                     "$provided_sso"|"$existing_sso")
