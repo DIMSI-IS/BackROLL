@@ -11,3 +11,5 @@ ssh/*
 !ssh/config
 
 */ssh
+
+persistence/
