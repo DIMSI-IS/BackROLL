@@ -7,7 +7,7 @@ services:
     volumes:
       - ./tester/src:/app/src
     environment:
-      - API_ENDPOINT_URL = Riri
-      - OPENID_ISSUER = Fifi
-      - OPENID_REALM = Loulou
-      - OPENID_CLIENTID = Picsou
+      - API_ENDPOINT_URL=Riri
+      - OPENID_ISSUER=Fifi
+      - OPENID_REALM=Loulou
+      - OPENID_CLIENTID=Picsou
