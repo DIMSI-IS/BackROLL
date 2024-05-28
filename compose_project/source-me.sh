@@ -210,3 +210,9 @@ backroll-compose() {
             return 1
     esac
 }
+
+echo "
+Available commands:
+- backroll-setup
+- backroll-compose
+"
