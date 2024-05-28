@@ -39,6 +39,7 @@ services:
     command: bash api.command.sh
     volumes:
       - ./ssh:/root/shared_ssh
+      - /mnt:/mnt
   
   worker_primary:
     depends_on:
@@ -46,6 +47,7 @@ services:
     command: bash worker_primary.command.sh
     volumes:
       - ./ssh:/root/shared_ssh
+      - /mnt:/mnt
 
   worker_secondary:
     depends_on:
@@ -53,6 +55,7 @@ services:
     command: bash worker_secondary.command.sh
     volumes:
       - ./ssh:/root/shared_ssh
+      - /mnt:/mnt
 
   flower:
     depends_on:
