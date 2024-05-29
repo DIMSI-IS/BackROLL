@@ -4,6 +4,10 @@ complete -W "dev prod-source prod-hub" backroll-setup
 backroll-setup() {
     local backroll_mode=$1
     case $backroll_mode in
+        prod-hub)
+            echo "Not yet implemented." 1>&2
+            return 1
+            ;;
         dev)
             sed 's/_backroll_mode/dev/' backroll-compose.env.template > backroll-compose.env
             cp sso/realm.dev.json sso/realm.json
@@ -185,7 +189,7 @@ backroll-setup() {
             fi
             ;;
         *)
-            echo "Invalid backroll_mode argument: expected dev|prod-source|prod-hub"
+            echo "Invalid backroll_mode argument: expected dev|prod-source|prod-hub" 1>&2
             return 1
             ;;
     esac
@@ -226,7 +230,7 @@ backroll-compose() {
                $@
             ;;
         *)
-            echo "Invalid backroll-compose.env: expected BACKROLL_MODE=dev|prod-source|prod-hub"
+            echo "Invalid backroll-compose.env: expected BACKROLL_MODE=dev|prod-source|prod-hub" 1>&2
             return 1
     esac
 }
