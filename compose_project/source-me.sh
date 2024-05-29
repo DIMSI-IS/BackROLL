@@ -15,6 +15,20 @@ backroll-setup() {
 
             local host_ip=$(hostname -I | awk '{print $1}') # TODO Or use hostname ?
 
+            echo "#### Flower configuration ####"
+            read -r -p "Define new flower username : " flower_user
+            while true;
+            do 
+                read -s -p "Define new flower password : " flower_password
+                echo
+                read -s -p "Confirm password : " confirmed_password
+                echo
+
+                [[ "$flower_password" == "$confirmed_password" ]] && break
+
+                echo "Passwords do not match. Try again."
+            done
+
             echo "#### Database configuration ####"
             local provided_db="Use the MariaDB database provided by BackROLL."
             local existing_db="Use your existing MariaDB database. (preview)"
@@ -130,6 +144,8 @@ backroll-setup() {
 
                 for var_name in backroll_mode \
                                 host_ip \
+                                flower_user \
+                                flower_password \
                                 use_provided_db \
                                 use_provided_sso \
                                 db_root_password \
