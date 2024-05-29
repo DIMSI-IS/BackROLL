@@ -173,6 +173,10 @@ backroll-setup() {
             return 1
             ;;
     esac
+
+    echo "
+From now on you can run the backroll-compose command.
+    "
 }
 
 backroll-compose() {
