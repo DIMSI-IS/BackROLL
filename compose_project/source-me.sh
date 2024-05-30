@@ -19,7 +19,7 @@ backroll-setup() {
 
             local host_ip=$(hostname -I | awk '{print $1}') # TODO Or use hostname ?
 
-            echo "#### Flower configuration ####"
+            echo "#### Flower configuration (preview) ####"
             read -r -p "Define new flower username : " flower_user
             while true;
             do 
