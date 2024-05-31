@@ -1,37 +1,6 @@
 version: "3.9"
 
-services:
-
-  # ## Optional if you already have a working db server
-  database:
-   image: 'mariadb:10.3'
-   container_name: database
-   networks:
-     - backroll-network
-   restart: always
-   ports:
-       - 3306:3306
-   volumes:
-       - ./mariadb/:/var/lib/mysql/
-   env_file:
-     - ./common/config/database/env
-
-  ## Optional if you already have a working keycloak environment
-  sso:
-    restart: always
-    #image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
-    build: ./common/config/sso
-    #image: jboss/keycloak:16.1.1
-    networks:
-      - backroll-network
-    expose:
-      - 8081
-      - 9990
-    ports:
-      - 8081:8080
-      - 9990:9990
-    env_file:
-      - ./common/config/sso/env
+services: 
 
   redis:
     restart: always
@@ -47,7 +16,7 @@ services:
 
   backroll_api:
     restart: on-failure
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     container_name: core
     command: "python3 run.py"
     networks:
@@ -65,11 +34,10 @@ services:
     env_file:
       - ./common/config/core/env
 
-
   worker_primary:
     restart: on-failure
-    build: ./src/core
     container_name: worker
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery worker -n worker -Q default --concurrency=4
     volumes:
       - ./common/secret/:/root/.ssh:ro
@@ -88,7 +56,7 @@ services:
   worker_secondary:
     restart: on-failure
     container_name: worker-lrt
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery worker -n worker2 -Q backup_tasks --concurrency=2
     volumes:
       - ./common/secret/:/root/.ssh:ro
@@ -108,7 +76,7 @@ services:
   flower:
     restart: on-failure
     container_name: celery-flower
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery flower --conf=flowerconfig.py
     volumes:
       - ./flower:/root/flower
@@ -129,7 +97,7 @@ services:
   beat:
     restart: on-failure
     container_name: scheduler
-    build: ./src/core
+    image: dimsicloud/backroll:${BACKROLL_VERSION:-latest}
     command: celery -A app.celery beat -S redbeat.RedBeatScheduler
     volumes:
       - ./src/core:/usr/src/app
@@ -144,7 +112,7 @@ services:
   front:
     restart: on-failure
     container_name: ui
-    build: src/ui
+    image: dimsicloud/backroll-ui:${BACKROLL_VERSION:-latest}
     volumes:
       - ./src/ui:/app
     ports:
