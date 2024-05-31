@@ -137,12 +137,12 @@ backroll-setup() {
             fi
 
             for path in backroll-compose.env \
-                             database.env \
-                             sso/_.env \
-                             sso/realm.json \
-                             core.env \
-                             front.env \
-                             ;
+                            database.env \
+                            sso/_.env \
+                            sso/realm.json \
+                            core.env \
+                            front.env \
+                            ;
             do
                 cp $path.template $path
 
@@ -189,7 +189,7 @@ backroll-setup() {
             fi
             ;;
         *)
-            echo "Invalid backroll_mode argument: expected dev|prod-source|prod-hub" 1>&2
+            echo "Usage: backroll-setup <dev|prod-source|prod-hub>" 1>&2
             return 1
             ;;
     esac
@@ -237,6 +237,10 @@ backroll-compose() {
 
 echo "
 Available commands:
-- backroll-setup
-- backroll-compose
+- backroll-setup <dev|prod-source|prod-hub>
+  - command completion available
+  - argument completion available
+  - prod-hub is not yet implemented
+- backroll-compose <DOCKER COMPOSE ARGUMENTS>
+  - command completion available
 "
