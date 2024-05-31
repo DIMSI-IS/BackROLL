@@ -8,11 +8,15 @@ backroll-setup() {
             echo "Not yet implemented." 1>&2
             return 1
             ;;
-        dev)
-            sed 's/_backroll_mode/dev/' backroll-compose.env.template > backroll-compose.env
-            cp sso/realm.dev.json sso/realm.json
-            ;;
-        staging|prod)
+        #dev)
+        #    sed 's/_backroll_mode/dev/' backroll-compose.env.template > backroll-compose.env
+        #    cp sso/realm.dev.json sso/realm.json
+        #    ;;
+        dev|staging|prod)
+            echo $backroll_mode > backroll-compose/mode.var
+
+            # TODO dev
+
             # Unset variables.
             local use_provided_db=
             local use_provided_sso=
@@ -136,18 +140,11 @@ backroll-setup() {
                     done
             fi
 
-            for path in backroll-compose.env \
-                            database.env \
-                            sso/_.env \
-                            sso/realm.json \
-                            core.env \
-                            front.env \
-                            ;
-            do
-                cp $path.template $path
+            for path in $(find . -wholename "*/template.*" 2>/dev/null); do
+                cp $path ${path/template./@$backroll_mode.}
 
-                for var_name in backroll_mode \
-                                host_ip \
+                # TODO Remove host_ip ?
+                for var_name in host_ip \
                                 flower_user \
                                 flower_password \
                                 use_provided_db \
@@ -164,6 +161,8 @@ backroll-setup() {
                                 sso_client_secret \
                                 sso_user_name \
                                 sso_user_password \
+                                api_address \
+                                front_address \
                                 ;
                 do
                     sed -i 's|_'$var_name'|'${!var_name}'|' $path
@@ -200,8 +199,8 @@ From now on you can run the backroll-compose command.
 }
 
 backroll-compose() {
-    source backroll-compose.env
-    export BACKROLL_MODE=$BACKROLL_MODE
+    export BACKROLL_MODE=$(<backroll-compose/mode.var)
+    cp sso/@$BACKROLL_MODE.realm.json sso/realm.json
     # Write “--profile” for each profile for a better error message when “$@” is empty.
     case $BACKROLL_MODE in
         dev)
@@ -230,7 +229,7 @@ backroll-compose() {
                $@
             ;;
         *)
-            echo "Invalid backroll-compose.env: expected BACKROLL_MODE=dev|staging|prod" 1>&2
+            echo "Invalid backroll-compose/mode.var: expected dev|staging|prod" 1>&2
             return 1
     esac
 }

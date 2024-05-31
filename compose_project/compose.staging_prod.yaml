@@ -2,52 +2,36 @@ services:
 
   database:
     restart: unless-stopped
-    env_file:
-      - database.env
   
   redis:
     restart: unless-stopped
 
   sso:
     restart: unless-stopped
-    env_file:
-      - sso/_.env
     ports:
       - 8081:8080
       - 9990:9990
 
   api:
     restart: unless-stopped
-    env_file:
-      - core.env
     ports:
       - 5050:5050
   
   worker_primary:
     restart: unless-stopped
-    env_file:
-      - core.env
 
   worker_secondary:
     restart: unless-stopped
-    env_file:
-      - core.env
 
   flower:
     restart: unless-stopped
-    env_file:
-      - core.env
     ports:
       - 5555:5555
 
   beat:
     restart: unless-stopped
-    env_file:
-      - core.env
 
   front:
     restart: unless-stopped
-    env_file:
-      - front.env
     ports:
       - 8080:80

@@ -1,15 +1,5 @@
-backroll-compose.env
+*.var
 
-core.env
-database.env
-front.env
+@*
 
-sso/_.env
 sso/realm.json
-
-ssh/*
-!ssh/config
-
-*/ssh
-
-persistence/

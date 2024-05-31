@@ -7,8 +7,10 @@ services:
     profiles:
       - database
     image: mariadb:10.3
+    env_file:
+      - database/@$BACKROLL_MODE.env
     volumes:
-      - ./persistence/database:/var/lib/mysql
+      - ./database/@${BACKROLL_MODE}_persistence:/var/lib/mysql
 
   redis:
     image: redis:7.2
@@ -19,12 +21,15 @@ services:
       # Suppress warnings with ${VAR:-}.
       - USER=${USER:-}
       - USERNAME=${USERNAME:-}
+      - BACKROLL_MODE=$BACKROLL_MODE
     volumes:
       - .:/app/compose_project
 
   sso:
     profiles:
       - sso
+    env_file:
+      - sso/@$BACKROLL_MODE.env
 
   api:
     depends_on:
@@ -37,38 +42,50 @@ services:
     # Compensates for the lack of database healthcheck.
     restart: on-failure
     command: bash api.command.sh
+    env_file:
+      - core/@$BACKROLL_MODE.env
     volumes:
-      - ./ssh:/root/shared_ssh
+      - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
       - /mnt:/mnt
   
   worker_primary:
     depends_on:
       - api
     command: bash worker_primary.command.sh
+    env_file:
+      - core/@$BACKROLL_MODE.env
     volumes:
-      - ./ssh:/root/shared_ssh
+      - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
       - /mnt:/mnt
 
   worker_secondary:
     depends_on:
       - worker_primary
     command: bash worker_secondary.command.sh
+    env_file:
+      - core/@$BACKROLL_MODE.env
     volumes:
-      - ./ssh:/root/shared_ssh
+      - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
       - /mnt:/mnt
 
   flower:
     depends_on:
       - worker_primary
     command: celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
+    env_file:
+      - core/@$BACKROLL_MODE.env
     volumes:
-      - ./persistence/flower:/root/flower
+      - ./flower/@${BACKROLL_MODE}_persistence:/root/flower
 
   beat:
     depends_on:
       - worker_secondary
     command: celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
+    env_file:
+      - core/@$BACKROLL_MODE.env
 
   front:
     depends_on:
       - api
+    env_file:
+      - front/@$BACKROLL_MODE.env
