@@ -1,10 +1,10 @@
 #!/bin/bash
 
-complete -W "dev prod-source prod-hub" backroll-setup
+complete -W "dev staging prod" backroll-setup
 backroll-setup() {
     local backroll_mode=$1
     case $backroll_mode in
-        prod-hub)
+        prod)
             echo "Not yet implemented." 1>&2
             return 1
             ;;
@@ -12,7 +12,7 @@ backroll-setup() {
             sed 's/_backroll_mode/dev/' backroll-compose.env.template > backroll-compose.env
             cp sso/realm.dev.json sso/realm.json
             ;;
-        prod-source|prod-hub)
+        staging|prod)
             # Unset variables.
             local use_provided_db=
             local use_provided_sso=
@@ -189,7 +189,7 @@ backroll-setup() {
             fi
             ;;
         *)
-            echo "Usage: backroll-setup <dev|prod-source|prod-hub>" 1>&2
+            echo "Usage: backroll-setup <dev|staging|prod>" 1>&2
             return 1
             ;;
     esac
@@ -213,34 +213,34 @@ backroll-compose() {
                 --profile sso \
                 $@
             ;;
-        prod-source)
+        staging)
             docker compose \
                 -f compose.yaml \
                 -f compose.source.yaml \
-                -f compose.prod.yaml \
+                -f compose.staging_prod.yaml \
                 ${USE_PROVIDED_DB:+ --profile database} \
                 ${USE_PROVIDED_SSO:+ --profile sso} \
                 $@
             ;;
-        prod-hub)
+        prod)
             docker compose \
                -f compose.yaml \
+               -f compose.staging_prod.yaml \
                -f compose.prod.yaml \
-               -f compose.prod-hub.yaml \
                $@
             ;;
         *)
-            echo "Invalid backroll-compose.env: expected BACKROLL_MODE=dev|prod-source|prod-hub" 1>&2
+            echo "Invalid backroll-compose.env: expected BACKROLL_MODE=dev|staging|prod" 1>&2
             return 1
     esac
 }
 
 echo "
 Available commands:
-- backroll-setup <dev|prod-source|prod-hub>
+- backroll-setup <dev|staging|prod>
   - command completion available
   - argument completion available
-  - prod-hub is not yet implemented
+  - prod is not yet implemented
 - backroll-compose <DOCKER COMPOSE ARGUMENTS>
   - command completion available
 "
