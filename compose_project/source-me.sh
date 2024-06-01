@@ -24,7 +24,7 @@ backroll-setup() {
                     db_user_password=backroll
                     sso_admin_name=admin
                     sso_admin_password=admin
-                    sso_address=sso
+                    sso_base_url=http://sso:8080
                     sso_client_secret=e7cbb6ae88ce7cd7cf3b104a972d08ed
                     sso_user_name=developer
                     sso_user_password=developer
@@ -133,10 +133,10 @@ backroll-setup() {
                         echo "Passwords do not match. Try again."
                     done
 
-                    local sso_address="http://$host_ip:8081"
+                    local sso_base_url="http://$host_ip:8081"
                     if [[ "$use_provided_sso" == "" ]]; then
                         echo "#### Existing Keycloak configuration ####"
-                        read -r -p "Enter existing Keyclock url (ex : http://localhost:8080) : " sso_address
+                        read -r -p "Enter existing Keyclock url (ex : http://localhost:8080) : " sso_base_url
                     else
                         echo "#### New Keycloak configuration ####"
                         read -r -p "Define new Keyclock admin name : " sso_admin_name
@@ -173,7 +173,7 @@ backroll-setup() {
                                 db_user_password \
                                 sso_admin_name \
                                 sso_admin_password \
-                                sso_address \
+                                sso_base_url \
                                 sso_client_secret \
                                 sso_user_name \
                                 sso_user_password \
@@ -192,12 +192,12 @@ backroll-setup() {
                 admin_client_id="${admin_client_id:=admin-cli}"
                 read -s -p "Enter existing Keyclock admin client_secret : " admin_client_secret
                 echo
-                token=$(curl -s -X POST "$sso_address/realms/$keycloak_realm/protocol/openid-connect/token" \
+                token=$(curl -s -X POST "$sso_base_url/realms/$keycloak_realm/protocol/openid-connect/token" \
                     -H "Content-Type: application/x-www-form-urlencoded" \
                     -d "grant_type=client_credentials&client_id=$admin_client_id&client_secret=$admin_client_secret" \
                     | grep -oP '"access_token":"\K[^"]+')
 
-                curl -X POST "$sso_address/admin/realms" \
+                curl -X POST "$sso_base_url/admin/realms" \
                     -H "Content-Type: application/json" \
                     -H "Authorization: Bearer $token" \
                     -d "$(cat sso/realm.json)"

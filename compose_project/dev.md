@@ -68,6 +68,8 @@ ssh -p 2222 -D 1080 developer@localhost
 
 The password is `developer`. You must ensure that the command is running each time you start working on BackROLL.
 
+If you are working on a shared developement server, the port 2222 may be already in use. Run the `docker port` command on the proxy container to find the exposed port.
+
 #### Connecting to the proxy server
 
 Now you need to configure your web browser to use the SOCKS v5 proxy at address `localhost` port `1080` and to use the proxy’s DNS. Feel free to use another port if it is more convenient for you.
