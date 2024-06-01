@@ -6,7 +6,10 @@ services:
       - ./setup/src:/app/src:ro
 
   sso:
-    build: ./sso
+    build:
+      context: ./sso
+      args:
+        - BACKROLL_MODE=$BACKROLL_MODE
 
   api:
     build: ../src/core

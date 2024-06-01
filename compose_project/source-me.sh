@@ -1,6 +1,5 @@
 #!/bin/bash
 
-complete -W "dev staging prod" backroll-setup
 backroll-setup() {
     local backroll_mode=$1
     case $backroll_mode in
@@ -9,8 +8,6 @@ backroll-setup() {
             return 1
             ;;
         dev|staging|prod)
-            echo $backroll_mode > backroll-compose/mode.var
-
             # Unset variables.
             local use_provided_db=
             local use_provided_sso=
@@ -163,7 +160,8 @@ backroll-setup() {
 
                 cp "$template_path" "$path"
 
-                for var_name in flower_user \
+                for var_name in backroll_mode \
+                                flower_user \
                                 flower_password \
                                 use_provided_db \
                                 use_provided_sso \
@@ -210,54 +208,26 @@ backroll-setup() {
             return 1
             ;;
     esac
-
-    echo "
-From now on you can run the backroll-compose command.
-    "
 }
 
-backroll-compose() {
-    export BACKROLL_MODE=$(<backroll-compose/mode.var)
-    cp sso/@$BACKROLL_MODE.realm.json sso/realm.json
-    # Write “--profile” for each profile for a better error message when “$@” is empty.
-    case $BACKROLL_MODE in
-        dev)
-            docker compose \
-                -f compose.yaml \
-                -f compose.source.yaml \
-                -f compose.dev.yaml \
-                --profile database \
-                --profile sso \
-                $@
-            ;;
-        staging)
-            docker compose \
-                -f compose.yaml \
-                -f compose.source.yaml \
-                -f compose.staging_prod.yaml \
-                ${USE_PROVIDED_DB:+ --profile database} \
-                ${USE_PROVIDED_SSO:+ --profile sso} \
-                $@
-            ;;
-        prod)
-            docker compose \
-               -f compose.yaml \
-               -f compose.staging_prod.yaml \
-               -f compose.prod.yaml \
-               $@
-            ;;
-        *)
-            echo "Invalid backroll-compose/mode.var: expected dev|staging|prod" 1>&2
-            return 1
-    esac
-}
+if [[ "$1" != "" ]]; then
+    backroll-setup "$1"
+fi
+
+if source backroll-compose/@dev.env 2>/dev/null; then
+    dev="--env-file backroll-compose/@dev.env -f compose.yaml -f compose.source.yaml -f compose.dev.yaml --profile database --profile sso"
+fi
+
+if source backroll-compose/@staging.env 2>/dev/null; then
+    staging="--env-file backroll-compose/@staging.env -f compose.yaml -f compose.source.yaml -f compose.staging_prod.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
+fi
 
 echo "
-Available commands:
-- backroll-setup <dev|staging|prod>
-  - command completion available
-  - argument completion available
-  - prod is not yet implemented
-- backroll-compose <DOCKER COMPOSE ARGUMENTS>
-  - command completion available
+Docker compose argument variables:
+  - dev=${dev:-    # Run “source source-me.sh dev” to setup dev.}
+  - staging=${staging:-    # Run “source source-me.sh staging” to setup staging.}
+
+Usage:
+  - docker compose \$dev …
+  - docker compose \$staging …
 "
