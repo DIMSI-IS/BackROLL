@@ -1,26 +1,18 @@
-# Development setup
+# Development
 
-The command `backroll-setup dev` provides a development version of BackROLL:
+Development version of BackROLL:
+
 - you must have a KVM host
 - no configuration (default values)
 - you can go from a local network to another without any trouble
 
-## Starting BackROLL
+## About starting BackROLL
 
 ### First time
 
-```sh
-cd compose_project
-source source-me.sh
-backroll-setup dev
-backroll-compose up
-```
-
-The first start is longer than the next ones due to image building and containers’ initialisation. Then the up command will continue to run to show you the logs.
+The first start is longer than the next ones due to image building and containers’ initialisation. Then the `up` command will continue to run to show you the logs.
 
 The service `setup` will generate ssh keys.
-
-#### Note
 
 For the moment, the `api` container crashes at the first start because the `database` service is not ready yet. As a quick fix, an automatic restart is set up in the [compose.yaml](./compose.yaml#L38):
 
@@ -32,10 +24,10 @@ In the future, this may be better fixed with a database [healthcheck](https://do
 
 ### Next times
 
-This time, use the start command:
+Use the `docker compose start` command:
 
-```sh
-backroll-compose start
+```bash
+docker compose $dev start
 ```
 
 To re-generate the ssh keys, delete them from [ssh/](./ssh/) before starting.
@@ -48,11 +40,16 @@ For the moment, only the RSA key is shown in the UI but you can also use the Ed2
 
 If you have changed the source code of one of the containers, you may have to build it and start it again. Example:
 
-```sh
-cd backroll-dev
-backroll-compose build sso
-backroll-compose create sso
-backroll-compose start sso
+```bash
+docker compose $dev build sso
+docker compose $dev create sso
+docker compose $dev start sso
+```
+
+Some of the container have their sources mounted. Check out [compose.sources.yaml](./compose.source.yaml). In this case, just restart the container. Example:
+
+```bash
+docker compose $dev restart api
 ```
 
 ## User interface
@@ -65,7 +62,7 @@ To access the various containers’ web interfaces, your internet browser needs 
 
 Create a proxy server by connecting to the proxy container:
 
-```sh
+```bash
 ssh -p 2222 -D 1080 developer@localhost
 ```
 
@@ -76,6 +73,7 @@ The password is `developer`. You must ensure that the command is running each ti
 Now you need to configure your web browser to use the SOCKS v5 proxy at address `localhost` port `1080` and to use the proxy’s DNS. Feel free to use another port if it is more convenient for you.
 
 For Firefox, see [Connection settings in Firefox](https://support.mozilla.org/en-US/kb/connection-settings-firefox):
+
 - choose “Manual proxy configuration”
 - fill in “SOCKS Host” and “Port”
 - choose “SOCKS v5”
@@ -111,9 +109,8 @@ You can manage the [Keycloak](https://www.keycloak.org/) SSO here:
   - username: admin
   - password: admin
 
-Include the changes you want to keep for every BackROLL developer in [backroll-dev/sso/realm.dev.json](./sso/realm.dev.json).
-
 ### Flower
 
 You can monitor the [Celery](https://docs.celeryq.dev/en/stable/) tasks on the [Flower](https://flower.readthedocs.io/en/latest/) interface:
+
 - [http://flower:5555/](http://flower:5555/)

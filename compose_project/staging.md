@@ -1,6 +1,6 @@
-# Staging setup
+# Staging
 
-The command `backroll-setup staging` provides a staging version of BackROLL:
+Staging version of BackROLL:
 - you must have a KVM host
 - you will follow the configuration steps
 - it depends on your local network
