@@ -7,7 +7,7 @@
           <div class="mr-0 text-right">
             <va-button
               color="info"
-              @click="this.$router.push('/admin/tasks/kickstart')"
+              @click="this.$router.push({ path: '/admin/tasks/kickstart', query: {task: 'restore'} })"
             >
               Start restore task
             </va-button>

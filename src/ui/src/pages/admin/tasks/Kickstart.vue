@@ -220,6 +220,7 @@ export default {
       backupSelection: {},
       virtualMachineSelection: {},
       storageSelection: {},
+      taskValue: null,
     }
   },
   watch: {
@@ -230,6 +231,21 @@ export default {
     targetSelection: function () {
       this.backupSelection = {}
     }
+  },
+  created() {
+
+    if(this.$route.query.task === 'backup'){
+    this.jobSelection.text = 'Backup (VM)';
+    this.jobSelection.value = 'Backup (VM)';
+    this.jobSelection.mode = 'single';
+    this.jobSelection.type = 'backup';
+    }else if(this.$route.query.task === 'restore'){
+    this.jobSelection.text = 'Disk Restore & Replace (VM)';
+    this.jobSelection.value = 'Disk Restore & Replace (VM)';
+    this.jobSelection.mode = 'single';
+    this.jobSelection.type = 'restore';
+    }
+
   },
   computed: {
     selectJob() {
