@@ -14,27 +14,46 @@ backroll-setup() {
 
             case $backroll_mode in
                 dev)
-                    flower_user=
-                    flower_password=
-                    db_root_password=root
-                    db_address=database
-                    db_port=3306
-                    db_name=backroll
-                    db_user_name=backroll
-                    db_user_password=backroll
-                    sso_admin_name=admin
-                    sso_admin_password=admin
-                    sso_base_url=http://sso:8080
-                    sso_client_secret=e7cbb6ae88ce7cd7cf3b104a972d08ed
-                    sso_user_name=developer
-                    sso_user_password=developer
-                    api_address=api
-                    front_address=front
+                    local flower_user=
+                    local flower_password=
+                    local db_root_password=root
+                    local db_address=database
+                    local db_port=3306
+                    local db_name=backroll
+                    local db_user_name=backroll
+                    local db_user_password=backroll
+                    local sso_admin_name=admin
+                    local sso_admin_password=admin
+                    local sso_base_url=http://sso:8080
+                    local sso_client_secret=e7cbb6ae88ce7cd7cf3b104a972d08ed
+                    local sso_user_name=developer
+                    local sso_user_password=developer
+                    local api_address=api
+                    local front_address=front
                     ;;
                 staging|prod)
-                    local host_ip=$(hostname -I | awk '{print $1}') # TODO Or use hostname ?
-                    api_address=$host_ip
-                    front_address=$host_ip
+                    echo "#### BackROLL host IP configuration ####"
+                    local host_ip_list=$(hostname -I)
+                    echo "Select the access IP you want to use :"
+                    local host_ip=
+                    select choice in Other $host_ip_list; do
+                        case $choice in
+                            "")
+                                ;;
+                            Other)
+                                read -r -p "Enter existing BackROLL host IP : " host_ip
+                                break
+                                ;;
+                            *)
+                                if [[ "$host_ip_list" =~ .*"$choice".* ]]; then
+                                    host_ip=$choice
+                                    break
+                                fi
+                                ;;
+                        esac
+                    done
+                    local api_address=$host_ip
+                    local front_address=$host_ip
 
                     echo "#### Flower configuration (preview) ####"
                     read -r -p "Define new flower username : " flower_user
@@ -56,15 +75,14 @@ backroll-setup() {
                     select choice in "$provided_db" "$existing_db"; do
                         case $choice in
                             "$provided_db"|"$existing_db")
-                                [[ "$choice" == "$provided_db" ]] && use_provided_db=defined
+                                [[ "$choice" == "$provided_db" ]] && local use_provided_db=defined
 
                                 local action=
+                                local db_address=database
+                                local db_port=3306
                                 case $choice in
                                     "$provided_db")
                                         action="Define new"
-
-                                        db_address=database
-                                        db_port=3306
                                         while true;
                                         do 
                                             read -s -p "$action MariaDB database root password : " db_root_password
@@ -115,9 +133,9 @@ backroll-setup() {
                         esac
                     done
 
-                    sso_client_secret=$(date | md5sum)
-                    sso_client_secret=(${sso_client_secret// / })
-                    sso_client_secret=${sso_client_secret[0]}
+                    local sso_client_secret=$(date | md5sum)
+                    local sso_client_secret=(${sso_client_secret// / })
+                    local sso_client_secret=${sso_client_secret[0]}
 
                     echo "#### Keycloak first user configuration ####"
                     read -r -p "Define new Keycloak username : " sso_user_name
@@ -156,7 +174,7 @@ backroll-setup() {
             esac
 
             for template_path in $(find . -wholename "*/template.*" 2>/dev/null); do
-                path="${template_path/template./@$backroll_mode.}"
+                local path="${template_path/template./@$backroll_mode.}"
 
                 cp "$template_path" "$path"
 
@@ -187,12 +205,12 @@ backroll-setup() {
 
             if [[ "$backroll_mode" != dev ]] && [[ "$use_provided_sso" == "" ]]; then
                 read -r -p "Enter existing Keyclock realm (master): " keycloak_realm
-                keycloak_realm="${keycloak_realm:=master}"
+                local keycloak_realm="${keycloak_realm:=master}"
                 read -r -p "Enter existing Keyclock admin client_id (admin-cli) : " admin_client_id
-                admin_client_id="${admin_client_id:=admin-cli}"
+                local admin_client_id="${admin_client_id:=admin-cli}"
                 read -s -p "Enter existing Keyclock admin client_secret : " admin_client_secret
                 echo
-                token=$(curl -s -X POST "$sso_base_url/realms/$keycloak_realm/protocol/openid-connect/token" \
+                local token=$(curl -s -X POST "$sso_base_url/realms/$keycloak_realm/protocol/openid-connect/token" \
                     -H "Content-Type: application/x-www-form-urlencoded" \
                     -d "grant_type=client_credentials&client_id=$admin_client_id&client_secret=$admin_client_secret" \
                     | grep -oP '"access_token":"\K[^"]+')
@@ -211,7 +229,7 @@ backroll-setup() {
 }
 
 if [[ "$1" != "" ]]; then
-    backroll-setup "$1"
+    backroll-setup "$1" || return $?
 fi
 
 if source backroll-compose/@dev.env 2>/dev/null; then
