@@ -120,8 +120,8 @@ def backup_subtask(info):
           backup_job.remove_snapshot_file(disk)
           # Borg Prune
           backup_job.borg_prune(disk)
-          # Remove VM snapshot
-          backup_job.delete_snapshot()
+        # Remove VM snapshot
+        backup_job.delete_snapshot()
         # Return backup name
         return backup_job.send_result()
       except Exception as e:
