@@ -15,7 +15,7 @@
         </div>
       </template>
       <template #cell(target)="{ value }">
-        <div @click="toVirtualMachines()">
+        <div>
           <va-chip size="small" square color="primary">
             {{ value }}
           </va-chip>
@@ -53,18 +53,11 @@
       <template #cell(args)="{value} ">
         {{ value.name }}
       </template>
+      
       <template #cell(actions)="{ rowIndex }">
-        <va-button
-          v-if="data[rowIndex].state == 'FAILURE'"
-          icon="bug_report"
-          class="mr-4"
-          color="secondary"
-          gradient
-          :rounded="false"
-          @click="selectedTask = data[rowIndex], retrieveTasksLogs(data[rowIndex].uuid)"
-        >
-          Troubleshoot
-        </va-button>
+        <va-button-group gradient :rounded="false">
+          <va-button icon="settings" @click="this.$router.push(`/resources/virtualmachines/${VMNameToUUID(data[rowIndex].target)}`)" />
+        </va-button-group>
       </template>
 
       <template v-if="pagination" #bodyAppend>
@@ -135,8 +128,16 @@ export default {
   methods: {
     toVirtualMachines() {
       if (this.$store.state.isvmTableReady) {
-        this.$router.push("/admin/resources/virtualmachines")
+        this.$router.push(`/admin/resources/virtualmachines`)
       }
+    },
+    VMNameToUUID(name){
+      for (let i = 0; i < this.$store.state.resources.vmList.length; i++){
+        if(this.$store.state.resources.vmList[i].name === name){
+          return this.$store.state.resources.vmList[i].uuid
+        }
+      }
+      return 'no_uuid'
     },
     retrieveTasksLogs (taskId) {
       this.logModal = !this.logModal
