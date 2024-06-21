@@ -1,14 +1,9 @@
 #!/bin/sh
 
-#export API_ENDPOINT_URL OPENID_ISSUER OPENID_CLIENTID OPENID_REALM
-
-file=".env.local"
-
-export file
-if [ ! -f $file.tmpl ]; then
-  cp $file $file.tmpl
-fi
-envsubst '$API_ENDPOINT_URL $OPENID_ISSUER $OPENID_CLIENTID $OPENID_REALM' < $file.tmpl > $file
+echo "Loading environment variables"
+for name in API_ENDPOINT_URL OPENID_ISSUER OPENID_REALM OPENID_CLIENTID; do
+  export VUE_APP_$name=${!name}
+done
 
 echo "Starting website"
 npm run serve

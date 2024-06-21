@@ -1,0 +1,37 @@
+services:
+
+  database:
+    restart: unless-stopped
+  
+  redis:
+    restart: unless-stopped
+
+  sso:
+    restart: unless-stopped
+    ports:
+      - 8081:8080
+      - 9990:9990
+
+  api:
+    restart: unless-stopped
+    ports:
+      - 5050:5050
+  
+  worker_primary:
+    restart: unless-stopped
+
+  worker_secondary:
+    restart: unless-stopped
+
+  flower:
+    restart: unless-stopped
+    ports:
+      - 5555:5555
+
+  beat:
+    restart: unless-stopped
+
+  front:
+    restart: unless-stopped
+    ports:
+      - 8080:80

@@ -53,4 +53,9 @@ module.exports = {
       importWorkboxFrom: 'local',
     },
   },
+  devServer: {
+    allowedHosts: [
+      'front',
+    ],
+  },
 }

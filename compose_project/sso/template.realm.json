@@ -1,0 +1,30 @@
+{
+  "realm": "backroll",
+  "enabled": true,
+  "users": [
+    {
+      "username": "_sso_user_name",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "_sso_user_password" }]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "backroll-front",
+      "enabled": true,
+      "publicClient": true,
+      "baseUrl": "http://_front_address:8080/admin/dashboard",
+      "redirectUris": ["http://_front_address:8080/*"],
+      "webOrigins": ["*"]
+    },
+    {
+      "clientId": "backroll-api",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "_sso_client_secret",
+      "redirectUris": ["http://_api_address:5050/*"],
+      "webOrigins": ["*"],
+      "serviceAccountsEnabled": true
+    }
+  ]
+}

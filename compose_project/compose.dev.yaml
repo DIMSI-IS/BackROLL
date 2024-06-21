@@ -1,0 +1,29 @@
+services:
+
+  proxy:
+    build: ./proxy
+    env_file:
+      - proxy/_.env
+    ports:
+      - 127.0.0.1:2222-2244:2222
+
+  api:
+    volumes:
+      - /var/lib/libvirt:/var/lib/libvirt
+
+  worker_primary:
+    volumes:
+      - docker_storage:/mnt/docker_storage
+      - /var/lib/libvirt:/var/lib/libvirt
+
+  worker_secondary:
+    volumes:
+      - docker_storage:/mnt/docker_storage
+      - /var/lib/libvirt:/var/lib/libvirt
+  
+  front:
+    build:
+      dockerfile: dev.Dockerfile
+
+volumes:
+  docker_storage:
