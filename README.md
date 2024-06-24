@@ -69,18 +69,29 @@ By default in the docker-compose.yml, /mnt/ is mapped to /mnt/ in the workers.
 
 #### VM Storage configuration
 On the backroll VM, mount the VMs storage to a path that is mapped in docker-compose.yml.
+If you are mounting a Cloudstack Primary storage please respect the Cloudstack format such as: /mnt/PR_STORAGE_ID
 
 Example using a NFS storage:
 
 ```bash
 # Create directory under /mnt/
-mkdir /mnt/VM_storage
+mkdir /mnt/myVM_storage
 
 # Mount using NFS, to make the mount persistent, edit fstab with corresponding values
-mount -v -t nfs -o nolock NFS_server:/nfs_share1 /mnt/VM_storage
+mount -v -t nfs -o nolock NFS_server:/nfs_share1 /mnt/myVM_storage
 
 ```
+Example using a Cloudstack NFS storage:
 
+```bash
+#If you are mounting a Cloudstack Primary storage please respect the Cloudstack format such as: /mnt/PR_STORAGE_ID
+# Create directory under /mnt/
+mkdir /mnt/138338fb-e355-3caa-b219-ff968ca3ed3d
+
+# Mount using NFS, to make the mount persistent, edit fstab with corresponding values
+mount -v -t nfs -o nolock NFS_server:/nfs_shareCS1 /mnt/138338fb-e355-3caa-b219-ff968ca3ed3d
+
+```
 
 #### Backup Storage configuration
 On the backroll VM, mount the backup storage to a path that is mapped in docker-compose.yml.\
