@@ -70,6 +70,7 @@ By default in the docker-compose.yml, /mnt/ is mapped to /mnt/ in the workers.
 #### VM Storage configuration
 On the backroll VM, mount the VMs storage to a path that is mapped in docker-compose.yml.
 If you are mounting a Cloudstack Primary storage please respect the Cloudstack format such as: /mnt/PR_STORAGE_ID
+Repeat for each VM storage.
 
 Example using a NFS storage:
 
@@ -85,11 +86,11 @@ Example using a Cloudstack NFS storage:
 
 ```bash
 #If you are mounting a Cloudstack Primary storage please respect the Cloudstack format such as: /mnt/PR_STORAGE_ID
-# Create directory under /mnt/
-mkdir /mnt/138338fb-e355-3caa-b219-ff968ca3ed3d
+# Create directory under /mnt/ corresponding to your CS primary storage
+mkdir /mnt/138338fb-xxxx-xxxx-b219-ff968ca3ed3d
 
 # Mount using NFS, to make the mount persistent, edit fstab with corresponding values
-mount -v -t nfs -o nolock NFS_server:/nfs_shareCS1 /mnt/138338fb-e355-3caa-b219-ff968ca3ed3d
+mount -v -t nfs -o nolock NFS_server:/nfs_shareCS1 /mnt/138338fb-xxxx-xxxx-b219-ff968ca3ed3d
 
 ```
 
@@ -139,9 +140,6 @@ Add a new connector and fill the field with the appropriate information:
 - Login: *API_key of your user dedicated to backroll*
 - Password: *API_secret of your user dedicated to backroll*
 
-
-## Documentation
-The [latest documentation](https://backroll.readthedocs.io/) is hosted at Read The Docs, containing user guides, tutorials, and an API reference.
 
 ## Help and support
 We'd love to help you get started with BackROLL, so please feel free to open a case if you run into problems with the deployment or encounter bugs.
