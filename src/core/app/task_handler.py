@@ -81,12 +81,18 @@ def retrieve_task_info(task_id):
 def cleanArgs(args):
   argument = str(args)
   
-  argument = argument.replace("},)", "})")
-  argument = argument.replace("...", "")
   if ", 'displayvm': True" in argument :
       argument = argument[0: argument.index(", 'displayvm': True")]
       argument = argument + "})"
-  obj = eval(argument)
+
+  while argument != '':
+    try:
+        obj = eval(argument)
+        break
+    except SyntaxError as e:
+        argument = argument[:e.offset - 1] + argument[e.offset:]
+        continue
+  
   if isinstance(obj,dict):
     return json.dumps(obj)
   elif isinstance(obj,tuple) or isinstance(obj,list):
