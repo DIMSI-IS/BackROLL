@@ -106,7 +106,11 @@
                 class="square-button"
                 @click="copyToClipboard(sshKey)"
               >
-                Copy
+                <img 
+                  src="../../ui/images/logoCopyToClipboardTransparent.png"
+                  width="20"
+                  height="20"
+                />
               </button>
             </div>
           </template>
@@ -278,7 +282,8 @@ export default defineComponent({
   .square-button {
     width: 25px;
     height: 25px;
-    background-color: #747474; /* Couleur de fond */
+    /*background-image: url("logoCopyToClipboardTransparent.png");*/
+    background-color: #CDCDCD; /* Couleur de fond */
     color: white; /* Couleur du texte */
     border: none; /* Pas de bordure */
     cursor: pointer; /* Curseur en forme de main */
@@ -289,6 +294,6 @@ export default defineComponent({
   }
 
   .square-button:hover {
-    background-color: #212121; /* Couleur de fond au survol */
+    background-color: #747474; /* Couleur de fond au survol */
   }
 </style>
