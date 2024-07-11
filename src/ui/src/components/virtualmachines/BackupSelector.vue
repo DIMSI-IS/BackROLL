@@ -40,7 +40,7 @@ export default defineComponent({
     selectDataVirtualMachine() {
       if (this.backupInfo.archives) {
         const result = this.backupInfo.archives.map(x => ({
-          text: `${x.archive.split('_')[0].toUpperCase()} (${new Date(x.start).toLocaleDateString()})`,
+          text: `${x.archive.split('_')[0].toUpperCase()} (${new Date(x.start).toLocaleDateString()} ${new Date(x.start).toLocaleTimeString()})`,
           value: x.name
         }))
         return result.sort().reverse()
