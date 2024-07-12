@@ -60,6 +60,8 @@
                   v-model="targetSelection"
                   :options="selectData"
                   :loading="!this.$store.state.isvmTableReady"
+                  searchable
+                  highlight-matched-text
                 >
                   <template #prependInner>
                     <va-icon
