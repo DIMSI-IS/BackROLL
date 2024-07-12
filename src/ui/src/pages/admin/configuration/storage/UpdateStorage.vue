@@ -18,8 +18,12 @@
           label="Path"
           placeholder="eg. /mnt/myNFSbackend"
           v-model="updatedValues.path"
-          :rules="[value => (value && value.length > 0) || 'Field is required']"
-        />
+          :rules="[
+          value => (value && value.length > 0) || 'Field is required',
+          value => value != '/mnt/' || 'The path can\'t only be /mnt/', 
+          value => /^\/mnt\/([a-zA-Z0-9_ -]+\/)+$/i.test(value) || 'The path must begin by /mnt and end with a /',
+          value => !this.$store.state.storageList.find(s => s.path === value) || 'A storage already exist for this path'
+          ]" />
         <br>
         <va-button
           class="mb-3"
