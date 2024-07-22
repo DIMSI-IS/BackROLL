@@ -85,6 +85,8 @@ def cleanArgs(args):
     argument = argument[0: argument.index(", 'displayvm': True")]
     argument = argument + "})"
 
+  print(f"[cleanArgs] {sys.version}")
+  print(f"[cleanArgs] {sys.version_info}")
   while argument != "":
     print(f"[cleanArgs] Trying to eval argument “{argument}”.")
     try:
