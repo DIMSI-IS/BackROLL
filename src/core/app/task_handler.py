@@ -82,16 +82,20 @@ def cleanArgs(args):
   argument = str(args)
   
   if ", 'displayvm': True" in argument :
-      argument = argument[0: argument.index(", 'displayvm': True")]
-      argument = argument + "})"
+    argument = argument[0: argument.index(", 'displayvm': True")]
+    argument = argument + "})"
 
-  while argument != '':
+  while argument != "":
+    print(f"[cleanArgs] Trying to eval argument “{argument}”.")
     try:
-        obj = eval(argument)
-        break
+      obj = eval(argument)
+      print(f"[cleanArgs] Argument evaluated successfuly.")
+      break
     except SyntaxError as e:
-        argument = argument[:e.offset - 1] + argument[e.offset:]
-        continue
+      print(f"[cleanArgs] Argument evaluating error “{e}”.")
+      argument = argument[:e.offset - 1] + argument[e.offset:]
+      continue
+  print(f"[cleanArgs] Argument fixing failed.")
   
   if isinstance(obj,dict):
     return json.dumps(obj)
