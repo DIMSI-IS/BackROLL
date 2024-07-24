@@ -98,7 +98,9 @@ def cleanArgs(args):
       print(f"[cleanArgs] Argument evaluating error “{e}”.")
       argument = argument[:e.offset - 1] + argument[e.offset:]
       continue
-  print(f"[cleanArgs] Argument fixing failed.")
+    except Exception as e:
+      print("[cleanArgs] Argument fixing failed.")
+      raise ValueError(f"Failed to fix argument “{args}”.")
   
   if isinstance(obj,dict):
     return json.dumps(obj)
