@@ -16,6 +16,7 @@
 ## under the License.
 
 #!/usr/bin/env python
+import sys
 import os
 import re
 from datetime import datetime
