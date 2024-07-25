@@ -35,7 +35,7 @@ ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN python3 -m pip install pip==24.0 && \
-    pip3 install -U pip setuptools wheel && \
+    pip3 install -U setuptools wheel && \
     pip3 install --no-cache-dir borgbackup && \
     pip3 install --no-cache-dir -r requirements.txt
 
