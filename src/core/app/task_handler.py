@@ -16,6 +16,7 @@
 ## under the License.
 
 #!/usr/bin/env python
+import sys
 import os
 import re
 from datetime import datetime
@@ -78,19 +79,41 @@ def retrieve_task_info(task_id):
 #   argument.split("}", 1)[0]
 #   return argument
 
+def _typeAsString(object):
+  return str(type(object))
+
 def cleanArgs(args):
   argument = str(args)
   
-  argument = argument.replace("},)", "})")
-  argument = argument.replace("...", "")
   if ", 'displayvm': True" in argument :
-      argument = argument[0: argument.index(", 'displayvm': True")]
-      argument = argument + "})"
-  obj = eval(argument)
+    argument = argument[:argument.index(", 'displayvm': True")] + "})"
+
+  print(f"[cleanArgs] {sys.version}")
+  print(f"[cleanArgs] {sys.version_info}")
+  argumentLen = len(argument)
+  for _ in range(0, argumentLen):
+    print(f"[cleanArgs] Trying to eval argument “{argument}”.")
+    try:
+      obj = eval(argument)
+      print("[cleanArgs] Argument evaluated successfuly.")
+      break
+    except SyntaxError as e:
+      column = e.offset
+      print(f"[cleanArgs] Argument evaluating error “{e}” at {column}.")
+      if column == 0:
+        argument = argument[1:]
+      elif column == len(argument) - 1:
+        argument = argument[:column]
+      else:
+        argument = argument[:column-1] + argument[column:]
+    except Exception as e:
+      print("[cleanArgs] Argument fixing failed.")
+      raise ValueError(f"Failed to fix argument “{args}”.")
+
   if isinstance(obj,dict):
-    return json.dumps(obj)
+    return json.dumps(obj, default=_typeAsString)
   elif isinstance(obj,tuple) or isinstance(obj,list):
-    return json.dumps(obj[0])
+    return json.dumps(obj[0], default=_typeAsString)
 
 def convert(seconds):
   if type(seconds) != type(None):
