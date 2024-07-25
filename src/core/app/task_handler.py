@@ -79,33 +79,41 @@ def retrieve_task_info(task_id):
 #   argument.split("}", 1)[0]
 #   return argument
 
+def _typeAsString(object):
+  return str(type(object))
+
 def cleanArgs(args):
   argument = str(args)
   
   if ", 'displayvm': True" in argument :
-    argument = argument[0: argument.index(", 'displayvm': True")]
-    argument = argument + "})"
+    argument = argument[:argument.index(", 'displayvm': True")] + "})"
 
   print(f"[cleanArgs] {sys.version}")
   print(f"[cleanArgs] {sys.version_info}")
-  while argument != "":
+  argumentLen = len(argument)
+  for _ in range(0, argumentLen):
     print(f"[cleanArgs] Trying to eval argument “{argument}”.")
     try:
       obj = eval(argument)
-      print(f"[cleanArgs] Argument evaluated successfuly.")
+      print("[cleanArgs] Argument evaluated successfuly.")
       break
     except SyntaxError as e:
-      print(f"[cleanArgs] Argument evaluating error “{e}”.")
-      argument = argument[:e.offset - 1] + argument[e.offset:]
-      continue
+      column = e.offset
+      print(f"[cleanArgs] Argument evaluating error “{e}” at {column}.")
+      if column == 0:
+        argument = argument[1:]
+      elif column == len(argument) - 1:
+        argument = argument[:column]
+      else:
+        argument = argument[:column-1] + argument[column:]
     except Exception as e:
       print("[cleanArgs] Argument fixing failed.")
       raise ValueError(f"Failed to fix argument “{args}”.")
-  
+
   if isinstance(obj,dict):
-    return json.dumps(obj)
+    return json.dumps(obj, default=_typeAsString)
   elif isinstance(obj,tuple) or isinstance(obj,list):
-    return json.dumps(obj[0])
+    return json.dumps(obj[0], default=_typeAsString)
 
 def convert(seconds):
   if type(seconds) != type(None):
