@@ -27,7 +27,11 @@
           value => !this.$store.state.storageList.find(s => s.path === value) || 'A storage already exist for this path'
           ]" />
         <br>
-        <va-button class="mb-3" type="submit">
+        <va-button 
+          class="mb-3" 
+          type="submit"
+          :disabled="!isPathValid || !isNameValid"
+          >
           Validate
         </va-button>
       </va-form>
@@ -42,6 +46,20 @@ export default {
     return {
       storageName: null,
       storagePath: null
+    }
+  },
+  computed: {
+    isPathValid() {
+      return this.storagePath && 
+             this.storagePath.length > 0 && 
+             this.storagePath !== '/mnt/' && 
+             /^\/mnt\/([a-zA-Z0-9_ -]+\/)+$/i.test(this.storagePath) && 
+             !this.$store.state.storageList.find(s => s.path === this.storagePath);
+    },
+    isNameValid() {
+      return this.storageName && 
+             this.storageName.length > 0 && 
+             !this.$store.state.storageList.find(s => s.name === this.storageName);
     }
   },
   methods: {

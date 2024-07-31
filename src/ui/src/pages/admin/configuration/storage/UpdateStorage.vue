@@ -28,6 +28,7 @@
         <va-button
           class="mb-3"
           type="submit"
+          :disabled="!isPathValid || !isNameValid"
         >
           Update
         </va-button>
@@ -65,6 +66,17 @@ export default {
         return item.id == this.$route.params.id
       })
       return result[0]
+    },
+    isPathValid() {
+      return this.updatedValues.path && 
+             this.updatedValues.path.length > 0 && 
+             this.updatedValues.path !== '/mnt/' && 
+             /^\/mnt\/([a-zA-Z0-9_ -]+\/)+$/i.test(this.updatedValues.path) && 
+             !this.$store.state.storageList.find(s => s.path === this.updatedValues.path);
+    },
+    isNameValid() {
+      return this.updatedValues.name && 
+             this.updatedValues.name.length> 0;
     }
   },
   mounted () {
