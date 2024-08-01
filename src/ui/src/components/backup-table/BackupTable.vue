@@ -55,6 +55,20 @@
       </template>
       
       <template #cell(actions)="{ rowIndex }">
+        <va-button
+          v-if="data[rowIndex].state == 'FAILURE'"
+          icon="bug_report"
+          class="mr-4"
+          color="secondary"
+          gradient
+          :rounded="false"
+          @click="selectedTask = data[rowIndex], retrieveTasksLogs(data[rowIndex].uuid)"
+        >
+          Troubleshoot
+        </va-button>
+      </template>
+
+      <template #cell(virtualmachines)="{ rowIndex }">
         <va-button-group gradient :rounded="false">
           <va-button icon="settings" @click="this.$router.push(`/resources/virtualmachines/${VMNameToUUID(data[rowIndex].target)}`)" />
         </va-button-group>

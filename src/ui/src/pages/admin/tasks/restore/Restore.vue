@@ -112,6 +112,7 @@ export default defineComponent({
         {key: 'runtime', sortable: true},
         {key: 'state', sortable: true},
         {key: 'actions', sortable: true},
+        {key: 'virtualmachines'}
       ],
       selectedDate: new Date(),
       logModal: false,
