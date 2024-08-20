@@ -28,7 +28,7 @@ BackROLL 0.3.0 requires at least
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
 
 ## Get Started
-### Docker and Docker compsoe
+### Docker and Docker compose
 Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.\
 - Install Docker https://docs.docker.com/engine/install/ 
 - Install Docker compose https://docs.docker.com/compose/install/linux/
@@ -38,15 +38,8 @@ This method uses a preconfigured oauth provider in docker, for production enviro
 
 Download the install-prod.sh script
 ```bash
-wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.3.0/install-prod.sh
+wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.3.0/install-prod.sh | bash
 ```
-Allow the script execution
-```bash
-sudo chmod +x install-prod.sh
-```
-Start the script
-```bash
-sudo ./install-prod.sh
 ```
 Change directory to the backroll install directory
 ```bash
