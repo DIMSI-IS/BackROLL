@@ -93,6 +93,7 @@ toml
 tomli
 tornado
 typing-extensions
+tzdata
 urllib3
 uvicorn
 vine

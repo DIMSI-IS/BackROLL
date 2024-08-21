@@ -14,27 +14,27 @@ services:
   api:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   worker_primary:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   worker_secondary:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   flower:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   beat:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   front:
     build:

@@ -2,7 +2,7 @@ FROM ubuntu:24.10
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Download latest listing of available packages=
 RUN apt update -y
@@ -33,15 +33,17 @@ RUN apt install -y \
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN python3 -m venv /backroll-venv
-RUN /backroll-venv/bin/python3 -m pip install pip==24.0
+RUN python3 -m venv ./venv
+RUN ./venv/bin/python3 -m pip install pip==24.0
 
 COPY requirements.txt ./
-RUN /backroll-venv/bin/pip3 install --no-cache-dir -r requirements.txt
+RUN ./venv/bin/pip3 install --no-cache-dir -r requirements.txt
 
 # Set up the ssh folder
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /root/flower
+
+WORKDIR /app/src
 
 COPY . .
 

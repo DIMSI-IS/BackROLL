@@ -1,2 +1,2 @@
 bash ssh_setup.sh
-/backroll-venv/python3 run.py
+/app/venv/bin/python3 run.py
