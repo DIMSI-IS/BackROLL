@@ -219,6 +219,9 @@ def handle_task_failure(task_id, msg):
   host = host_route.filter_host_by_id(task_args['host'])
   pool = pool_route.filter_pool_by_id(host.pool_id)
   policy = policy_route.filter_policy_by_id(pool.policy_id)
+
+  if policy.externalhook is None:
+    return
   hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
   if hook.provider.lower() == "slack" and hook.value:
