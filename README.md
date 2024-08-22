@@ -38,8 +38,15 @@ This method uses a preconfigured oauth provider in docker, for production enviro
 
 Download the install-prod.sh script
 ```bash
-wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.3.0/install-prod.sh | bash
+wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.3.0/install-prod.sh
 ```
+Allow the script execution
+```bash
+sudo chmod +x install-prod.sh
+```
+Start the script
+```bash
+sudo ./install-prod.sh
 ```
 Change directory to the backroll install directory
 ```bash
