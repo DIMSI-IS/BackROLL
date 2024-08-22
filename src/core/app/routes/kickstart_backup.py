@@ -18,6 +18,7 @@
 #!/usr/bin/env python
 import os
 import uuid as uuid_pkg
+from uuid import UUID
 from fastapi import HTTPException, Depends
 from pydantic import Json
 from celery_once import QueueOnce
@@ -51,7 +52,7 @@ def getVMtobackup(pool_id):
   virtual_machine_list = []
   try:
     with Session(engine) as session:
-      statement = select(Hosts).where(Hosts.pool_id == pool_id)
+      statement = select(Hosts).where(Hosts.pool_id == UUID(pool_id))
       results = session.exec(statement)
       for host in results:
         HOST_UP  = True if os.system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null") == 0 else False

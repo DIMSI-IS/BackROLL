@@ -17,6 +17,7 @@
 
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
+from uuid import UUID
 
 from app.kvm import kvm_connection
 from app import database
@@ -29,7 +30,7 @@ def check_kvm(host):
     raise ValueError(e)
 
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.id == host.id)
+    statement = select(Hosts).where(Hosts.id == UUID(host.id))
     results = session.exec(statement)
     selectedHost = results.one()
     connection_state = None
