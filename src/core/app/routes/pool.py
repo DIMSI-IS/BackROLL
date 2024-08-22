@@ -17,7 +17,7 @@
 
 #!/usr/bin/env python
 import uuid as uuid_pkg
-from uuid import UUID
+from app.patch import ensure_uuid
 from typing import Optional
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
@@ -67,7 +67,7 @@ def filter_pool_by_id(pool_id):
     raise ValueError(e)
   try:
     with Session(engine) as session:
-      statement = select(Pools).where(Pools.id == UUID(pool_id))
+      statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
       results = session.exec(statement)
       pool = results.one()
       if not pool:
@@ -82,7 +82,7 @@ def api_create_pool(item):
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Policies).where(Policies.id == UUID(item.policy_id))
+    statement = select(Policies).where(Policies.id == ensure_uuid(item.policy_id))
     results = session.exec(statement)
     policy = results.first()
     if not policy:
@@ -104,7 +104,7 @@ def api_update_pool(pool_id, item):
   except:
     raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
-    statement = select(Pools).where(Pools.id == UUID(pool_id))
+    statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
     results = session.exec(statement)
     data_pool = results.one()
   if not data_pool:
@@ -135,7 +135,7 @@ def api_delete_pool(pool_id):
 
   records = []
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.pool_id == UUID(pool_id))
+    statement = select(Hosts).where(Hosts.pool_id == ensure_uuid(pool_id))
     results = session.exec(statement)
     for host in results:
       records.append(host)

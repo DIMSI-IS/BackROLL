@@ -17,7 +17,7 @@
 
 #!/usr/bin/env python
 import uuid as uuid_pkg
-from uuid import UUID
+from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from pydantic import Json
 from sqlmodel import Session, select
@@ -57,7 +57,7 @@ def filter_connector_by_id(connector_id):
     raise ValueError(e)
   try:
     with Session(engine) as session:
-      statement = select(Connectors).where(Connectors.id == UUID(connector_id))
+      statement = select(Connectors).where(Connectors.id == ensure_uuid(connector_id))
       results = session.exec(statement)
       storage = results.one()
       if not storage:
@@ -73,7 +73,7 @@ def api_update_connector(connector_id, name, url, login, password):
   except:
     raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
-    statement = select(Connectors).where(Connectors.id == UUID(connector_id))
+    statement = select(Connectors).where(Connectors.id == ensure_uuid(connector_id))
     results = session.exec(statement)
     data_connector = results.one()
   if not data_connector:
@@ -137,7 +137,7 @@ def api_delete_connector(connector_id):
     raise ValueError(e)
   records = []
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.connector_id == UUID(connector_id))
+    statement = select(Hosts).where(Hosts.connector_id == ensure_uuid(connector_id))
     results = session.exec(statement)
     for host in results:
       records.append(host)

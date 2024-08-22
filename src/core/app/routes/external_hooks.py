@@ -18,7 +18,7 @@
 #!/usr/bin/env python
 
 import uuid as uuid_pkg
-from uuid import UUID
+from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from typing import Optional
 from pydantic import BaseModel, Json
@@ -55,7 +55,7 @@ def filter_external_hook_by_id(hook_id):
         raise ValueError(exc) from exc
     try:
         with Session(engine) as session:
-            statement = select(ExternalHooks).where(ExternalHooks.id == UUID(hook_id))
+            statement = select(ExternalHooks).where(ExternalHooks.id == ensure_uuid(hook_id))
             results = session.exec(statement)
             pool = results.one()
             if not pool:
@@ -104,7 +104,7 @@ def api_update_external_hook(hook_id, name, value):
     except Exception as exc:
         raise ValueError("Unable to connect to database.") from exc
     with Session(engine) as session:
-        statement = select(ExternalHooks).where(ExternalHooks.id == UUID(hook_id))
+        statement = select(ExternalHooks).where(ExternalHooks.id == ensure_uuid(hook_id))
         results = session.exec(statement)
         data_external_hook = results.one()
     if not data_external_hook:
@@ -133,7 +133,7 @@ def api_delete_external_hook(hook_id):
 
     records = []
     with Session(engine) as session:
-        statement = select(Policies).where(Policies.externalhook == UUID(hook_id))
+        statement = select(Policies).where(Policies.externalhook == ensure_uuid(hook_id))
         results = session.exec(statement)
         for hook in results:
             records.append(hook)

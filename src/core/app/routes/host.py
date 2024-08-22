@@ -18,7 +18,7 @@
 #!/usr/bin/env python
 import os
 import uuid as uuid_pkg
-from uuid import UUID
+from app.patch import ensure_uuid
 import paramiko
 from typing import Optional
 from fastapi import Depends, HTTPException
@@ -81,7 +81,7 @@ def filter_host_by_id(host_id):
   try:
     engine = database.init_db_connection()
     with Session(engine) as session:
-      statement = select(Hosts).where(Hosts.id == UUID(host_id))
+      statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
       results = session.exec(statement)
       host = results.first()
     if not host:
@@ -105,7 +105,7 @@ def api_create_host(item):
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Pools).where(Pools.id == UUID(item.pool_id))
+    statement = select(Pools).where(Pools.id == ensure_uuid(item.pool_id))
     results = session.exec(statement)
     pool = results.first()
     if not pool:
@@ -126,14 +126,14 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
   except:
     raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.id == UUID(host_id))
+    statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
     results = session.exec(statement)
     data_host = results.one()
   if not data_host:
     raise ValueError(f'Host with id {host_id} not found')
   if pool_id:
     with Session(engine) as session:
-      statement = select(Pools).where(Pools.id == UUID(pool_id))
+      statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
       results = session.exec(statement)
       pool = results.first()
       if not pool:
@@ -184,7 +184,7 @@ def api_delete_host(host_id):
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.id == UUID(host_id))
+    statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
     results = session.exec(statement)
     host = results.first()
     if not host:

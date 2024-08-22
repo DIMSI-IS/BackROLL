@@ -21,7 +21,7 @@ import select
 # Other imports
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
-from uuid import UUID
+from app.patch import ensure_uuid
 # Misc
 import os
 from re import search
@@ -53,7 +53,7 @@ def init_ssh_connection(host_id, ip_address, username):
     raise ValueError(e)
 
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.id == UUID(host_id))
+    statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
     results = session.exec(statement)
     data_host = results.one()
     data_host.ssh = 1

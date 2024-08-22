@@ -18,7 +18,7 @@
 #!/usr/bin/env python
 import json
 import uuid as uuid_pkg
-from uuid import UUID
+from app.patch import ensure_uuid
 from croniter import croniter
 from typing import Optional
 from fastapi import Depends, HTTPException, Security, status
@@ -96,7 +96,7 @@ def filter_policy_by_id(policy_id):
     raise ValueError(e)
   try:
     with Session(engine) as session:
-      statement = select(Policies).where(Policies.id == UUID(policy_id))
+      statement = select(Policies).where(Policies.id == ensure_uuid(policy_id))
       results = session.exec(statement)
       policy = results.one()
       if not policy:
@@ -129,7 +129,7 @@ def api_delete_backup_policy(backup_policy_id):
     raise ValueError(e)
   try:
     with Session(engine) as session:
-      statement = select(Policies).where(Policies.id == UUID(backup_policy_id))
+      statement = select(Policies).where(Policies.id == ensure_uuid(backup_policy_id))
       results = session.exec(statement)
       policy = results.one()
       if not policy:
@@ -167,7 +167,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
         headers={"WWW-Authenticate": "Bearer"},
     )
   with Session(engine) as session:
-    statement = select(Policies).where(Policies.id == UUID(policy_id))
+    statement = select(Policies).where(Policies.id == ensure_uuid(policy_id))
     results = session.exec(statement)
     data_backup_policy = results.one()
 
@@ -188,7 +188,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
   try:
     data_pool = []
     with Session(engine) as session:
-      statement = select(Pools).where(Pools.policy_id == UUID(policy_id))
+      statement = select(Pools).where(Pools.policy_id == ensure_uuid(policy_id))
       results = session.exec(statement)
       for pool in results:
         data_pool.append(pool)
@@ -231,7 +231,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
       try:
         data_host = []
         with Session(engine) as session:
-          statement = select(Hosts).where(Hosts.pool_id == UUID(pool.id))
+          statement = select(Hosts).where(Hosts.pool_id == ensure_uuid(pool.id))
           results = session.exec(statement)
           for host in results:
             data_host.append(host)
@@ -288,7 +288,7 @@ def create_backup_policy(item: backup_policy_create, identity: Json = Depends(au
     raise HTTPException(status_code=500, detail=jsonable_encoder(e))
   records = []
   with Session(engine) as session:
-    statement = select(Storage).where(Storage.id == UUID(item.storage))
+    statement = select(Storage).where(Storage.id == ensure_uuid(item.storage))
     results = session.exec(statement)
     for policy in results:
       records.append(policy)
@@ -333,7 +333,7 @@ def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.valid_tok
     raise HTTPException(status_code=500, detail=jsonable_encoder(e))
   records = []
   with Session(engine) as session:
-    statement = select(Pools).where(Pools.policy_id == UUID(policy_id))
+    statement = select(Pools).where(Pools.policy_id == ensure_uuid(policy_id))
     results = session.exec(statement)
     for policy in results:
       records.append(policy)

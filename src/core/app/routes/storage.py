@@ -19,7 +19,7 @@
 import shutil
 import os
 import uuid as uuid_pkg
-from uuid import UUID
+from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 from sqlmodel import Session, select
@@ -70,32 +70,32 @@ def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
     with Session(engine) as session:
       if 'host' in virtual_machine_info:
         # Find host linked to vm
-        statement = select(Hosts).where(Hosts.id == UUID(virtual_machine_info['host']))
+        statement = select(Hosts).where(Hosts.id == ensure_uuid(virtual_machine_info['host']))
         results = session.exec(statement)
         host = results.one()
         if not host:
           raise ValueError(f"Host with id {virtual_machine_info['host']} not found")
         # Find pool linked to host (KVM)
-        statement = select(Pools).where(Pools.id == UUID(host.pool_id))
+        statement = select(Pools).where(Pools.id == ensure_uuid(host.pool_id))
         results = session.exec(statement)
         pool = results.one()
         if not pool:
           raise ValueError(f"Pool with id {host_info['pool_id']} not found")
       else:
         # Find pool linked to vm (CS)
-        statement = select(Pools).where(Pools.id == UUID(virtual_machine_info["pool_id"]))
+        statement = select(Pools).where(Pools.id == ensure_uuid(virtual_machine_info["pool_id"]))
         results = session.exec(statement)
         pool = results.one()
         if not pool:
           raise ValueError(f"Pool with id {virtual_machine_info['pool_id']} not found")
       # Find policy linked to pool
-      statement = select(Policies).where(Policies.id == UUID(pool.policy_id))
+      statement = select(Policies).where(Policies.id == ensure_uuid(pool.policy_id))
       results = session.exec(statement)
       policy = results.one()
       if not policy:
         raise ValueError(f"Policy with id {pool.policy_id} not found")
       # Find policy linked to pool
-      statement = select(Storage).where(Storage.id == UUID(policy.storage))
+      statement = select(Storage).where(Storage.id == ensure_uuid(policy.storage))
       results = session.exec(statement)
       storage = results.one()
       if not storage:
@@ -111,7 +111,7 @@ def filter_storage_by_id(storage_id):
     raise ValueError(e)
   try:
     with Session(engine) as session:
-      statement = select(Storage).where(Storage.id == UUID(storage_id))
+      statement = select(Storage).where(Storage.id == ensure_uuid(storage_id))
       results = session.exec(statement)
       storage = results.one()
       if not storage:
@@ -143,7 +143,7 @@ def api_update_storage(storage_id, name, path):
   except:
     raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
-    statement = select(Storage).where(Storage.id == UUID(storage_id))
+    statement = select(Storage).where(Storage.id == ensure_uuid(storage_id))
     results = session.exec(statement)
     data_storage = results.one()
   if not data_storage:
@@ -170,7 +170,7 @@ def api_delete_storage(storage_id):
     raise ValueError(e)
   records = []
   with Session(engine) as session:
-    statement = select(Policies).where(Policies.storage == UUID(storage_id))
+    statement = select(Policies).where(Policies.storage == ensure_uuid(storage_id))
     results = session.exec(statement)
     for policy in results:
       records.append(policy)
