@@ -38,15 +38,15 @@ class Policies(SQLModel, table=True):
   retention_week: int
   retention_month: int
   retention_year: int
-  storage: uuid_pkg.UUID = Field(default=None, foreign_key="storage.id")
-  externalhook: uuid_pkg.UUID = Field(default=None, foreign_key="externalhooks.id")
+  storage: Optional[uuid_pkg.UUID] = Field(default=None, foreign_key="storage.id")
+  externalhook: Optional[uuid_pkg.UUID] = Field(default=None, foreign_key="externalhooks.id")
   enabled: Optional[bool] = 0
 
 class Pools(SQLModel, table=True):
   id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
   name: Optional[str] = None
-  policy_id: uuid_pkg.UUID = Field(default=None, foreign_key="policies.id")
-  connector_id: uuid_pkg.UUID = Field(default=None, foreign_key="connectors.id")
+  policy_id: Optional[uuid_pkg.UUID] = Field(default=None, foreign_key="policies.id")
+  connector_id: Optional[uuid_pkg.UUID] = Field(default=None, foreign_key="connectors.id")
   def to_json(self):
     return {
       "id": str(self.id),
@@ -61,7 +61,7 @@ class Hosts(SQLModel, table=True):
   ipaddress: str
   username: Optional[str] = None
   ssh: Optional[bool] = 0
-  pool_id: uuid_pkg.UUID = Field(default=None, foreign_key="pools.id")
+  pool_id: Optional[uuid_pkg.UUID] = Field(default=None, foreign_key="pools.id")
   tags: Optional[str] = None
   state: Optional[bool] = 0
 
