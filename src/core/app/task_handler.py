@@ -220,6 +220,7 @@ def handle_task_failure(task_id, msg):
   pool = pool_route.filter_pool_by_id(host.pool_id)
   policy = policy_route.filter_policy_by_id(pool.policy_id)
 
+  # TODO Style it like handle_task_success().
   if policy.externalhook is None:
     return
   hook = hook_route.filter_external_hook_by_id(policy.externalhook)
@@ -230,7 +231,8 @@ def handle_task_failure(task_id, msg):
     text = json.loads(task_result)['args']
     
     print(text)
-    
+
+    # TODO It may be ok with clenArgs().
     left = "{"
     right = "}"
     arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
