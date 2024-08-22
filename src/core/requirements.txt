@@ -7,6 +7,7 @@ Authlib
 bcrypt
 bidict
 billiard
+borgbackup
 CacheControl
 celery
 celery-once

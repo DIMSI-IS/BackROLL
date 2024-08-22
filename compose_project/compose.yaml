@@ -39,7 +39,7 @@ services:
         condition: service_completed_successfully
       # database:
       #   condition: service_healthy
-    # Compensates for the lack of database healthcheck.
+      # Compensates for the lack of database healthcheck.
     restart: on-failure
     command: bash api.command.sh
     env_file:
@@ -47,7 +47,7 @@ services:
     volumes:
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
       - /mnt:/mnt
-  
+
   worker_primary:
     depends_on:
       - api
@@ -71,7 +71,7 @@ services:
   flower:
     depends_on:
       - worker_primary
-    command: /app/venv/bin/celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
+    command: celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
     env_file:
       - core/@$BACKROLL_MODE.env
     volumes:
@@ -80,7 +80,7 @@ services:
   beat:
     depends_on:
       - worker_secondary
-    command: /app/venv/bin/celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
+    command: celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
     env_file:
       - core/@$BACKROLL_MODE.env
 

@@ -10,34 +10,38 @@ RUN apt update -y
 # RUN apt-get -y upgrade
 # Install a new package=
 RUN apt install -y \
-    libssl-dev \
     openssh-client \
     libvirt-dev \
-    python3 \
-    python3-dev \
-    python3-pip \
-    python3-venv \
-    libacl1-dev \
-    libacl1 \
-    libb2-dev \
-    liblz4-dev \
-    libzstd-dev \
     build-essential \
-    pkg-config \
-    python3-pkgconfig \
     nbd-client \
     qemu-utils \
-    netcat-openbsd \
-    borgbackup
+    netcat-openbsd
 
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN python3 -m venv ./venv
-RUN ./venv/bin/python3 -m pip install pip==24.0
+########################################################
+
+# Based on the Borg documentation.
+
+RUN apt install -y \
+    python3 python3-dev python3-pip python3-virtualenv \
+    libacl1-dev libacl1 \
+    libssl-dev \
+    liblz4-dev libzstd-dev libxxhash-dev \
+    build-essential \
+    pkg-config python3-pkgconfig
+
+RUN virtualenv --python=python3 python-env
+ENV PATH="/app/python-env/bin:$PATH"
+
+RUN pip install -U pip setuptools wheel && \
+    pip install pkgconfig
+
+########################################################
 
 COPY requirements.txt ./
-RUN ./venv/bin/pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Set up the ssh folder
 RUN mkdir -p /root/.ssh
