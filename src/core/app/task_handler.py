@@ -79,8 +79,14 @@ def ensure_dict(value):
   
   return None
 
+def ensure_json_serializable(value):
+  def typeAsString(object):
+    return str(type(object))
+
+  return json.loads(json.dumps(value, default=typeAsString))
+
 def parse_task_args(args):
-  return ensure_dict(eval_python_data(args))
+  return ensure_json_serializable(ensure_dict(eval_python_data(args)))
 
 def convert(seconds):
   if type(seconds) != type(None):
