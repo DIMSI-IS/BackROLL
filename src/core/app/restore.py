@@ -23,7 +23,7 @@ import subprocess
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
-from app import celery
+from app import celery, shell
 
 from app.routes import host
 from app.routes import storage
@@ -95,7 +95,7 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
 
 # def restore_task(self, info, hypervisor, disk_list, backup):
 def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_name):
-  print("Debug - restore_task - start")    
+  print("Debug - restore_task - start")
   vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(virtual_machine_info)
   borg_repository = vm_storage["path"]
   print("DEBUG borg_repository " + borg_repository)
@@ -131,15 +131,11 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
     try:
       # Extract selected borg archive
-      cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
-      process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-      while True:
-        process.stdout.flush()
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-          break
-        elif not output and process.poll() is not None:
-          break
+      shell.run(f"""borg extract --sparse {borg_repository}{virtual_machine_info['name']}::{backup_name}""")
+
+      # Skip directories
+      shell.run('mv $(find -type f) ./')
+
       # Loop through VM's disks to find filedisk
       for disk in vm_storage_info:
         if disk['device'] == disk_device:
@@ -177,20 +173,16 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
           kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
 
       try:
-        #subprocess.run(['cp', virtual_machine_diskName, f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
-        os.system(f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
+        shell.run(f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
 
         # Fix chmod ownership of new qcow2 filedisk
-        #subprocess.run(['chmod', '644', f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
-        os.system(f"chmod 644 {kvm_storagepath}{virtual_machine_diskName}-tmp")
+        shell.run(f"chmod 644 {kvm_storagepath}{virtual_machine_diskName}-tmp")
 
         # Replace disk by extracted backup
-        #subprocess.run(['mv', f"{kvm_storagepath}{virtual_machine_diskName}-tmp", f"{kvm_storagepath}{virtual_machine_diskName}"], check = True)
-        os.system(f"mv {kvm_storagepath}{virtual_machine_diskName}-tmp {kvm_storagepath}{virtual_machine_diskName}")
+        shell.run(f"mv {kvm_storagepath}{virtual_machine_diskName}-tmp {kvm_storagepath}{virtual_machine_diskName}")
         
         # Remove temporary folder used to extract borg archive
-        #subprocess.run(['rm', "-rf", f"{borg_repository}restore/{virtual_machine_info['name']}"])
-        os.system(f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}")
+        shell.run(f"rm -rf {borg_repository}restore/{virtual_machine_info['name']}")
       except Exception as e:
         raise e
 
