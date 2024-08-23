@@ -222,7 +222,7 @@ backroll-setup() {
             fi
             ;;
         *)
-            echo "Usage: backroll-setup <dev|staging|prod>" 1>&2
+            echo "Choose dev or staging or prod." 1>&2
             return 1
             ;;
     esac
