@@ -286,9 +286,10 @@ export default {
       }
       const newSchedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${daySchedule}`
       policy.schedule = newSchedule
-      if (this.updatedValues.externalhook) {
-        policy.externalhook = this.updatedValues.externalhook.value
-      }
+
+      const externalhook = this.updatedValues.externalhook?.value
+      policy.externalhook = externalhook?.length > 0 ? externalhook : null
+      
       policy.retention = {
         day: this.updatedValues.retention_day,
         week: this.updatedValues.retention_week,
