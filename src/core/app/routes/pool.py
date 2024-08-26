@@ -16,7 +16,8 @@
 ## under the License.
 
 #!/usr/bin/env python
-import uuid as uuid_pkg
+from uuid import UUID
+from app.patch import ensure_uuid
 from typing import Optional
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
@@ -34,8 +35,8 @@ from app.database import Hosts
 
 class create_items_pool(BaseModel):
   name: str
-  policy_id: uuid_pkg.UUID
-  connector_id: Optional[uuid_pkg.UUID] = None
+  policy_id: UUID
+  connector_id: Optional[UUID] = None
   class Config:
       schema_extra = {
           "example": {
@@ -47,8 +48,8 @@ class create_items_pool(BaseModel):
 
 class update_items_pool(BaseModel):
   name: Optional[str] = None
-  policy_id: Optional[uuid_pkg.UUID] = None
-  connector_id: Optional[uuid_pkg.UUID] = None
+  policy_id: Optional[UUID] = None
+  connector_id: Optional[UUID] = None
   class Config:
       schema_extra = {
           "example": {
@@ -66,7 +67,7 @@ def filter_pool_by_id(pool_id):
     raise ValueError(e)
   try:
     with Session(engine) as session:
-      statement = select(Pools).where(Pools.id == pool_id)
+      statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
       results = session.exec(statement)
       pool = results.one()
       if not pool:
@@ -81,7 +82,7 @@ def api_create_pool(item):
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Policies).where(Policies.id == item.policy_id)
+    statement = select(Policies).where(Policies.id == ensure_uuid(item.policy_id))
     results = session.exec(statement)
     policy = results.first()
     if not policy:
@@ -103,7 +104,7 @@ def api_update_pool(pool_id, item):
   except:
     raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
-    statement = select(Pools).where(Pools.id == pool_id)
+    statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
     results = session.exec(statement)
     data_pool = results.one()
   if not data_pool:
@@ -134,7 +135,7 @@ def api_delete_pool(pool_id):
 
   records = []
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.pool_id == pool_id)
+    statement = select(Hosts).where(Hosts.pool_id == ensure_uuid(pool_id))
     results = session.exec(statement)
     for host in results:
       records.append(host)
@@ -177,7 +178,7 @@ def list_pools(identity: Json = Depends(auth.valid_token)):
 @app.patch('/api/v1/pools/{pool_id}', status_code=200)
 def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(pool_id)
+      uuid_obj = UUID(pool_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   
@@ -186,7 +187,7 @@ def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.
 @app.delete('/api/v1/pools/{pool_id}', status_code=200)
 def delete_pool(pool_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(pool_id)
+      uuid_obj = UUID(pool_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
 

@@ -17,7 +17,8 @@
 
 #!/usr/bin/env python
 
-import uuid as uuid_pkg
+from uuid import UUID
+from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from typing import Optional
 from pydantic import BaseModel, Json
@@ -54,7 +55,7 @@ def filter_external_hook_by_id(hook_id):
         raise ValueError(exc) from exc
     try:
         with Session(engine) as session:
-            statement = select(ExternalHooks).where(ExternalHooks.id == hook_id)
+            statement = select(ExternalHooks).where(ExternalHooks.id == ensure_uuid(hook_id))
             results = session.exec(statement)
             pool = results.one()
             if not pool:
@@ -103,7 +104,7 @@ def api_update_external_hook(hook_id, name, value):
     except Exception as exc:
         raise ValueError("Unable to connect to database.") from exc
     with Session(engine) as session:
-        statement = select(ExternalHooks).where(ExternalHooks.id == hook_id)
+        statement = select(ExternalHooks).where(ExternalHooks.id == ensure_uuid(hook_id))
         results = session.exec(statement)
         data_external_hook = results.one()
     if not data_external_hook:
@@ -132,7 +133,7 @@ def api_delete_external_hook(hook_id):
 
     records = []
     with Session(engine) as session:
-        statement = select(Policies).where(Policies.externalhook == hook_id)
+        statement = select(Policies).where(Policies.externalhook == ensure_uuid(hook_id))
         results = session.exec(statement)
         for hook in results:
             records.append(hook)
@@ -170,7 +171,7 @@ def update_external_hook(
     _: Json = Depends(auth.valid_token),
 ):
     try:
-        uuid_obj = uuid_pkg.UUID(hook_id)
+        uuid_obj = UUID(hook_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail="Given uuid is not valid") from exc
     name = item.name
@@ -181,7 +182,7 @@ def update_external_hook(
 @app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
 def delete_external_hook(hook_id, identity: Json = Depends(auth.valid_token)):
     try:
-        uuid_obj = uuid_pkg.UUID(hook_id)
+        uuid_obj = UUID(hook_id)
     except ValueError:
         raise HTTPException(status_code=404, detail="Given uuid is not valid")
 
