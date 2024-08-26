@@ -16,7 +16,7 @@
 ## under the License.
 
 #!/usr/bin/env python
-import uuid as uuid_pkg
+from uuid import UUID
 from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from pydantic import Json
@@ -168,7 +168,7 @@ def retrieve_connectors(identity: Json = Depends(auth.valid_token)):
 @app.patch('/api/v1/connectors/{connector_id}', status_code=200)
 def update_connector(connector_id, item: items_create_connector, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(connector_id)
+      uuid_obj = UUID(connector_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   name = item.name
@@ -180,7 +180,7 @@ def update_connector(connector_id, item: items_create_connector, identity: Json 
 @app.delete('/api/v1/connectors/{connector_id}', status_code=200)
 def delete_connector(connector_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(connector_id)
+      uuid_obj = UUID(connector_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
 

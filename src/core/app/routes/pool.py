@@ -16,7 +16,7 @@
 ## under the License.
 
 #!/usr/bin/env python
-import uuid as uuid_pkg
+from uuid import UUID
 from app.patch import ensure_uuid
 from typing import Optional
 from fastapi import HTTPException, Depends
@@ -35,8 +35,8 @@ from app.database import Hosts
 
 class create_items_pool(BaseModel):
   name: str
-  policy_id: uuid_pkg.UUID
-  connector_id: Optional[uuid_pkg.UUID] = None
+  policy_id: UUID
+  connector_id: Optional[UUID] = None
   class Config:
       schema_extra = {
           "example": {
@@ -48,8 +48,8 @@ class create_items_pool(BaseModel):
 
 class update_items_pool(BaseModel):
   name: Optional[str] = None
-  policy_id: Optional[uuid_pkg.UUID] = None
-  connector_id: Optional[uuid_pkg.UUID] = None
+  policy_id: Optional[UUID] = None
+  connector_id: Optional[UUID] = None
   class Config:
       schema_extra = {
           "example": {
@@ -178,7 +178,7 @@ def list_pools(identity: Json = Depends(auth.valid_token)):
 @app.patch('/api/v1/pools/{pool_id}', status_code=200)
 def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(pool_id)
+      uuid_obj = UUID(pool_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   
@@ -187,7 +187,7 @@ def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.
 @app.delete('/api/v1/pools/{pool_id}', status_code=200)
 def delete_pool(pool_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(pool_id)
+      uuid_obj = UUID(pool_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
 

@@ -17,7 +17,7 @@
 
 #!/usr/bin/env python
 import os
-import uuid as uuid_pkg
+from uuid import UUID
 from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from pydantic import Json
@@ -103,7 +103,7 @@ def kickstart_pool_backup(pool_id):
 @app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
 def start_pool_backup(pool_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(pool_id)
+      uuid_obj = UUID(pool_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
 

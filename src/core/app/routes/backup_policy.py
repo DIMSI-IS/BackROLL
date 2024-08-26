@@ -17,7 +17,7 @@
 
 #!/usr/bin/env python
 import json
-import uuid as uuid_pkg
+from uuid import UUID
 from app.patch import ensure_uuid
 from croniter import croniter
 from typing import Optional
@@ -48,8 +48,8 @@ class backup_policy_create(BaseModel):
   description: Optional[str] = None
   schedule: str
   retention: dict
-  storage: uuid_pkg.UUID
-  externalhook: Optional[str] = None
+  storage: UUID
+  externalhook: Optional[UUID] = None
   enabled: Optional[bool] = False
   class Config:
       schema_extra = {
@@ -71,8 +71,8 @@ class backup_policy_update(BaseModel):
   description: Optional[str] = None
   schedule: Optional[str] = None
   retention: Optional[dict] = None
-  storage: Optional[uuid_pkg.UUID] = None
-  externalhook: Optional[str] = None
+  storage: Optional[UUID] = None
+  externalhook: Optional[UUID] = None
   enabled: Optional[bool] = None
   class Config:
       schema_extra = {

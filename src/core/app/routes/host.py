@@ -17,7 +17,7 @@
 
 #!/usr/bin/env python
 import os
-import uuid as uuid_pkg
+from uuid import UUID
 from app.patch import ensure_uuid
 import paramiko
 from typing import Optional
@@ -40,7 +40,7 @@ class items_create_host(BaseModel):
   hostname: str
   tags: Optional[str] = None
   ip_address: str
-  pool_id: uuid_pkg.UUID
+  pool_id: UUID
   class Config:
       schema_extra = {
           "example": {
@@ -55,7 +55,7 @@ class items_update_host(BaseModel):
   hostname: Optional[str] = None
   tags: Optional[str] = None
   ip_address: Optional[str] = None
-  pool_id: Optional[uuid_pkg.UUID] = None
+  pool_id: Optional[UUID] = None
   class Config:
       schema_extra = {
           "example": {
@@ -217,7 +217,7 @@ def list_hosts(identity: Json = Depends(auth.valid_token)):
 @app.patch("/api/v1/hosts/{host_id}", status_code=200)
 def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(host_id)
+      uuid_obj = UUID(host_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   name = item.hostname
@@ -229,7 +229,7 @@ def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.
 @app.delete('/api/v1/hosts/{host_id}', status_code=200)
 def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(host_id)
+      uuid_obj = UUID(host_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   return api_delete_host(host_id)

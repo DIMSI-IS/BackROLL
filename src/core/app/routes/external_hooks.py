@@ -17,7 +17,7 @@
 
 #!/usr/bin/env python
 
-import uuid as uuid_pkg
+from uuid import UUID
 from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from typing import Optional
@@ -171,7 +171,7 @@ def update_external_hook(
     _: Json = Depends(auth.valid_token),
 ):
     try:
-        uuid_obj = uuid_pkg.UUID(hook_id)
+        uuid_obj = UUID(hook_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail="Given uuid is not valid") from exc
     name = item.name
@@ -182,7 +182,7 @@ def update_external_hook(
 @app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
 def delete_external_hook(hook_id, identity: Json = Depends(auth.valid_token)):
     try:
-        uuid_obj = uuid_pkg.UUID(hook_id)
+        uuid_obj = UUID(hook_id)
     except ValueError:
         raise HTTPException(status_code=404, detail="Given uuid is not valid")
 

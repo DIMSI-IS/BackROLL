@@ -18,7 +18,7 @@
 #!/usr/bin/env python
 import shutil
 import os
-import uuid as uuid_pkg
+from uuid import UUID
 from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
@@ -223,7 +223,7 @@ def create_storage(item: items_storage, identity: Json = Depends(auth.valid_toke
 @app.patch("/api/v1/storage/{storage_id}", status_code=200)
 def update_storage(storage_id, item: items_storage, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(storage_id)
+      uuid_obj = UUID(storage_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   name = item.name
@@ -233,7 +233,7 @@ def update_storage(storage_id, item: items_storage, identity: Json = Depends(aut
 @app.delete('/api/v1/storage/{storage_id}', status_code=200)
 def delete_storage(storage_id: str, identity: Json = Depends(auth.valid_token)):
   try:
-    uuid_obj = uuid_pkg.UUID(storage_id)
+    uuid_obj = UUID(storage_id)
   except ValueError:
     raise HTTPException(status_code=404, detail='Given uuid is not valid')
   if not storage_id: raise HTTPException(status_code=404, detail='Pool not found')
