@@ -119,7 +119,9 @@ def handle_task_success(task_id, msg):
   if policy.externalhook:
     hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
-    if hook.provider.lower() == "slack" and hook.value:
+    # Future feature : support multiple external hook providers.
+    # if hook.provider.lower() == "slack" and hook.value:
+    if hook.value:
       time.sleep(10)
       context_smiley = "white_check_mark"
       alerting = ""
@@ -187,7 +189,9 @@ def handle_task_failure(task_id, msg):
   if policy.externalhook:
     hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
-    if hook.provider.lower() == "slack" and hook.value:
+    # Future feature : support multiple external hook providers.
+    # if hook.provider.lower() == "slack" and hook.value:
+    if hook.value:
       time.sleep(10)
       context_smiley = "x"
       alerting = "<!channel> "
@@ -281,6 +285,7 @@ def pool_backup_notification(result, pool_id):
           success_list.append(item['info'])
       else:
           failure_list.append(item)
-
-    if externalhook.provider.lower() == "slack":
-      slack.pool_notification(externalhook, success_list, failure_list, pool)
+    
+    # Future feature : support multiple external hook providers.
+    # if externalhook.provider.lower() == "slack":
+    slack.pool_notification(externalhook, success_list, failure_list, pool)
