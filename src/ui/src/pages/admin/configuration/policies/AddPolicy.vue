@@ -234,7 +234,7 @@ export default {
       }
       const newSchedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${daySchedule}`
 
-      axios.post(`${this.$store.state.endpoint.api}/api/v1/backup_policies`, { name: this.inputValue1, description: this.inputValue2, retention: this.newRetention, schedule: newSchedule, storage: this.storageSelection.value, externalhook: this.externalhook.id }, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
+      axios.post(`${this.$store.state.endpoint.api}/api/v1/backup_policies`, { name: this.inputValue1, description: this.inputValue2, retention: this.newRetention, schedule: newSchedule, storage: this.storageSelection.value, externalhook: this.externalhook.value }, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
       .then(response => {
         this.$store.dispatch("requestPolicy", { token: this.$keycloak.token })
         this.$router.push('/admin/configuration/policies')

@@ -18,7 +18,8 @@
 # MySQL Module Imports
 import sys
 from urllib.parse import quote_plus
-import uuid as uuid_pkg
+import uuid
+from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine
 
@@ -30,7 +31,7 @@ from app import celery as celeryWorker
 from app import celery
 
 class Policies(SQLModel, table=True):
-  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
   name: str
   description: str
   schedule: str
@@ -38,15 +39,15 @@ class Policies(SQLModel, table=True):
   retention_week: int
   retention_month: int
   retention_year: int
-  storage: uuid_pkg.UUID = Field(default=None, foreign_key="storage.id")
-  externalhook: uuid_pkg.UUID = Field(default=None, foreign_key="externalhooks.id")
+  storage: Optional[UUID] = Field(default=None, foreign_key="storage.id")
+  externalhook: Optional[UUID] = Field(default=None, foreign_key="externalhooks.id")
   enabled: Optional[bool] = 0
 
 class Pools(SQLModel, table=True):
-  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
   name: Optional[str] = None
-  policy_id: uuid_pkg.UUID = Field(default=None, foreign_key="policies.id")
-  connector_id: uuid_pkg.UUID = Field(default=None, foreign_key="connectors.id")
+  policy_id: Optional[UUID] = Field(default=None, foreign_key="policies.id")
+  connector_id: Optional[UUID] = Field(default=None, foreign_key="connectors.id")
   def to_json(self):
     return {
       "id": str(self.id),
@@ -56,12 +57,12 @@ class Pools(SQLModel, table=True):
     }
 
 class Hosts(SQLModel, table=True):
-  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
   hostname: str
   ipaddress: str
   username: Optional[str] = None
   ssh: Optional[bool] = 0
-  pool_id: uuid_pkg.UUID = Field(default=None, foreign_key="pools.id")
+  pool_id: Optional[UUID] = Field(default=None, foreign_key="pools.id")
   tags: Optional[str] = None
   state: Optional[bool] = 0
 
@@ -78,7 +79,7 @@ class Hosts(SQLModel, table=True):
     }
 
 class Storage(SQLModel, table=True):
-  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
   name: str
   path: str
   def to_json(self):
@@ -89,12 +90,12 @@ class Storage(SQLModel, table=True):
     }
 
 class ExternalHooks(SQLModel, table=True):
-  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
   name: str
   value: str
 
 class Connectors(SQLModel, table=True):
-  id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True, nullable=False)
+  id: UUID = Field(default_factory=uuid.uuid4, primary_key=True, nullable=False)
   name: str
   url: str
   login: str

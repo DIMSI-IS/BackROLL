@@ -19,7 +19,7 @@
 import os
 import sys
 import logging
-import uuid as uuid_pkg
+from uuid import UUID
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 import requests
@@ -65,23 +65,14 @@ def retrieve_restore_task_jobs():
   single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
   for key in single_vm_task:
     json_key = single_vm_task[key]
-    json_key["args"] = task_handler.cleanArgs(json_key["args"])
-    if not json_key["args"].endswith("}"):
-      json_key["args"] += "}"
+    json_key["args"] = json.dumps(task_handler.parse_task_args(json_key["args"]))
 
   vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
   vm_retore_path_response = requests.get('http://flower:5555/api/tasks', params=vm_retore_path_payload)
   vm_retore_path_task = json.loads(vm_retore_path_response.content.decode('ascii'))
   for key in vm_retore_path_task:
     json_key = vm_retore_path_task[key]
-    args = json_key["args"]
-    args = args.replace("(", '')
-    args = args.replace(")", '')
-    argsList = args.split(',')
-    vmPath = argsList[0].replace("'", '')
-    vmName = vmPath.split("/")[3]
-    jsonObject = '{ "name" : "' + vmName + '" }'
-    json_key["args"] = jsonObject
+    json_key["args"] = json.dumps(task_handler.parse_task_args(json_key["args"]))
 
   single_vm_task.update(vm_retore_path_task)
   return single_vm_task
@@ -102,9 +93,7 @@ def retrieve_backup_task_jobs():
   aggregated_jobs_list.update(subtask)
   for key in aggregated_jobs_list:
     json_key = aggregated_jobs_list[key]
-    json_key["args"] = task_handler.cleanArgs(json_key["args"])
-    if not json_key["args"].endswith("}"):
-      json_key["args"] += "}"
+    json_key["args"] = json.dumps(task_handler.parse_task_args(json_key["args"]))
   return aggregated_jobs_list
 
 def get_task_logs(task_id):
@@ -114,7 +103,7 @@ def get_task_logs(task_id):
 @app.get('/api/v1/status/{task_id}', status_code=200)
 def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(task_id)
+      uuid_obj = UUID(task_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   task = celery.AsyncResult(task_id)
@@ -153,7 +142,7 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
 @app.get('/api/v1/logs/{task_id}', status_code=200)
 def retrieve_task_logs(task_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(task_id)
+      uuid_obj = UUID(task_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   return get_task_logs(task_id)
@@ -161,7 +150,7 @@ def retrieve_task_logs(task_id, identity: Json = Depends(auth.valid_token)):
 @app.post('/api/v1/tasks/singlebackup/{virtual_machine_id}', status_code=202)
 def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(virtual_machine_id)
+      uuid_obj = UUID(virtual_machine_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   if not virtual_machine_id: raise HTTPException(status_code=404, detail='Virtual machine not found')
@@ -171,7 +160,7 @@ def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.val
 @app.post('/api/v1/tasks/restore/{virtual_machine_id}', status_code=202)
 def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(virtual_machine_id)
+      uuid_obj = UUID(virtual_machine_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   virtual_machine_id = item.virtual_machine_id

@@ -28,7 +28,7 @@ BackROLL 0.3.0 requires at least
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
 
 ## Get Started
-### Docker and Docker compsoe
+### Docker and Docker compose
 Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.\
 - Install Docker https://docs.docker.com/engine/install/ 
 - Install Docker compose https://docs.docker.com/compose/install/linux/

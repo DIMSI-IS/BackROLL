@@ -17,7 +17,8 @@
 
 #!/usr/bin/env python
 import os
-import uuid as uuid_pkg
+from uuid import UUID
+from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
 from pydantic import Json
 from celery_once import QueueOnce
@@ -51,7 +52,7 @@ def getVMtobackup(pool_id):
   virtual_machine_list = []
   try:
     with Session(engine) as session:
-      statement = select(Hosts).where(Hosts.pool_id == pool_id)
+      statement = select(Hosts).where(Hosts.pool_id == ensure_uuid(pool_id))
       results = session.exec(statement)
       for host in results:
         HOST_UP  = True if os.system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null") == 0 else False
@@ -102,7 +103,7 @@ def kickstart_pool_backup(pool_id):
 @app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
 def start_pool_backup(pool_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(pool_id)
+      uuid_obj = UUID(pool_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
 
