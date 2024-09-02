@@ -27,6 +27,14 @@ source source-me.sh staging
 docker compose $staging up
 ```
 
+### `prod`
+
+```bash
+cd compose_project
+source source-me.sh prod
+docker compose $prod up
+```
+
 ### Details: the helper script
 
 In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh) helps you to configure and run BackROLL:
@@ -50,6 +58,10 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
     ```bash
     source souce-me.sh staging
     ```
+  - get argument variables and setup prod:
+    ```bash
+    source souce-me.sh prod
+    ```
 - use `docker compose` with argument variables:
   - dev version:
     ```bash
@@ -58,6 +70,10 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
   - staging version:
     ```bash
     docker compose $staging …
+    ```
+  - prod version:
+    ```bash
+    docker compose $prod …
     ```
 
 Remember to always be in the `compose_project/` directory and to source `source-me.sh` in your terminal.
@@ -117,7 +133,7 @@ Flower:
 
 - [http://flower:5555/](http://flower:5555/)
 
-### Accessing `staging` UI
+### Accessing `staging` and `prod` UI
 
 You can acces to the user interfaces on localhost:
 
