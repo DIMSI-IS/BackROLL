@@ -1,13 +1,11 @@
 #!/bin/sh
 
-for file in /usr/share/nginx/html/js/*;
-do
-  if [ ! -f $file.tmpl ]; then
-    cp $file $file.tmpl
-  fi
-  envsubst '$API_ENDPOINT_URL $OPENID_ISSUER $OPENID_CLIENTID $OPENID_REALM' < $file.tmpl > $file
-  
+echo "Replacing environment variables"
+for file in /usr/share/nginx/html/js/*; do
+  mv "$file" "$file.tmp"
+  envsubst '$API_ENDPOINT_URL $OPENID_ISSUER $OPENID_CLIENTID $OPENID_REALM' < "$file.tmp" > "$file"
+  rm "$file.tmp"
 done
 
-echo "Starting Nginx"
+echo "Starting from build"
 nginx -g 'daemon off;'
