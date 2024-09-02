@@ -12,6 +12,10 @@ backroll-setup() {
             local use_provided_db=
             local use_provided_sso=
 
+            # Shared or default values
+            local backroll_host_user=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
+            local backroll_hostname=$HOSTNAME
+
             case $backroll_mode in
                 dev)
                     local flower_user=
@@ -178,7 +182,9 @@ backroll-setup() {
 
                 cp "$template_path" "$path"
 
-                for var_name in backroll_mode \
+                for var_name in backroll_host_user \
+                                backroll_hostname \
+                                backroll_mode \
                                 flower_user \
                                 flower_password \
                                 use_provided_db \
@@ -232,20 +238,26 @@ if [[ "$1" != "" ]]; then
     backroll-setup "$1" || return $?
 fi
 
-if source backroll-compose/@dev.env 2>/dev/null; then
-    dev="--env-file backroll-compose/@dev.env -f compose.yaml -f compose.source.yaml -f compose.dev.yaml --profile database --profile sso"
+if source backroll/@dev.env 2>/dev/null; then
+    dev="--env-file backroll/@dev.env -f compose.yaml -f compose.source.yaml -f compose.dev.yaml --profile database --profile sso"
 fi
 
-if source backroll-compose/@staging.env 2>/dev/null; then
-    staging="--env-file backroll-compose/@staging.env -f compose.yaml -f compose.source.yaml -f compose.staging_prod.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
+if source backroll/@staging.env 2>/dev/null; then
+    staging="--env-file backroll/@staging.env -f compose.yaml -f compose.source.yaml -f compose.staging_prod.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
+fi
+
+if source backroll/@prod.env 2>/dev/null; then
+    prod="--env-file backroll/@prod.env -f compose.yaml -f compose.staging_prod.yaml -f compose.prod.yaml -f compose.custom.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
 fi
 
 echo "
 Docker compose argument variables:
   - dev=${dev:-    # Run “source source-me.sh dev” to setup dev.}
   - staging=${staging:-    # Run “source source-me.sh staging” to setup staging.}
+  - prod=${prod:-    # Run “source source-me.sh prod to setup prod.}
 
 Usage:
   - docker compose \$dev …
   - docker compose \$staging …
+  - docker compose \$prod …
 "

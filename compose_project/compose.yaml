@@ -1,5 +1,4 @@
-# The user can override this default name with the “-p” option.
-name: ${USERNAME:-${USER:-someone}}_backroll-$BACKROLL_MODE
+name: ${BACKROLL_HOST_USER}_backroll-$BACKROLL_MODE
 
 services:
 
@@ -17,11 +16,8 @@ services:
     command: "redis-server"
 
   setup:
-    environment:
-      # Suppress warnings with ${VAR:-}.
-      - USER=${USER:-}
-      - USERNAME=${USERNAME:-}
-      - BACKROLL_MODE=$BACKROLL_MODE
+    env_file:
+      - backroll/@$BACKROLL_MODE.env
     volumes:
       - .:/app/compose_project
 
