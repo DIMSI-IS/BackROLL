@@ -16,12 +16,17 @@ services:
     command: "redis-server"
 
   setup:
+    build: ./setup
     env_file:
       - backroll/@$BACKROLL_MODE.env
     volumes:
       - .:/app/compose_project
 
   sso:
+    build:
+      context: ./sso
+      args:
+        - BACKROLL_MODE=$BACKROLL_MODE
     profiles:
       - sso
     env_file:

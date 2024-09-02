@@ -1,16 +1,8 @@
 services:
 
   setup:
-    build: ./setup
     volumes:
       - ./setup/src:/app/src:ro
-
-  sso:
-    build:
-      context: ./sso
-      args:
-        - BACKROLL_MODE=$BACKROLL_MODE
-
   api:
     build: ../src/core
     volumes:

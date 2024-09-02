@@ -1,0 +1,18 @@
+services:
+  api:
+    image: dimsicloud/backroll:0.2.22
+
+  worker_primary:
+    image: dimsicloud/backroll:0.2.22
+
+  worker_secondary:
+    image: dimsicloud/backroll:0.2.22
+
+  flower:
+    image: dimsicloud/backroll:0.2.22
+
+  beat:
+    image: dimsicloud/backroll:0.2.22
+
+  front:
+    image: dimsicloud/backroll-ui:0.2.22

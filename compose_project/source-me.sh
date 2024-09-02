@@ -1,12 +1,8 @@
 #!/bin/bash
 
-backroll-setup() {
+backroll_setup() {
     local backroll_mode=$1
     case $backroll_mode in
-        prod)
-            echo "Not yet implemented." 1>&2
-            return 1
-            ;;
         dev|staging|prod)
             # Unset variables.
             local use_provided_db=
@@ -174,6 +170,14 @@ backroll-setup() {
                                 echo "Passwords do not match. Try again."
                             done
                     fi
+                    
+                    case $backroll_mode in
+                        prod)
+                            if ! test -f compose.custom.yaml; then
+                                > compose.custom.yaml
+                            fi
+                            ;;
+                    esac
                     ;;
             esac
 
@@ -228,14 +232,14 @@ backroll-setup() {
             fi
             ;;
         *)
-            echo "Usage: backroll-setup <dev|staging|prod>" 1>&2
+            echo "Choose dev, staging or prod." 1>&2
             return 1
             ;;
     esac
 }
 
 if [[ "$1" != "" ]]; then
-    backroll-setup "$1" || return $?
+    backroll_setup "$1" || return $?
 fi
 
 if source backroll/@dev.env 2>/dev/null; then
@@ -254,7 +258,7 @@ echo "
 Docker compose argument variables:
   - dev=${dev:-    # Run “source source-me.sh dev” to setup dev.}
   - staging=${staging:-    # Run “source source-me.sh staging” to setup staging.}
-  - prod=${prod:-    # Run “source source-me.sh prod to setup prod.}
+  - prod=${prod:-    # Run “source source-me.sh prod” to setup prod.}
 
 Usage:
   - docker compose \$dev …
