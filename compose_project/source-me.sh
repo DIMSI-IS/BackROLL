@@ -29,7 +29,7 @@ backroll_setup() {
                     local sso_user_name=developer
                     local sso_user_password=developer
                     local api_address=api
-                    local front_address=front
+                    local front_url=front:8080
                     ;;
                 staging|prod)
                     echo "#### BackROLL host IP configuration ####"
@@ -172,7 +172,11 @@ backroll_setup() {
                     fi
                     
                     case $backroll_mode in
+                        staging)
+                            local front_url=$front_address:8080
+                            ;;
                         prod)
+                            local front_url=$front_address
                             if ! test -f compose.custom.yaml; then
                                 > compose.custom.yaml
                             fi
@@ -206,7 +210,7 @@ backroll_setup() {
                                 sso_user_name \
                                 sso_user_password \
                                 api_address \
-                                front_address \
+                                front_url \
                                 ;
                 do
                     sed -i 's|_'"$var_name"'|'"${!var_name}"'|' "$path"
@@ -247,7 +251,7 @@ if source backroll/@dev.env 2>/dev/null; then
 fi
 
 if source backroll/@staging.env 2>/dev/null; then
-    staging="--env-file backroll/@staging.env -f compose.yaml -f compose.source.yaml -f compose.staging_prod.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
+    staging="--env-file backroll/@staging.env -f compose.yaml -f compose.source.yaml -f compose.staging_prod.yaml -f compose.staging.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
 fi
 
 if source backroll/@prod.env 2>/dev/null; then

@@ -16,3 +16,5 @@ services:
 
   front:
     image: dimsicloud/backroll-ui:0.2.22
+    ports:
+      - 80:80

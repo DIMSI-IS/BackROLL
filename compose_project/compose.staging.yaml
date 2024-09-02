@@ -1,0 +1,5 @@
+services:
+
+  front:
+    ports:
+      - 8080:80
