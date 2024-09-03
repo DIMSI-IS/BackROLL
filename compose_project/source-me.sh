@@ -179,9 +179,7 @@ backroll_setup() {
                         prod)
                             local front_url=$front_address
 
-                            # If the current commit is not tagged it will later fail ON PURPOSE to prevent version mismatch
-                            # between the local git clone and the docker images form the hub.
-                            local backroll_version=$(git describe --tags)
+                            local backroll_version=$(git describe --tags --exact-match)
 
                             if ! test -f compose.custom.yaml; then
                                 > compose.custom.yaml

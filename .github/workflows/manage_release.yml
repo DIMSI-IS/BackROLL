@@ -1,15 +1,13 @@
-name: Docker Image CI
+name: Manage release
 
 on:
   release:
-    types: [prereleased, released]
+    types: [published]
 
 jobs:
 
-  build:
-
+  manage-docker-images:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
 
@@ -24,7 +22,21 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: push Backroll core image
+    - name: Push Backroll core image
       run: docker push dimsicloud/backroll:${{ github.event.release.tag_name }}
-    - name: push Backroll UI image
+    - name: Push Backroll UI image
       run: docker push dimsicloud/backroll-ui:${{ github.event.release.tag_name }}
+
+  manage-quickstart:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Make quickstart.sh
+      run: (cd release && bash make_quickstart.sh)
+    - name: Upload quickstart.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release upload ${{ github.event.release.tag_name }} release/quickstart.sh
