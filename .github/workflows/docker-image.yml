@@ -1,8 +1,8 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [ "main" ]
+  release:
+    types: [prereleased, released]
 
 jobs:
 
@@ -11,30 +11,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build Backroll UI image
-      run: docker build ./src/ui --file src/ui/Dockerfile --tag dimsicloud/backroll-ui:0.2.${{ github.run_number }}
-    - name: Build Backroll Core image
-      run: docker build ./src/core --file src/core/Dockerfile --tag dimsicloud/backroll:0.2.${{ github.run_number }}
+    - uses: actions/checkout@v4
 
-    - name: Tag Backroll UI image to latest
-      run: docker tag dimsicloud/backroll-ui:0.2.${{ github.run_number }} dimsicloud/backroll-ui:latest
+    - name: Build Backroll core Docker image
+      run: docker build ./src/core --tag dimsicloud/backroll:${{ github.event.release.tag_name }}
+    - name: Build Backroll UI Docker image
+      run: docker build ./src/ui --tag dimsicloud/backroll-ui:${{ github.event.release.tag_name }}
 
-    - name: Tag Backroll Core image to latest
-      run: docker tag dimsicloud/backroll:0.2.${{ github.run_number }} dimsicloud/backroll:latest
-
-    - name: Connect to Docker Hub
-      uses: docker/login-action@v2
+    - name: Docker Login
+      uses: docker/login-action@v3.3.0
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: push Backroll core image
+      run: docker push dimsicloud/backroll:${{ github.event.release.tag_name }}
     - name: push Backroll UI image
-      run: docker push dimsicloud/backroll-ui:0.2.${{ github.run_number }}
-    - name: push Backroll Core image
-      run: docker push dimsicloud/backroll:0.2.${{ github.run_number }}
-      
-    - name: push Backroll UI latest image
-      run: docker push dimsicloud/backroll-ui:latest
-    - name: push Backroll Core latest image
-      run: docker push dimsicloud/backroll:latest
-      
+      run: docker push dimsicloud/backroll-ui:${{ github.event.release.tag_name }}

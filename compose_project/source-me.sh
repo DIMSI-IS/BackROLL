@@ -5,6 +5,7 @@ backroll_setup() {
     case $backroll_mode in
         dev|staging|prod)
             # Unset variables.
+            local backroll_version=
             local use_provided_db=
             local use_provided_sso=
 
@@ -177,6 +178,9 @@ backroll_setup() {
                             ;;
                         prod)
                             local front_url=$front_address
+
+                            local backroll_version=$(git describe --tags)
+
                             if ! test -f compose.custom.yaml; then
                                 > compose.custom.yaml
                             fi
@@ -190,7 +194,8 @@ backroll_setup() {
 
                 cp "$template_path" "$path"
 
-                for var_name in backroll_host_user \
+                for var_name in backroll_version \
+                                backroll_host_user \
                                 backroll_hostname \
                                 backroll_mode \
                                 flower_user \

@@ -1,20 +1,20 @@
 services:
   api:
-    image: dimsicloud/backroll:0.2.22
+    image: dimsicloud/backroll:$BACKROLL_VERSION
 
   worker_primary:
-    image: dimsicloud/backroll:0.2.22
+    image: dimsicloud/backroll:$BACKROLL_VERSION
 
   worker_secondary:
-    image: dimsicloud/backroll:0.2.22
+    image: dimsicloud/backroll:$BACKROLL_VERSION
 
   flower:
-    image: dimsicloud/backroll:0.2.22
+    image: dimsicloud/backroll:$BACKROLL_VERSION
 
   beat:
-    image: dimsicloud/backroll:0.2.22
+    image: dimsicloud/backroll:$BACKROLL_VERSION
 
   front:
-    image: dimsicloud/backroll-ui:0.2.22
+    image: dimsicloud/backroll-ui:$BACKROLL_VERSION
     ports:
       - 80:80
