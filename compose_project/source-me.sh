@@ -252,21 +252,41 @@ if [[ "$1" != "" ]]; then
 fi
 
 if source backroll/@dev.env 2>/dev/null; then
-    dev="--env-file backroll/@dev.env -f compose.yaml -f compose.source.yaml -f compose.dev.yaml --profile database --profile sso"
+    dev="--env-file backroll/@dev.env
+         -f compose.yaml
+         -f compose.source.yaml
+         -f compose.dev.yaml
+         --profile database
+         --profile sso"
 fi
 
 if source backroll/@staging.env 2>/dev/null; then
-    staging="--env-file backroll/@staging.env -f compose.yaml -f compose.source.yaml -f compose.staging_prod.yaml -f compose.staging.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
+    staging="--env-file backroll/@staging.env
+             -f compose.yaml
+             -f compose.source.yaml
+             -f compose.staging_prod.yaml
+             -f compose.staging.yaml
+             ${USE_PROVIDED_DB:+ --profile database}
+             ${USE_PROVIDED_SSO:+ --profile sso}"
 fi
 
 if source backroll/@prod.env 2>/dev/null; then
-    prod="--env-file backroll/@prod.env -f compose.yaml -f compose.staging_prod.yaml -f compose.prod.yaml -f compose.custom.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
+    prod="--env-file backroll/@prod.env
+          -f compose.yaml
+          -f compose.staging_prod.yaml
+          -f compose.prod.yaml
+          -f compose.custom.yaml
+          ${USE_PROVIDED_DB:+ --profile database}
+          ${USE_PROVIDED_SSO:+ --profile sso}"
 fi
 
 echo "
 Docker compose argument variables:
+
   - dev=${dev:-    # Run “source source-me.sh dev” to setup dev.}
+
   - staging=${staging:-    # Run “source source-me.sh staging” to setup staging.}
+
   - prod=${prod:-    # Run “source source-me.sh prod” to setup prod.}
 
 Usage:
