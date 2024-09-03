@@ -11,33 +11,7 @@ Docker compose projects enables Backroll to be available in several modes :
     - uses your local network
 - for production : `prod`
 
-## Quick setup
-
-### `dev`
-
-```bash
-cd compose_project
-source source-me.sh dev
-docker compose $dev up
-```
-
-### `staging`
-
-```bash
-cd compose_project
-source source-me.sh staging
-docker compose $staging up
-```
-
-### `prod`
-
-```bash
-cd compose_project
-source source-me.sh prod
-docker compose $prod up
-```
-
-### Details : the helper script
+## The helper script
 
 In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh) helps you to configure and run Backroll :
 
@@ -79,6 +53,32 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
     ```
 
 Remember to always be in the `compose_project/` directory and to source `source-me.sh` in your terminal.
+
+### Examples
+
+#### `dev`
+
+```bash
+cd compose_project
+source source-me.sh dev
+docker compose $dev up
+```
+
+#### `staging`
+
+```bash
+cd compose_project
+source source-me.sh staging
+docker compose $staging up
+```
+
+#### `prod`
+
+```bash
+cd compose_project
+source source-me.sh prod
+docker compose $prod up
+```
 
 ## User interface
 

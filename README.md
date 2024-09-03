@@ -34,50 +34,27 @@ BackROLL 0.3.0 requires at least
 
 ### Docker and Docker compose
 
-Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.\
+Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.
 
 - Install Docker https://docs.docker.com/engine/install/
 - Install Docker compose https://docs.docker.com/compose/install/linux/
 
-### Quick install
+Take a look at the Docker compose command reference at https://docs.docker.com/reference/cli/docker/compose/. You must know about the main commands :
+- docker compose start
+- docker compose stop
+- docker compose ps
+- docker compose logs
+- docker compose up
 
-This method uses a preconfigured oauth provider in docker, for production environment please use your production oauth provider or harden the preconfigured oauth provider with SSL certificate, secure password, etc..
-
-Download the install-prod.sh script
-
-```bash
-wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.3.0/install-prod.sh
-```
-
-Allow the script execution
+### Quickstart 🚀
 
 ```bash
-sudo chmod +x install-prod.sh
+source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/quickstart.sh)
 ```
 
-Start the script
+### Compose projects
 
-```bash
-sudo ./install-prod.sh
-```
-
-Change directory to the backroll install directory
-
-```bash
-cd your_backroll_path/install/
-```
-
-Start the docker-compose.yml, this will start all the containers.
-
-```bash
-sudo docker compose up -d
-```
-
-Verify that your container are running
-
-```bash
-sudo docker ps
-```
+Learn more about configuring and running Backroll in the [dedicated compose projects’ README](./compose_project/README.md).
 
 ## Backroll Configuration
 
