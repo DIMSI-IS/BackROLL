@@ -50,7 +50,7 @@ If you choose to use the default provider, please harden it with SSL certificate
 Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.
 
 - Install Docker https://docs.docker.com/engine/install/
-- Install Docker compose https://docs.docker.com/compose/install/linux/
+- Install Docker Compose https://docs.docker.com/compose/install/linux/
 
 Take a look at the `docker compose` command reference at https://docs.docker.com/reference/cli/docker/compose/. You must know about the main commands :
 - docker compose start
