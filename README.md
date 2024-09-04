@@ -48,6 +48,15 @@ Take a look at the Docker compose command reference at https://docs.docker.com/r
 
 ### Quickstart 🚀
 
+Use Bash to run the download-and-run one-liner of your choice.
+
+#### Latest release
+
+```bash
+source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/quickstart.sh)
+```
+#### Latest prerelease or release
+
 ```bash
 source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/quickstart.sh)
 ```
@@ -56,7 +65,7 @@ source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/qu
 
 Learn more about configuring and running Backroll in the [dedicated compose projects’ README](./compose_project/README.md).
 
-## Backroll Configuration
+## Backroll configuration
 
 ### Storage configuration
 
@@ -92,7 +101,7 @@ mount -v -t nfs -o nolock NFS_server:/nfs_shareCS1 /mnt/138338fb-xxxx-xxxx-b219-
 
 ```
 
-#### Backup Storage configuration
+#### Backup storage configuration
 
 On the backroll VM, mount the backup storage to a path that is mapped in docker-compose.yml.\
 Then in Backroll UI, Configuration > Storage > Add new storage > Input Name and the path > Validate\
