@@ -24,16 +24,22 @@ It's also
 
 ## What do I need?
 
-### Required
+### Requirements
 
-- A server which can run Docker
-- A Bash interpreter
+- Docker and Docker Compose
+- A Bash terminal
 
-### Recommanded
+### Default components
+
+Backroll has some default components that can be replaced by your own ones.
+
+#### Recommended 
 
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
 
-### Optional
+If you choose to use the default provider, please harden it with SSL certificate, secure password, etc..
+
+#### Optional
 
 - A MySQL/MariaDB database
 
