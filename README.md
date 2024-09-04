@@ -24,22 +24,29 @@ It's also
 
 ## What do I need?
 
-BackROLL 0.3.0 requires at least
+### Required
 
 - A server which can run Docker
-- A MySQL/MariaDB database ( the default configuration deploys a mariaDB with docker compose )
+- A Bash interpreter
+
+### Recommanded
+
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
+
+### Optional
+
+- A MySQL/MariaDB database
 
 ## Get Started
 
-### Docker and Docker compose
+### Docker and Docker Compose
 
 Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.
 
 - Install Docker https://docs.docker.com/engine/install/
 - Install Docker compose https://docs.docker.com/compose/install/linux/
 
-Take a look at the Docker compose command reference at https://docs.docker.com/reference/cli/docker/compose/. You must know about the main commands :
+Take a look at the `docker compose` command reference at https://docs.docker.com/reference/cli/docker/compose/. You must know about the main commands :
 - docker compose start
 - docker compose stop
 - docker compose ps
@@ -63,7 +70,7 @@ source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/qu
 
 ### Compose projects
 
-Learn more about configuring and running Backroll in the [dedicated compose projects’ README](./compose_project/README.md).
+Learn more about setting up and running Backroll in the [dedicated compose projects’ README](./compose_project/README.md).
 
 ## Backroll configuration
 
