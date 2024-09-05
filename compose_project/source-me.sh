@@ -252,8 +252,7 @@ if [[ "$1" != "" ]]; then
 fi
 
 if source backroll/@dev.env 2>/dev/null; then
-    dev="--env-file backroll/@dev.env
-         -f compose.yaml
+    dev="-f compose.yaml
          -f compose.source.yaml
          -f compose.dev.yaml
          --profile database
@@ -261,8 +260,7 @@ if source backroll/@dev.env 2>/dev/null; then
 fi
 
 if source backroll/@staging.env 2>/dev/null; then
-    staging="--env-file backroll/@staging.env
-             -f compose.yaml
+    staging="-f compose.yaml
              -f compose.source.yaml
              -f compose.staging_prod.yaml
              -f compose.staging.yaml
@@ -271,8 +269,7 @@ if source backroll/@staging.env 2>/dev/null; then
 fi
 
 if source backroll/@prod.env 2>/dev/null; then
-    prod="--env-file backroll/@prod.env
-          -f compose.yaml
+    prod="-f compose.yaml
           -f compose.staging_prod.yaml
           -f compose.prod.yaml
           -f compose.custom.yaml
