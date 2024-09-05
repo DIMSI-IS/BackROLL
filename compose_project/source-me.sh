@@ -6,8 +6,8 @@ backroll_setup() {
         dev|staging|prod)
             # Unset variables.
             local backroll_version=
-            local use_provided_db=
-            local use_provided_sso=
+            local backroll_db=
+            local backroll_sso=
 
             # Shared or default values
             local backroll_host_user=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
@@ -76,7 +76,7 @@ backroll_setup() {
                     select choice in "$provided_db" "$existing_db"; do
                         case $choice in
                             "$provided_db"|"$existing_db")
-                                [[ "$choice" == "$provided_db" ]] && local use_provided_db=defined
+                                [[ "$choice" == "$provided_db" ]] && local backroll_db=defined
 
                                 local action=
                                 local db_address=database
@@ -128,7 +128,7 @@ backroll_setup() {
                     select choice in "$provided_sso" "$existing_sso"; do
                         case $choice in
                             "$provided_sso"|"$existing_sso")
-                                [[ "$choice" == "$provided_sso" ]] && use_provided_sso=defined
+                                [[ "$choice" == "$provided_sso" ]] && backroll_sso=defined
                                 break
                                 ;;
                         esac
@@ -153,7 +153,7 @@ backroll_setup() {
                     done
 
                     local sso_base_url="http://$host_ip:8081"
-                    if [[ "$use_provided_sso" == "" ]]; then
+                    if [[ "$backroll_sso" == "" ]]; then
                         echo "#### Existing Keycloak configuration ####"
                         read -r -p "Enter existing Keyclock url (ex : http://localhost:8080) : " sso_base_url
                     else
@@ -200,8 +200,8 @@ backroll_setup() {
                                 backroll_mode \
                                 flower_user \
                                 flower_password \
-                                use_provided_db \
-                                use_provided_sso \
+                                backroll_db \
+                                backroll_sso \
                                 db_root_password \
                                 db_address \
                                 db_port \
@@ -222,7 +222,7 @@ backroll_setup() {
                 done
             done
 
-            if [[ "$backroll_mode" != dev ]] && [[ "$use_provided_sso" == "" ]]; then
+            if [[ "$backroll_mode" != dev ]] && [[ "$backroll_sso" == "" ]]; then
                 read -r -p "Enter existing Keyclock realm (master): " keycloak_realm
                 local keycloak_realm="${keycloak_realm:=master}"
                 read -r -p "Enter existing Keyclock admin client_id (admin-cli) : " admin_client_id
@@ -264,8 +264,8 @@ if source backroll/@staging.env 2>/dev/null; then
              -f compose.source.yaml
              -f compose.staging_prod.yaml
              -f compose.staging.yaml
-             ${USE_PROVIDED_DB:+ --profile database}
-             ${USE_PROVIDED_SSO:+ --profile sso}"
+             ${BACKROLL_DB:+ --profile database}
+             ${BACKROLL_SSO:+ --profile sso}"
 fi
 
 if source backroll/@prod.env 2>/dev/null; then
@@ -273,8 +273,8 @@ if source backroll/@prod.env 2>/dev/null; then
           -f compose.staging_prod.yaml
           -f compose.prod.yaml
           -f compose.custom.yaml
-          ${USE_PROVIDED_DB:+ --profile database}
-          ${USE_PROVIDED_SSO:+ --profile sso}"
+          ${BACKROLL_DB:+ --profile database}
+          ${BACKROLL_SSO:+ --profile sso}"
 fi
 
 echo "
