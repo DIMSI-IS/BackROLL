@@ -33,7 +33,7 @@ It's also
 
 Backroll has some default components that can be replaced by your own ones.
 
-#### Recommended 
+#### Recommended
 
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
 
@@ -53,6 +53,7 @@ Backroll requires Docker and Docker Compose. Please refer to the official Docker
 - Install Docker Compose https://docs.docker.com/compose/install/linux/
 
 Take a look at the `docker compose` command reference at https://docs.docker.com/reference/cli/docker/compose/. You must know about the main commands :
+
 - docker compose start
 - docker compose stop
 - docker compose ps
@@ -61,13 +62,16 @@ Take a look at the `docker compose` command reference at https://docs.docker.com
 
 ### Quickstart 🚀
 
-Use Bash to run the download-and-run one-liner of your choice.
+Use Bash to run the download-and-run one-liner of your choice. You will be guided through the setup of the components and some accounts. If you want to use your own OpenID provider or database please prepare your credentials.
+
+After the setup process, the containers will be starting. Then open your host address in a web browser to access the Backroll’s UI.
 
 #### Latest release
 
 ```bash
 source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/quickstart.sh)
 ```
+
 #### Latest prerelease or release
 
 ```bash

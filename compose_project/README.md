@@ -1,13 +1,13 @@
 # Backroll’s compose projects
 
-Docker compose projects enables Backroll to be available in several modes :
+The Docker Compose projects enable Backroll to be available in several modes :
 
 - for developpement :
   - `dev`:
     - no configuration (default values)
     - uses the Docker compose network
   - `staging`:
-    - you will follow the configuration steps
+    - you will go through the configuration steps
     - uses your local network
 - for production : `prod`
 
