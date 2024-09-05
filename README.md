@@ -138,7 +138,7 @@ Then add your storage in the Backroll UI.
 
 ## Backroll with Cloudstack
 
-### Configure the Backroll Plugin
+### Configure the Backroll plugin
 
 **Cloudstack Global Settings**\
 In Cloudstack's Global settings, fill the fields with the appropriate value:
