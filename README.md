@@ -64,7 +64,7 @@ Take a look at the `docker compose` command reference at https://docs.docker.com
 
 Use Bash to run the download-and-run one-liner of your choice. You will be guided through the setup of the components and some accounts. To use your own OpenID provider or database please prepare your credentials.
 
-After the setup process, the containers will be starting. Then open your host address in a web browser to access the Backroll’s UI.
+After the setup process, the containers will be starting. The default database initialization lasts approximately one minute. Then open your host address in a web browser to access the Backroll’s UI.
 
 #### Latest release
 

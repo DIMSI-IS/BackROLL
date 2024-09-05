@@ -5,7 +5,6 @@ backroll_setup() {
     case $backroll_mode in
         dev|staging|prod)
             # Unset variables.
-            local backroll_version=
             local backroll_db=
             local backroll_sso=
 
@@ -178,12 +177,6 @@ backroll_setup() {
                             ;;
                         prod)
                             local front_url=$front_address
-
-                            local backroll_version=$(git describe --tags --exact-match)
-
-                            if ! test -f compose.custom.yaml; then
-                                > compose.custom.yaml
-                            fi
                             ;;
                     esac
                     ;;
@@ -194,8 +187,7 @@ backroll_setup() {
 
                 cp "$template_path" "$path"
 
-                for var_name in backroll_version \
-                                backroll_host_user \
+                for var_name in backroll_host_user \
                                 backroll_hostname \
                                 backroll_mode \
                                 flower_user \
@@ -247,20 +239,33 @@ backroll_setup() {
     esac
 }
 
+# Setup
 if [[ "$1" != "" ]]; then
     backroll_setup "$1" || return $?
 fi
 
+# Context
+backroll_version=$(git describe --tags)
+cat <<HEREDOC > .env
+BACKROLL_VERSION=$backroll_version
+HEREDOC
+
+# $dev
 if source backroll/@dev.env 2>/dev/null; then
-    dev="-f compose.yaml
+    dev="--env-file backroll/@dev.env
+         --env-file .env
+         -f compose.yaml
          -f compose.source.yaml
          -f compose.dev.yaml
          --profile database
          --profile sso"
 fi
 
+# $staging
 if source backroll/@staging.env 2>/dev/null; then
-    staging="-f compose.yaml
+    staging="--env-file backroll/@staging.env
+             --env-file .env
+             -f compose.yaml
              -f compose.source.yaml
              -f compose.staging_prod.yaml
              -f compose.staging.yaml
@@ -268,11 +273,13 @@ if source backroll/@staging.env 2>/dev/null; then
              ${BACKROLL_SSO:+ --profile sso}"
 fi
 
+# $prod
 if source backroll/@prod.env 2>/dev/null; then
-    prod="-f compose.yaml
+    prod="--env-file backroll/@prod.env
+          --env-file .env
+          -f compose.yaml
           -f compose.staging_prod.yaml
           -f compose.prod.yaml
-          -f compose.custom.yaml
           ${BACKROLL_DB:+ --profile database}
           ${BACKROLL_SSO:+ --profile sso}"
 fi
