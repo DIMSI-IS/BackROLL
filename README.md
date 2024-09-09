@@ -1,12 +1,8 @@
-[![Documentation Status](https://readthedocs.org/projects/backroll/badge/?version=latest)](https://backroll.readthedocs.io/en/latest/?badge=latest)
-
 ## <img src="https://user-images.githubusercontent.com/49555363/194335646-85c5513e-cceb-4cc5-99f7-406c7a987156.svg" height="32px">
 
-| Latest version | 0.3.0                           |
-| -------------- | ------------------------------- |
-| Documentation  | https://backroll.readthedocs.io |
+[![Documentation Status](https://readthedocs.org/projects/backroll/badge/?version=latest)](https://backroll.readthedocs.io/en/latest/?badge=latest)
 
-## What's BackROLL ?
+## What's BackROLL ?
 
 BackROLL is modern, containerized and open-source backup solution for KVM guests.
 It allows you to define logical KVM pools and backup policies to backup all your KVM guests according to your needs.
@@ -18,72 +14,67 @@ It's also
 - No agent on guests nor KVM hosts
 - Fully containerized with minimum maintenance needed
 
-## Our demo made during the CloudStack European User Group (APRIL) 2022
+## Cloudstack Collaboration Conference November 2023
 
-[![Watch the video](http://i3.ytimg.com/vi/Jg40h1YjALk/hqdefault.jpg)](https://www.youtube.com/watch?v=Jg40h1YjALk)
+[![Watch the video](https://i.ytimg.com/vi/yh-purfnMGg/hqdefault.jpg)](https://youtu.be/yh-purfnMGg?si=nF6ORjA0iGUsVXVy)
 
-## What do I need?
+## What do I need ?
 
-BackROLL 0.3.0 requires at least
+### Requirements
 
-- A server which can run Docker
-- A MySQL/MariaDB database ( the default configuration deploys a mariaDB with docker compose )
+- Docker and Docker Compose
+- A Bash terminal (Ubuntu is recommended)
+
+### Replaceable components
+
+Backroll has some default components that can be replaced by your own ones.
+
+#### Recommended
+
 - An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
+
+If you choose to use the default provider, please harden it with SSL certificate, secure password, etc..
+
+#### Optional
+
+- A MySQL/MariaDB database
 
 ## Get Started
 
-### Docker and Docker compose
+### Docker and Docker Compose
 
-Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.\
+Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.
 
 - Install Docker https://docs.docker.com/engine/install/
-- Install Docker compose https://docs.docker.com/compose/install/linux/
+- Install Docker Compose https://docs.docker.com/compose/install/linux/
 
-### Quick install
+Take a look at the `docker compose` command reference at https://docs.docker.com/reference/cli/docker/compose/. You must know about the main commands :
 
-This method uses a preconfigured oauth provider in docker, for production environment please use your production oauth provider or harden the preconfigured oauth provider with SSL certificate, secure password, etc..
+- docker compose start
+- docker compose stop
+- docker compose ps
+- docker compose logs
+- docker compose up
 
-Download the install-prod.sh script
+### Quickstart 🚀
 
-```bash
-wget https://github.com/DIMSI-IS/BackROLL/releases/download/v.0.3.0/install-prod.sh
-```
+Backroll is distributed through git and structured as a Docker Compose project. We have baked quickstart script which clones the repository and runs the commands from the [dedicated compose project README](./compose_project/README.md).
 
-Allow the script execution
+Use Bash to get and run the quickstart script of the release you target. You will be guided through the setup of the components and some accounts. To use your own OpenID provider or database please prepare your credentials.
 
-```bash
-sudo chmod +x install-prod.sh
-```
+After the setup process, the containers will be starting. The default database initialization lasts approximately one minute. Then open your host address in a web browser to access the Backroll UI.
 
-Start the script
-
-```bash
-sudo ./install-prod.sh
-```
-
-Change directory to the backroll install directory
+#### Latest prerelease or release
 
 ```bash
-cd your_backroll_path/install/
+source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/v0.4.0-alpha-1/quickstart.sh)
 ```
 
-Start the docker-compose.yml, this will start all the containers.
+#### Latest release
 
-```bash
-sudo docker compose up -d
-```
+Not yet available.
 
-Verify that your container are running
-
-```bash
-sudo docker ps
-```
-
-### For the developpers
-
-Clone the repository and read [compose_project/README.md](./compose_project/README.md).
-
-## Backroll Configuration
+## Backroll configuration
 
 ### Storage configuration
 
@@ -119,7 +110,7 @@ mount -v -t nfs -o nolock NFS_server:/nfs_shareCS1 /mnt/138338fb-xxxx-xxxx-b219-
 
 ```
 
-#### Backup Storage configuration
+#### Backup storage configuration
 
 On the backroll VM, mount the backup storage to a path that is mapped in docker-compose.yml.\
 Then in Backroll UI, Configuration > Storage > Add new storage > Input Name and the path > Validate\
@@ -139,7 +130,7 @@ Then add your storage in the Backroll UI.
 
 ## Backroll with Cloudstack
 
-### Configure the Backroll Plugin
+### Configure the Backroll plugin
 
 **Cloudstack Global Settings**\
 In Cloudstack's Global settings, fill the fields with the appropriate value:
@@ -162,6 +153,10 @@ Add a new connector and fill the field with the appropriate information:
 - Endpoint URL: _URL of your cloudstack instance_
 - Login: _API_key of your user dedicated to backroll_
 - Password: _API_secret of your user dedicated to backroll_
+
+## Documentation
+
+Read more about Backroll at https://backroll.readthedocs.io.
 
 ## Help and support
 
