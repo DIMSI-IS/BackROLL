@@ -1,16 +1,16 @@
-#!/bin/bash
+# Intented to be run with the bash source command.
 
-backroll-setup() {
+backroll_setup() {
     local backroll_mode=$1
     case $backroll_mode in
-        prod)
-            echo "Not yet implemented." 1>&2
-            return 1
-            ;;
         dev|staging|prod)
             # Unset variables.
-            local use_provided_db=
-            local use_provided_sso=
+            local backroll_db=
+            local backroll_sso=
+
+            # Shared or default values
+            local backroll_host_user=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
+            local backroll_hostname=$HOSTNAME
 
             case $backroll_mode in
                 dev)
@@ -29,7 +29,7 @@ backroll-setup() {
                     local sso_user_name=developer
                     local sso_user_password=developer
                     local api_address=api
-                    local front_address=front
+                    local front_url=front:8080
                     ;;
                 staging|prod)
                     echo "#### BackROLL host IP configuration ####"
@@ -75,7 +75,7 @@ backroll-setup() {
                     select choice in "$provided_db" "$existing_db"; do
                         case $choice in
                             "$provided_db"|"$existing_db")
-                                [[ "$choice" == "$provided_db" ]] && local use_provided_db=defined
+                                [[ "$choice" == "$provided_db" ]] && local backroll_db=defined
 
                                 local action=
                                 local db_address=database
@@ -102,8 +102,10 @@ backroll-setup() {
                                         read -r -p "$action MariaDB database port : " db_port
                                         ;;
                                 esac
-                                read -r -p "$action MariaDB database name : " db_name
-                                read -r -p "$action MariaDB database username : " db_user_name
+                                read -r -p "$action MariaDB database name (backroll) : " db_name
+                                db_name=${db_name:-backroll}
+                                read -r -p "$action MariaDB database username (backroll) : " db_user_name
+                                db_user_name=${db_user_name:-backroll}
                                 while true;
                                 do 
                                     read -s -p "$action MariaDB database password : " db_user_password
@@ -127,7 +129,7 @@ backroll-setup() {
                     select choice in "$provided_sso" "$existing_sso"; do
                         case $choice in
                             "$provided_sso"|"$existing_sso")
-                                [[ "$choice" == "$provided_sso" ]] && use_provided_sso=defined
+                                [[ "$choice" == "$provided_sso" ]] && backroll_sso=defined
                                 break
                                 ;;
                         esac
@@ -152,7 +154,7 @@ backroll-setup() {
                     done
 
                     local sso_base_url="http://$host_ip:8081"
-                    if [[ "$use_provided_sso" == "" ]]; then
+                    if [[ "$backroll_sso" == "" ]]; then
                         echo "#### Existing Keycloak configuration ####"
                         read -r -p "Enter existing Keyclock url (ex : http://localhost:8080) : " sso_base_url
                     else
@@ -170,6 +172,15 @@ backroll-setup() {
                                 echo "Passwords do not match. Try again."
                             done
                     fi
+                    
+                    case $backroll_mode in
+                        staging)
+                            local front_url=$front_address:8080
+                            ;;
+                        prod)
+                            local front_url=$front_address
+                            ;;
+                    esac
                     ;;
             esac
 
@@ -178,11 +189,13 @@ backroll-setup() {
 
                 cp "$template_path" "$path"
 
-                for var_name in backroll_mode \
+                for var_name in backroll_host_user \
+                                backroll_hostname \
+                                backroll_mode \
                                 flower_user \
                                 flower_password \
-                                use_provided_db \
-                                use_provided_sso \
+                                backroll_db \
+                                backroll_sso \
                                 db_root_password \
                                 db_address \
                                 db_port \
@@ -196,14 +209,14 @@ backroll-setup() {
                                 sso_user_name \
                                 sso_user_password \
                                 api_address \
-                                front_address \
+                                front_url \
                                 ;
                 do
                     sed -i 's|_'"$var_name"'|'"${!var_name}"'|' "$path"
                 done
             done
 
-            if [[ "$backroll_mode" != dev ]] && [[ "$use_provided_sso" == "" ]]; then
+            if [[ "$backroll_mode" != dev ]] && [[ "$backroll_sso" == "" ]]; then
                 read -r -p "Enter existing Keyclock realm (master): " keycloak_realm
                 local keycloak_realm="${keycloak_realm:=master}"
                 read -r -p "Enter existing Keyclock admin client_id (admin-cli) : " admin_client_id
@@ -222,30 +235,68 @@ backroll-setup() {
             fi
             ;;
         *)
-            echo "Usage: backroll-setup <dev|staging|prod>" 1>&2
+            echo "Choose dev, staging or prod." 1>&2
             return 1
             ;;
     esac
 }
 
+# Setup
 if [[ "$1" != "" ]]; then
-    backroll-setup "$1" || return $?
+    backroll_setup "$1" || return $?
 fi
 
-if source backroll-compose/@dev.env 2>/dev/null; then
-    dev="--env-file backroll-compose/@dev.env -f compose.yaml -f compose.source.yaml -f compose.dev.yaml --profile database --profile sso"
+# Context
+backroll_version=$(git describe --tags)
+cat <<HEREDOC > .env
+BACKROLL_VERSION=$backroll_version
+HEREDOC
+
+# $dev
+if source backroll/@dev.env 2>/dev/null; then
+    dev="--env-file backroll/@dev.env
+         --env-file .env
+         -f compose.yaml
+         -f compose.source.yaml
+         -f compose.dev.yaml
+         --profile database
+         --profile sso"
 fi
 
-if source backroll-compose/@staging.env 2>/dev/null; then
-    staging="--env-file backroll-compose/@staging.env -f compose.yaml -f compose.source.yaml -f compose.staging_prod.yaml ${USE_PROVIDED_DB:+ --profile database} ${USE_PROVIDED_SSO:+ --profile sso}"
+# $staging
+if source backroll/@staging.env 2>/dev/null; then
+    staging="--env-file backroll/@staging.env
+             --env-file .env
+             -f compose.yaml
+             -f compose.source.yaml
+             -f compose.staging_prod.yaml
+             -f compose.staging.yaml
+             ${BACKROLL_DB:+ --profile database}
+             ${BACKROLL_SSO:+ --profile sso}"
+fi
+
+# $prod
+if source backroll/@prod.env 2>/dev/null; then
+    prod="--env-file backroll/@prod.env
+          --env-file .env
+          -f compose.yaml
+          -f compose.staging_prod.yaml
+          -f compose.prod.yaml
+          ${BACKROLL_DB:+ --profile database}
+          ${BACKROLL_SSO:+ --profile sso}"
 fi
 
 echo "
 Docker compose argument variables:
+
   - dev=${dev:-    # Run “source source-me.sh dev” to setup dev.}
+
   - staging=${staging:-    # Run “source source-me.sh staging” to setup staging.}
+
+  - prod=${prod:-    # Run “source source-me.sh prod” to setup prod.}
 
 Usage:
   - docker compose \$dev …
   - docker compose \$staging …
+  - docker compose \$prod …
 "
