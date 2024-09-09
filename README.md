@@ -74,14 +74,12 @@ After the setup process, the containers will be starting. The default database i
 
 #### Latest release
 
-```bash
-source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/quickstart.sh)
-```
+Not yet available.
 
 #### Latest prerelease or release
 
 ```bash
-source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/quickstart.sh)
+source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/v0.4.0-alpha-1/quickstart.sh)
 ```
 
 ## Backroll configuration
