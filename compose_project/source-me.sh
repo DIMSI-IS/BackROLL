@@ -102,8 +102,10 @@ backroll_setup() {
                                         read -r -p "$action MariaDB database port : " db_port
                                         ;;
                                 esac
-                                read -r -p "$action MariaDB database name : " db_name
-                                read -r -p "$action MariaDB database username : " db_user_name
+                                read -r -p "$action MariaDB database name (backroll) : " db_name
+                                db_name=${db_name:-backroll}
+                                read -r -p "$action MariaDB database username (backroll) : " db_user_name
+                                db_user_name=${db_user_name:-backroll}
                                 while true;
                                 do 
                                     read -s -p "$action MariaDB database password : " db_user_password
