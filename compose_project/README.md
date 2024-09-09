@@ -1,4 +1,4 @@
-# Backroll’s compose projects
+# Backroll compose projects
 
 The Docker Compose projects enable Backroll to be available in several modes :
 
@@ -108,7 +108,7 @@ If you are working on a shared developement server, the port 2222 may be already
 
 ##### Connecting to the proxy server
 
-Now you need to configure your web browser to use the SOCKS v5 proxy at address `localhost` port `1080` and to use the proxy’s DNS. Feel free to use another port if it is more convenient for you.
+Now you need to configure your web browser to use the SOCKS v5 proxy at address `localhost` port `1080` and to use the proxy DNS. Feel free to use another port if it is more convenient for you.
 
 For Firefox, see [Connection settings in Firefox](https://support.mozilla.org/en-US/kb/connection-settings-firefox) :
 

@@ -6,7 +6,7 @@
 | -------------- | ------------------------------- |
 | Documentation  | https://backroll.readthedocs.io |
 
-## What's BackROLL ?
+## What's BackROLL ?
 
 BackROLL is modern, containerized and open-source backup solution for KVM guests.
 It allows you to define logical KVM pools and backup policies to backup all your KVM guests according to your needs.
@@ -18,18 +18,22 @@ It's also
 - No agent on guests nor KVM hosts
 - Fully containerized with minimum maintenance needed
 
-## Our demo made during the CloudStack European User Group (APRIL) 2022
+## Cloudstack Collaboration Conference November 2023
+
+[![Watch the video](https://i.ytimg.com/vi/yh-purfnMGg/hqdefault.jpg)](https://youtu.be/yh-purfnMGg?si=nF6ORjA0iGUsVXVy)
+
+## CloudStack European User Group April 2022
 
 [![Watch the video](http://i3.ytimg.com/vi/Jg40h1YjALk/hqdefault.jpg)](https://www.youtube.com/watch?v=Jg40h1YjALk)
 
-## What do I need?
+## What do I need ?
 
 ### Requirements
 
 - Docker and Docker Compose
 - A Bash terminal
 
-### Default components
+### Replaceable components
 
 Backroll has some default components that can be replaced by your own ones.
 
@@ -62,9 +66,11 @@ Take a look at the `docker compose` command reference at https://docs.docker.com
 
 ### Quickstart 🚀
 
-Use Bash to run the download-and-run one-liner of your choice. You will be guided through the setup of the components and some accounts. To use your own OpenID provider or database please prepare your credentials.
+Backroll is distributed through git and structured as a Docker Compose project. We have baked quickstart script which clones the repository and runs the commands from the [dedicated compose project README](./compose_project/README.md).
 
-After the setup process, the containers will be starting. The default database initialization lasts approximately one minute. Then open your host address in a web browser to access the Backroll’s UI.
+Use Bash to get and run the quickstart script of the release you target. You will be guided through the setup of the components and some accounts. To use your own OpenID provider or database please prepare your credentials.
+
+After the setup process, the containers will be starting. The default database initialization lasts approximately one minute. Then open your host address in a web browser to access the Backroll UI.
 
 #### Latest release
 
@@ -77,10 +83,6 @@ source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/qu
 ```bash
 source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/vTODO/quickstart.sh)
 ```
-
-### Compose projects
-
-Learn more about setting up and running Backroll in the [dedicated compose projects’ README](./compose_project/README.md).
 
 ## Backroll configuration
 
