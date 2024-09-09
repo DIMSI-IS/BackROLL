@@ -1,10 +1,6 @@
-[![Documentation Status](https://readthedocs.org/projects/backroll/badge/?version=latest)](https://backroll.readthedocs.io/en/latest/?badge=latest)
-
 ## <img src="https://user-images.githubusercontent.com/49555363/194335646-85c5513e-cceb-4cc5-99f7-406c7a987156.svg" height="32px">
 
-| Latest version | 0.3.0                           |
-| -------------- | ------------------------------- |
-| Documentation  | https://backroll.readthedocs.io |
+[![Documentation Status](https://readthedocs.org/projects/backroll/badge/?version=latest)](https://backroll.readthedocs.io/en/latest/?badge=latest)
 
 ## What's BackROLL ?
 
@@ -22,16 +18,12 @@ It's also
 
 [![Watch the video](https://i.ytimg.com/vi/yh-purfnMGg/hqdefault.jpg)](https://youtu.be/yh-purfnMGg?si=nF6ORjA0iGUsVXVy)
 
-## CloudStack European User Group April 2022
-
-[![Watch the video](http://i3.ytimg.com/vi/Jg40h1YjALk/hqdefault.jpg)](https://www.youtube.com/watch?v=Jg40h1YjALk)
-
 ## What do I need ?
 
 ### Requirements
 
 - Docker and Docker Compose
-- A Bash terminal
+- A Bash terminal (Ubuntu is recommended)
 
 ### Replaceable components
 
@@ -72,15 +64,15 @@ Use Bash to get and run the quickstart script of the release you target. You wil
 
 After the setup process, the containers will be starting. The default database initialization lasts approximately one minute. Then open your host address in a web browser to access the Backroll UI.
 
-#### Latest release
-
-Not yet available.
-
 #### Latest prerelease or release
 
 ```bash
 source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/v0.4.0-alpha-1/quickstart.sh)
 ```
+
+#### Latest release
+
+Not yet available.
 
 ## Backroll configuration
 
@@ -161,6 +153,10 @@ Add a new connector and fill the field with the appropriate information:
 - Endpoint URL: _URL of your cloudstack instance_
 - Login: _API_key of your user dedicated to backroll_
 - Password: _API_secret of your user dedicated to backroll_
+
+## Documentation
+
+Read more about Backroll at https://backroll.readthedocs.io.
 
 ## Help and support
 
