@@ -249,6 +249,7 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
     # Go into directory
     os.chdir(f"{storage_path}/restore/{virtual_machine_name}")
 
+    # TODO Group common code and mind depth independent restore.
     cmd = f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}"""
     process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     while True:
