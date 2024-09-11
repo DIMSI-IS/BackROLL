@@ -127,15 +127,19 @@ export default defineComponent({
       return this.filteredTaskList.filter(x => x.state === 'STARTED').length
     },
     tableData() {
-      return this.filteredTaskList.map(x => ({
-        uuid: x.uuid,
-        name: x.name.replaceAll('_', ' '),
-        target: x.name == "Pool_VM_Backup" ? this.retrievePoolTarget(x.args) : this.retrieveArgs(x),
-        started: x.started,
-        ipAddress: x.ip_address,
-        runtime: x.name != "Pool_VM_Backup" ? x.runtime : null,
-        state: x.state
-      }))
+      return this.filteredTaskList.map(x => {
+        const taskArgs = this.parseArgs(x)
+        return {
+          uuid: x.uuid,
+          name: x.name.replaceAll('_', ' '),
+          target: x.name == "Pool_VM_Backup" ? this.retrievePoolTarget(x.args) : taskArgs?.name ?? "",
+          target_uuid: taskArgs?.uuid,
+          started: x.started,
+          ipAddress: x.ip_address,
+          runtime: x.name != "Pool_VM_Backup" ? x.runtime : null,
+          state: x.state
+        }
+      })
     }
   },
   methods: {
@@ -157,6 +161,7 @@ export default defineComponent({
       })
     },
     retrievePoolTarget (args) {
+      // TODO Use parseArgs
       if (args)  {
         const ArgsArray = args.split("'")
         for (const [i, v] of ArgsArray.entries()) {
@@ -169,21 +174,12 @@ export default defineComponent({
         return null
       }
     },
-    retrieveArgs (x) {
-      if(x.args) {
-        let json = "";
-        try {
-          console.log(x.args);
-          json = JSON.parse(x.args);
-          if(json){
-          return json.name;
-        }
-        } catch (error) {
-          console.error(error);
-          return "";
-        }  
+    parseArgs (x) {
+      try {
+        return JSON.parse(x.args);
+      } catch (error) {
+        console.error(error);
       }
-      return "";
     }
   }
 })

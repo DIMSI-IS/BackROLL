@@ -70,7 +70,7 @@
 
       <template #cell(virtualmachines)="{ rowIndex }">
         <va-button-group gradient :rounded="false">
-          <va-button icon="settings" @click="this.$router.push(`/resources/virtualmachines/${VMNameToUUID(data[rowIndex].target)}`)" />
+          <va-button icon="settings" @click="this.$router.push(`/resources/virtualmachines/${data[rowIndex].target_uuid}`)" />
         </va-button-group>
       </template>
 
@@ -144,14 +144,6 @@ export default {
       if (this.$store.state.isvmTableReady) {
         this.$router.push(`/admin/resources/virtualmachines`)
       }
-    },
-    VMNameToUUID(name){
-      for (let i = 0; i < this.$store.state.resources.vmList.length; i++){
-        if(this.$store.state.resources.vmList[i].name === name){
-          return this.$store.state.resources.vmList[i].uuid
-        }
-      }
-      return 'no_uuid'
     },
     retrieveTasksLogs (taskId) {
       this.logModal = !this.logModal
