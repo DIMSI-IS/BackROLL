@@ -140,11 +140,6 @@ export default {
     }
   },
   methods: {
-    toVirtualMachines() {
-      if (this.$store.state.isvmTableReady) {
-        this.$router.push(`/admin/resources/virtualmachines`)
-      }
-    },
     retrieveTasksLogs (taskId) {
       this.logModal = !this.logModal
       axios.get(`${this.$store.state.endpoint.api}/api/v1/logs/${taskId}`, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
