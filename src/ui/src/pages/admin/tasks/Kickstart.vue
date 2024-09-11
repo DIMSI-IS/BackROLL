@@ -293,7 +293,6 @@ export default {
           url = `${this.$store.state.endpoint.api}${route}${this.targetSelection.value}`
         }
       } else if (this.jobSelection.type === 'restore') {
-        debugger
         if(this.jobSelection.mode === 'mounted') {
           route = "/api/v1/tasks/restorespecificpath"
           url = `${this.$store.state.endpoint.api}${route}`

@@ -17,7 +17,8 @@
 
 #!/usr/bin/env python
 import os
-import uuid as uuid_pkg
+from uuid import UUID
+from app.patch import ensure_uuid
 import paramiko
 from typing import Optional
 from fastapi import Depends, HTTPException
@@ -39,7 +40,7 @@ class items_create_host(BaseModel):
   hostname: str
   tags: Optional[str] = None
   ip_address: str
-  pool_id: uuid_pkg.UUID
+  pool_id: UUID
   class Config:
       schema_extra = {
           "example": {
@@ -54,7 +55,7 @@ class items_update_host(BaseModel):
   hostname: Optional[str] = None
   tags: Optional[str] = None
   ip_address: Optional[str] = None
-  pool_id: Optional[uuid_pkg.UUID] = None
+  pool_id: Optional[UUID] = None
   class Config:
       schema_extra = {
           "example": {
@@ -80,7 +81,7 @@ def filter_host_by_id(host_id):
   try:
     engine = database.init_db_connection()
     with Session(engine) as session:
-      statement = select(Hosts).where(Hosts.id == host_id)
+      statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
       results = session.exec(statement)
       host = results.first()
     if not host:
@@ -104,7 +105,7 @@ def api_create_host(item):
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Pools).where(Pools.id == item.pool_id)
+    statement = select(Pools).where(Pools.id == ensure_uuid(item.pool_id))
     results = session.exec(statement)
     pool = results.first()
     if not pool:
@@ -125,14 +126,14 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
   except:
     raise ValueError('Unable to connect to database.')
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.id == host_id)
+    statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
     results = session.exec(statement)
     data_host = results.one()
   if not data_host:
     raise ValueError(f'Host with id {host_id} not found')
   if pool_id:
     with Session(engine) as session:
-      statement = select(Pools).where(Pools.id == pool_id)
+      statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
       results = session.exec(statement)
       pool = results.first()
       if not pool:
@@ -183,7 +184,7 @@ def api_delete_host(host_id):
   except Exception as e:
     raise ValueError(e)
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.id == host_id)
+    statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
     results = session.exec(statement)
     host = results.first()
     if not host:
@@ -216,7 +217,7 @@ def list_hosts(identity: Json = Depends(auth.valid_token)):
 @app.patch("/api/v1/hosts/{host_id}", status_code=200)
 def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(host_id)
+      uuid_obj = UUID(host_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   name = item.hostname
@@ -228,7 +229,7 @@ def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.
 @app.delete('/api/v1/hosts/{host_id}', status_code=200)
 def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
   try:
-      uuid_obj = uuid_pkg.UUID(host_id)
+      uuid_obj = UUID(host_id)
   except ValueError:
       raise HTTPException(status_code=404, detail='Given uuid is not valid')
   return api_delete_host(host_id)

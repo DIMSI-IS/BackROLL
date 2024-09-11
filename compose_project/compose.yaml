@@ -1,5 +1,4 @@
-# The user can override this default name with the “-p” option.
-name: ${USERNAME:-${USER:-someone}}_backroll-$BACKROLL_MODE
+name: ${BACKROLL_HOST_USER}_backroll-$BACKROLL_MODE
 
 services:
 
@@ -17,15 +16,17 @@ services:
     command: "redis-server"
 
   setup:
-    environment:
-      # Suppress warnings with ${VAR:-}.
-      - USER=${USER:-}
-      - USERNAME=${USERNAME:-}
-      - BACKROLL_MODE=$BACKROLL_MODE
+    build: ./setup
+    env_file:
+      - backroll/@$BACKROLL_MODE.env
     volumes:
       - .:/app/compose_project
 
   sso:
+    build:
+      context: ./sso
+      args:
+        - BACKROLL_MODE=$BACKROLL_MODE
     profiles:
       - sso
     env_file:
@@ -39,15 +40,14 @@ services:
         condition: service_completed_successfully
       # database:
       #   condition: service_healthy
-    # Compensates for the lack of database healthcheck.
-    restart: on-failure
+    restart: on-failure # Compensates for the lack of database healthcheck.
     command: bash api.command.sh
     env_file:
       - core/@$BACKROLL_MODE.env
     volumes:
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
       - /mnt:/mnt
-  
+
   worker_primary:
     depends_on:
       - api

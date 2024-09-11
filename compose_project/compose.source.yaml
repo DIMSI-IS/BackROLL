@@ -1,40 +1,32 @@
 services:
 
   setup:
-    build: ./setup
     volumes:
       - ./setup/src:/app/src:ro
-
-  sso:
-    build:
-      context: ./sso
-      args:
-        - BACKROLL_MODE=$BACKROLL_MODE
-
   api:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   worker_primary:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   worker_secondary:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   flower:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   beat:
     build: ../src/core
     volumes:
-      - ../src/core:/usr/src/app
+      - ../src/core:/app/src
 
   front:
     build:

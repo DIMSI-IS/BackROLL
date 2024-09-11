@@ -16,6 +16,7 @@
 ## under the License.
 
 #!/usr/bin/env python
+import sys
 import os
 import re
 from datetime import datetime
@@ -44,53 +45,48 @@ def retrieve_task_info(task_id):
   response = requests.get(f"http://flower:5555/api/task/info/{task_id}")
   return response.content
 
-# def cleanArgs(args):
-#   argument = str(args)
-#   print(args)
-#   if ", ...,)" in argument:
-#     argument = argument[len('('):-len(', ...,)')]
-#     argument = argument + "}"
-#   elif ", ...)" in argument:
-#     argument = argument[len('('):-len(', ...)')]
-#     argument = argument + "}"
-#   elif ",)" in argument:
-#     argument = argument[len('('):-len(',)')]
-#   elif "}," in argument:
-#     argument = argument.split("},", 1)[0]
-#   argument = argument.replace("'", '"')
-#   argument = argument.replace("True", 'true')
-#   argument = argument.replace("False", 'false')
-#   argument = argument.replace("(", '')
-#   argument = argument.replace(")", '')
+def eval_python_data(data_string):
+  data_string = str(data_string)
 
-#   if"{...}" in argument:
-#     argument = argument.replace("{...}", "")
+  print(f"[eval_python_data] {sys.version}")
+  print(f"[eval_python_data] {sys.version_info}")
+  data_string_len = len(data_string)
+  for _ in range(0, data_string_len):
+    print(f"[eval_python_data] Trying to eval data string “{data_string}”.")
+    try:
+      data = eval(data_string)
+      print("[eval_python_data] Data string evaluated successfuly.")
+      return data
+    except SyntaxError as e:
+      column = e.offset
+      print(f"[eval_python_data] Data string evaluating error “{e}” at {column}.")
+      if column == 0:
+        data_string = data_string[1:]
+      elif column == len(data_string) - 1:
+        data_string = data_string[:column]
+      else:
+        data_string = data_string[:column-1] + data_string[column:]
+    except Exception as e:
+      print("[eval_python_data] Data string fixing failed.")
+      raise ValueError(f"Failed to fix data string “{data_string}”.")
+
+def ensure_dict(value):
+  if isinstance(value, dict):
+    return value
   
-#   if '...", ...}' in argument:
-#     argument = argument.replace('...", ...}', '": "" }')
-
-#   if "None" in argument:
-#     argument = argument.replace("None", '"None"')
-
-#   if", ...}" in argument:
-#     argument = argument.replace(", ...}", ': ""')
-
-#   argument.split("}", 1)[0]
-#   return argument
-
-def cleanArgs(args):
-  argument = str(args)
+  if isinstance(value, tuple) or isinstance(value, list):
+    return ensure_dict(value[0])
   
-  argument = argument.replace("},)", "})")
-  argument = argument.replace("...", "")
-  if ", 'displayvm': True" in argument :
-      argument = argument[0: argument.index(", 'displayvm': True")]
-      argument = argument + "})"
-  obj = eval(argument)
-  if isinstance(obj,dict):
-    return json.dumps(obj)
-  elif isinstance(obj,tuple) or isinstance(obj,list):
-    return json.dumps(obj[0])
+  return None
+
+def ensure_json_serializable(value):
+  def typeAsString(object):
+    return str(type(object))
+
+  return json.loads(json.dumps(value, default=typeAsString))
+
+def parse_task_args(args):
+  return ensure_json_serializable(ensure_dict(eval_python_data(args)))
 
 def convert(seconds):
   if type(seconds) != type(None):
@@ -109,10 +105,8 @@ def convert(seconds):
 @celery.task(name='Handle task success', max_retries=None)
 def handle_task_success(task_id, msg):
 
-  task_result = retrieve_task_info(task_id).decode('ascii')  
-  text = json.loads(task_result)['args']
-  cleanedtext = cleanArgs(text)
-  task_args = json.loads(cleanedtext)
+  task_result = json.loads(retrieve_task_info(task_id).decode('ascii'))
+  task_args = parse_task_args(task_result['args'])
 
   if "host" in task_args:
     host = host_route.filter_host_by_id(task_args['host'])
@@ -125,15 +119,13 @@ def handle_task_success(task_id, msg):
   if policy.externalhook:
     hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
-    if hook.provider.lower() == "slack" and hook.value:
+    # Future feature : support multiple external hook providers.
+    # if hook.provider.lower() == "slack" and hook.value:
+    if hook.value:
       time.sleep(10)
-      task_result = retrieve_task_info(task_id).decode('ascii')
-      text = json.loads(task_result)['args']
-      cleanedtext = cleanArgs(text)
-      task_args = json.loads(cleanedtext)
       context_smiley = "white_check_mark"
       alerting = ""
-      duration_time = f"{convert(json.loads(task_result).get('runtime'))}"
+      duration_time = f"{convert(task_result['runtime'])}"
       block_msg = {
         "blocks": [
           {
@@ -155,11 +147,11 @@ def handle_task_success(task_id, msg):
               },
               {
                 "type": "mrkdwn",
-                "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
+                "text": f"*State*\n{task_result['state']} :{context_smiley}:"
               },
               {
                 "type": "mrkdwn",
-                "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
+                "text": f"*Created on*\n{datetime.fromtimestamp(task_result['started'])}"
               },
               {
                 "type": "mrkdwn",
@@ -175,7 +167,7 @@ def handle_task_success(task_id, msg):
             "elements": [
               {
                 "type": "mrkdwn",
-                "text": f"*TYPE*: {json.loads(task_result)['name']}"
+                "text": f"*TYPE*: {task_result['name']}"
               }
             ]
           }
@@ -187,82 +179,71 @@ def handle_task_success(task_id, msg):
 @celery.task(name='Handle task failure')
 def handle_task_failure(task_id, msg):
 
-  task_result = retrieve_task_info(task_id).decode('ascii')
-  text = json.loads(task_result)['args']
-  print("DEBUG TASK Failure: text: " + text)
-  cleanedtext = cleanArgs(text)
-  task_args = json.loads(cleanedtext)
+  task_result = json.loads(retrieve_task_info(task_id).decode('ascii'))
+  task_args = parse_task_args(task_result['args'])
 
   host = host_route.filter_host_by_id(task_args['host'])
   pool = pool_route.filter_pool_by_id(host.pool_id)
   policy = policy_route.filter_policy_by_id(pool.policy_id)
-  hook = hook_route.filter_external_hook_by_id(policy.externalhook)
 
-  if hook.provider.lower() == "slack" and hook.value:
-    time.sleep(10)
-    task_result = retrieve_task_info(task_id).decode('ascii')
-    text = json.loads(task_result)['args']
-    
-    print(text)
-    
-    left = "{"
-    right = "}"
-    arguments = "{" + text[text.index(left)+len(left):text.index(right)] + "}"
-    arguments = arguments.replace("(", '')
-    arguments = arguments.replace(")", '')
-    arguments = arguments.replace("'", '"')
-    task_args = json.loads(arguments)
-    context_smiley = "x"
-    alerting = "<!channel> "
-    duration_time = "N/A"
-    block_msg = {
-      "blocks": [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": f"{alerting}*{msg}*"
+  if policy.externalhook:
+    hook = hook_route.filter_external_hook_by_id(policy.externalhook)
+
+    # Future feature : support multiple external hook providers.
+    # if hook.provider.lower() == "slack" and hook.value:
+    if hook.value:
+      time.sleep(10)
+      context_smiley = "x"
+      alerting = "<!channel> "
+      duration_time = "N/A"
+      block_msg = {
+        "blocks": [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": f"{alerting}*{msg}*"
+            }
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "section",
+            "fields": [
+              {
+                "type": "mrkdwn",
+                "text": f"*Target*\n{task_args['name']}"
+              },
+              {
+                "type": "mrkdwn",
+                "text": f"*State*\n{task_result['state']} :{context_smiley}:"
+              },
+              {
+                "type": "mrkdwn",
+                "text": f"*Created on*\n{datetime.fromtimestamp(task_result['started'])}"
+              },
+              {
+                "type": "mrkdwn",
+                "text": f"*Duration*\n{duration_time}"
+              }
+            ]
+          },
+          {
+            "type": "divider"
+          },
+          {
+            "type": "context",
+            "elements": [
+              {
+                "type": "mrkdwn",
+                "text": f"*TYPE*: {task_result['name']}"
+              }
+            ]
           }
-        },
-        {
-          "type": "divider"
-        },
-        {
-          "type": "section",
-          "fields": [
-            {
-              "type": "mrkdwn",
-              "text": f"*Target*\n{task_args['name']}"
-            },
-            {
-              "type": "mrkdwn",
-              "text": f"*State*\n{json.loads(task_result)['state']} :{context_smiley}:"
-            },
-            {
-              "type": "mrkdwn",
-              "text": f"*Created on*\n{datetime.fromtimestamp(json.loads(task_result)['started'])}"
-            },
-            {
-              "type": "mrkdwn",
-              "text": f"*Duration*\n{duration_time}"
-            }
-          ]
-        },
-        {
-          "type": "divider"
-        },
-        {
-          "type": "context",
-          "elements": [
-            {
-              "type": "mrkdwn",
-              "text": f"*TYPE*: {json.loads(task_result)['name']}"
-            }
-          ]
-        }
-      ]
-    }
-    slack.connector(hook, block_msg['blocks'])
+        ]
+      }
+      slack.connector(hook, block_msg['blocks'])
 
 
 @task_success.connect(sender=single_backup.single_vm_backup)
@@ -304,6 +285,7 @@ def pool_backup_notification(result, pool_id):
           success_list.append(item['info'])
       else:
           failure_list.append(item)
-
-    if externalhook.provider.lower() == "slack":
-      slack.pool_notification(externalhook, success_list, failure_list, pool)
+    
+    # Future feature : support multiple external hook providers.
+    # if externalhook.provider.lower() == "slack":
+    slack.pool_notification(externalhook, success_list, failure_list, pool)

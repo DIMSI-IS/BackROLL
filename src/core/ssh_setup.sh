@@ -1,5 +1,10 @@
 cp /root/shared_ssh/* /root/.ssh/
+
+# Ensure proper file permissions
+
+# From ssh-keygen behavior
+chmod 600 /root/.ssh/*
+chmod 644 /root/.ssh/*.pub
+
+# From OpenSSH man pages
 chmod 644 /root/.ssh/config
-chmod 400 /root/.ssh/id_*
-eval "$(ssh-agent -s)"
-ssh-add /root/.ssh/id_*
