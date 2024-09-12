@@ -131,7 +131,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
     try:
       # Extract selected borg archive
-      cmd = f"""borg extract --sparse --strip-components=2 {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
+      cmd = f"""borg extract --sparse {borg_repository}{virtual_machine_info['name']}::{backup_name}"""
       process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
       while True:
         process.stdout.flush()
@@ -140,6 +140,11 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
           break
         elif not output and process.poll() is not None:
           break
+      
+      # Skip directories
+      # TODO May fail silently with os.system(…).
+      os.system('mv $(find -type f) ./')
+
       # Loop through VM's disks to find filedisk
       for disk in vm_storage_info:
         if disk['device'] == disk_device:
@@ -177,6 +182,8 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
           kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
 
       try:
+        # TODO May fail silently with os.system(…).
+
         #subprocess.run(['cp', virtual_machine_diskName, f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
         os.system(f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
 
@@ -242,6 +249,7 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
     # Go into directory
     os.chdir(f"{storage_path}/restore/{virtual_machine_name}")
 
+    # TODO Group common code and mind depth independent restore.
     cmd = f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}"""
     process = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     while True:
