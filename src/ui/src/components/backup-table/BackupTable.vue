@@ -59,30 +59,24 @@
       </template>
 
       <template #cell(actions)="{ rowIndex }">
-        <va-button-group gradient :rounded="false">
-          <va-button
-            icon="settings"
-            @click="
-              this.$router.push(
-                `/resources/virtualmachines/${data[rowIndex].target_uuid}`
-              )
-            "
-          />
-          <va-button
-            v-if="data[rowIndex].state == 'FAILURE'"
-            icon="bug_report"
-            class="mr-4"
-            color="secondary"
-            gradient
-            :rounded="false"
-            @click="
-              (selectedTask = data[rowIndex]),
+          <va-button-group gradient :rounded="false">
+            <va-button
+              icon="settings"
+              @click="
+                this.$router.push(
+                  `/resources/virtualmachines/${data[rowIndex].target_uuid}`
+                )
+              "
+            />
+            <va-button
+              v-if="data[rowIndex].state == 'FAILURE'"
+              icon="bug_report"
+              @click="
+                (selectedTask = data[rowIndex]);
                 retrieveTasksLogs(data[rowIndex].uuid)
-            "
-          >
-            Troubleshoot
-          </va-button>
-        </va-button-group>
+              "
+            />
+          </va-button-group>
       </template>
 
       <template v-if="pagination" #bodyAppend>
