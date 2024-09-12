@@ -93,28 +93,11 @@
           class="mb-4"
           style="max-width:720px;"
           v-model="sshKey"
-          type="textarea" 
+          type="textarea"
           label="BackROLL SSH key"
-          :autosize="true"
-          :min-rows="2"
-          :max-rows="2"
+          autosize
           readonly
-        >
-          <template #append>
-            <div class="button-container">
-              <button 
-                class="square-button"
-                @click="copyToClipboard(sshKey)"
-              >
-                <img 
-                  src="../../ui/images/logoCopyToClipboardTransparent.png"
-                  width="20"
-                  height="20"
-                />
-              </button>
-            </div>
-          </template>
-        </va-input>
+        />
         <va-input
           class="mb-4"
           style="max-width:720px;"
@@ -190,24 +173,6 @@ export default defineComponent({
     this.requestKey()
   },
   methods: {
-    copyToClipboard (text) {
-      // Crée un élément textarea temporaire
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-  
-      // Ajoute le textarea au document
-      document.body.appendChild(textarea);
-  
-      // Sélectionne le texte dans le textarea
-      textarea.select();
-      textarea.setSelectionRange(0, 99999); // Pour les appareils mobiles
-  
-      // Copie le texte sélectionné dans le presse-papier
-      document.execCommand('copy');
-  
-      // Supprime le textarea du document
-      document.body.removeChild(textarea);
-    },
     getPool (id) {
       const result = this.$store.state.resources.poolList.find(item => item.id === id)
       if (result) {
@@ -270,30 +235,5 @@ export default defineComponent({
   .text-right {
     text-align: right;
     width: 100%;
-  }
-
-  .button-container {
-    display: flex;
-    justify-content: flex-end; /* Aligne le bouton à droite */
-    align-items: flex-start; /* Aligne le bouton en haut */
-    height: 10vh; /* S'assure que le conteneur prend toute la hauteur de la vue */
-  }
-
-  .square-button {
-    width: 25px;
-    height: 25px;
-    /*background-image: url("logoCopyToClipboardTransparent.png");*/
-    background-color: #CDCDCD; /* Couleur de fond */
-    color: white; /* Couleur du texte */
-    border: none; /* Pas de bordure */
-    cursor: pointer; /* Curseur en forme de main */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px; /* Taille du texte */
-  }
-
-  .square-button:hover {
-    background-color: #747474; /* Couleur de fond au survol */
   }
 </style>
