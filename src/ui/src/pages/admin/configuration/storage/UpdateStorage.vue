@@ -18,17 +18,12 @@
           label="Path"
           placeholder="eg. /mnt/myNFSbackend"
           v-model="updatedValues.path"
-          :rules="[
-          value => (value && value.length > 0) || 'Field is required',
-          value => value != '/mnt/' || 'The path can\'t only be /mnt/', 
-          value => /^\/mnt\/([a-zA-Z0-9_ -]+\/)+$/i.test(value) || 'The path must begin by /mnt and end with a /',
-          value => !this.$store.state.storageList.find(s => s.path === value) || 'A storage already exist for this path'
-          ]" />
+          :rules="[value => (value && value.length > 0) || 'Field is required']"
+        />
         <br>
         <va-button
           class="mb-3"
           type="submit"
-          :disabled="!isPathValid || !isNameValid"
         >
           Update
         </va-button>
@@ -66,17 +61,6 @@ export default {
         return item.id == this.$route.params.id
       })
       return result[0]
-    },
-    isPathValid() {
-      return this.updatedValues.path && 
-             this.updatedValues.path.length > 0 && 
-             this.updatedValues.path !== '/mnt/' && 
-             /^\/mnt\/([a-zA-Z0-9_ -]+\/)+$/i.test(this.updatedValues.path) && 
-             !this.$store.state.storageList.find(s => s.path === this.updatedValues.path);
-    },
-    isNameValid() {
-      return this.updatedValues.name && 
-             this.updatedValues.name.length> 0;
     }
   },
   mounted () {

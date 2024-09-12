@@ -22,16 +22,11 @@
         <br>
         <va-input label="Path" placeholder="eg. /mnt/myNFSbackend/" v-model="storagePath" :rules="[
           value => (value && value.length > 0) || 'Field is required',
-          value => value != '/mnt/' || 'The path can\'t only be /mnt/', 
           value => /^\/mnt\/([a-zA-Z0-9_ -]+\/)+$/i.test(value) || 'The path must begin by /mnt and end with a /',
           value => !this.$store.state.storageList.find(s => s.path === value) || 'A storage already exist for this path'
           ]" />
         <br>
-        <va-button 
-          class="mb-3" 
-          type="submit"
-          :disabled="!isPathValid || !isNameValid"
-          >
+        <va-button class="mb-3" type="submit">
           Validate
         </va-button>
       </va-form>
@@ -46,20 +41,6 @@ export default {
     return {
       storageName: null,
       storagePath: null
-    }
-  },
-  computed: {
-    isPathValid() {
-      return this.storagePath && 
-             this.storagePath.length > 0 && 
-             this.storagePath !== '/mnt/' && 
-             /^\/mnt\/([a-zA-Z0-9_ -]+\/)+$/i.test(this.storagePath) && 
-             !this.$store.state.storageList.find(s => s.path === this.storagePath);
-    },
-    isNameValid() {
-      return this.storageName && 
-             this.storageName.length > 0 && 
-             !this.$store.state.storageList.find(s => s.name === this.storageName);
     }
   },
   methods: {
