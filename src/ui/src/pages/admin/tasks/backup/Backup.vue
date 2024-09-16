@@ -3,7 +3,7 @@
     <div class="flex lg12 xl10">
       <va-card class="mb-4" >
         <va-card-title>
-          <h1>backups</h1>
+          <h1>Backups</h1>
           <div class="mr-0 text-right">
             <va-button
               color="info"
@@ -86,13 +86,11 @@ export default defineComponent({
   data () {
     return {
       columns: [
-        // {key: 'name', sortable: true},
         {key: 'target', sortable: true},
         {key: 'started', sortable: true},
         {key: 'runtime', sortable: true},
         {key: 'state', sortable: true},
         {key: 'actions'},
-        {key: 'virtualmachines'}
       ],
       selectedDate: new Date(),
       logModal: false,

@@ -111,8 +111,7 @@ export default defineComponent({
         {key: 'started', sortable: true},
         {key: 'runtime', sortable: true},
         {key: 'state', sortable: true},
-        {key: 'actions', sortable: true},
-        {key: 'virtualmachines'}
+        {key: 'actions'},
       ],
       selectedDate: new Date(),
       logModal: false,
@@ -177,19 +176,6 @@ export default defineComponent({
       return this.$store.state.resources.poolList.filter((item) => {
         return item.id == id
       })
-    },
-    retrievePoolTarget (args) {
-      if (args)  {
-        const ArgsArray = args.split("'")
-        for (const [i, v] of ArgsArray.entries()) {
-          if (v === 'pool_id' && this.getPool(ArgsArray[i+2])[0]) {
-            return this.getPool(ArgsArray[i+2])[0].name
-          }     
-        }
-        return null
-      } else {
-        return null
-      }
     },
     parseArgs (x) {
       try {
