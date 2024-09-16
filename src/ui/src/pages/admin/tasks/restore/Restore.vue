@@ -7,7 +7,7 @@
           <div class="mr-0 text-right">
             <va-button
               color="info"
-              @click="this.$router.push('/admin/tasks/kickstart')"
+              @click="this.$router.push({ path: '/admin/tasks/kickstart', query: {task: 'restore'} })"
             >
               Start restore task
             </va-button>
@@ -111,7 +111,7 @@ export default defineComponent({
         {key: 'started', sortable: true},
         {key: 'runtime', sortable: true},
         {key: 'state', sortable: true},
-        {key: 'actions', sortable: true},
+        {key: 'actions'},
       ],
       selectedDate: new Date(),
       logModal: false,
@@ -144,15 +144,19 @@ export default defineComponent({
       return this.filteredTaskList.filter(x => x.state === 'RECEIVED').length
     },
     tableData() {
-      return this.filteredTaskList.map(x => ({
-        uuid: x.uuid,
-        name: x.name.replaceAll('_', ' '),
-        target: this.retrieveArgs(x),
-        started: x.started,
-        ipAddress: x.ip_address,
-        runtime: x.runtime,
-        state: x.state,
-      }))
+      return this.filteredTaskList.map(x => {
+        const taskArgs = this.parseArgs(x)
+        return {
+          uuid: x.uuid,
+          name: x.name.replaceAll('_', ' '),
+          target: taskArgs?.name ?? "",
+          target_uuid: taskArgs?.uuid,
+          started: x.started,
+          ipAddress: x.ip_address,
+          runtime: x.runtime,
+          state: x.state,
+        }
+      })
     }
   },
   methods: {
@@ -173,34 +177,12 @@ export default defineComponent({
         return item.id == id
       })
     },
-    retrievePoolTarget (args) {
-      if (args)  {
-        const ArgsArray = args.split("'")
-        for (const [i, v] of ArgsArray.entries()) {
-          if (v === 'pool_id' && this.getPool(ArgsArray[i+2])[0]) {
-            return this.getPool(ArgsArray[i+2])[0].name
-          }     
-        }
-        return null
-      } else {
-        return null
+    parseArgs (x) {
+      try {
+        return JSON.parse(x.args);
+      } catch (error) {
+        console.error(error);
       }
-    },
-    retrieveArgs (x) {
-      if(x.args) {
-        let json = "";
-        try {
-          // console.log(x.args);
-          json = JSON.parse(x.args);
-          if(json){
-          return json.name;
-        }
-        } catch (error) {
-          console.error(error);
-          return "";
-        }  
-      }
-      return "";
     }
   }
 })

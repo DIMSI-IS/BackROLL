@@ -55,7 +55,7 @@ export default defineComponent({
         this.vmInfo = paths;
         this.loadingVMs = false;
       } else {
-        console.log("No vm  folders found");
+        console.log("No vm folders found");
       }
     },
     requestVirtualMachineList () {
