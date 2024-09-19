@@ -32,24 +32,24 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
     ```
   - get argument variables and setup `staging` :
     ```bash
-    source souce-me.sh staging
+    source source-me.sh staging
     ```
   - get argument variables and setup `prod` :
     ```bash
-    source souce-me.sh prod
+    source source-me.sh prod
     ```
 - use `docker compose` with an argument variable :
   - dev version :
     ```bash
-    docker compose $dev …
+    docker compose $dev <docker compose command> [some arguments]
     ```
   - staging version :
     ```bash
-    docker compose $staging …
+    docker compose $staging <docker compose command> [some arguments]
     ```
   - prod version :
     ```bash
-    docker compose $prod …
+    docker compose $prod <docker compose command> [some arguments]
     ```
 
 Remember to always be in the `compose_project/` directory and to source `source-me.sh` in your terminal.

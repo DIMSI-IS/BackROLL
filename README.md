@@ -64,12 +64,16 @@ source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/v0.4.0-a
 ```
 
 #### Manage your containers
-Thoses are the basic commands to manage a your containers. Find more details there [dedicated compose project README](./compose_project/README.md).
+Those are the basic commands you need to know. Find more details there [dedicated compose project README](./compose_project/README.md).
+
+Go to the compose project directory
+```bash
+cd compose_project
+```
 
 Set environment variables
 ```bash
-cd compose_project
-source source-me.sh prod
+source source-me.sh
 ```
 
 Start the containers
