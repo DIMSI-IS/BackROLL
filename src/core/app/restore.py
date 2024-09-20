@@ -200,22 +200,26 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
             try:
                 # TODO May fail silently with os.system(…).
 
-                # subprocess.run(['cp', virtual_machine_diskName, f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
+                kvm_storage_disk_path = make_path(
+                    kvm_storagepath, virtual_machine_diskName)
+                kvm_storage_disk_path_tmp = f"{kvm_storage_disk_path}.tmp"
+
+                # subprocess.run(['cp', virtual_machine_diskName, kvm_storage_disk_path_tmp], check = True)
                 os.system(
-                    f"cp {virtual_machine_diskName} {kvm_storagepath}{virtual_machine_diskName}-tmp")
+                    f"cp {virtual_machine_diskName} {kvm_storage_disk_path_tmp}")
 
                 # Fix chmod ownership of new qcow2 filedisk
-                # subprocess.run(['chmod', '644', f"{kvm_storagepath}{virtual_machine_diskName}-tmp"], check = True)
+                # subprocess.run(['chmod', '644', kvm_storage_disk_path_tmp], check = True)
                 os.system(
-                    f"chmod 644 {kvm_storagepath}{virtual_machine_diskName}-tmp")
+                    f"chmod 644 {kvm_storage_disk_path_tmp}")
 
                 # Replace disk by extracted backup
-                # subprocess.run(['mv', f"{kvm_storagepath}{virtual_machine_diskName}-tmp", f"{kvm_storagepath}{virtual_machine_diskName}"], check = True)
+                # subprocess.run(['mv', kvm_storage_disk_path_tmp, kvm_storage_disk_path], check = True)
                 os.system(
-                    f"mv {kvm_storagepath}{virtual_machine_diskName}-tmp {kvm_storagepath}{virtual_machine_diskName}")
+                    f"mv {kvm_storage_disk_path_tmp} {kvm_storage_disk_path}")
 
                 # Remove temporary folder used to extract borg archive
-                # subprocess.run(['rm', "-rf", f"{restore_path}"])
+                # subprocess.run(['rm', "-rf", restore_path])
                 os.system(
                     f"rm -rf {restore_path}")
             except Exception as e:
