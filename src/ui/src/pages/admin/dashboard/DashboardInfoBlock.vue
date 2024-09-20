@@ -25,7 +25,7 @@
         <div class="flex xs12 md6">
           <va-card stripe stripe-color="info">
             <va-card-title>
-              {{ $t('dashboard.info.componentReleaseVersion') }}
+              {{ `${$t('dashboard.info.componentReleaseVersion')} ${backrollVersion}` }}
             </va-card-title>
             <va-card-content>
               <p class="rich-theme-card-text">
@@ -127,6 +127,7 @@ export default {
   components: { ...spinners },
   data() {
     return {
+      backrollVersion: process.env.VUE_APP_BACKROLL_VERSION,
       infoTiles: [{
         color: 'info',
         value: this.$store.state.resources.hostList.length,
