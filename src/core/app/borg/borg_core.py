@@ -36,6 +36,8 @@ from app.kvm import kvm_manage_snapshot
 # CS custom module import
 from app.cloudstack import virtual_machine as cs_manage_vm
 
+from app.patch import make_path
+
 
 class borg_backup:
     """ Full sequence to backup all disks of a specified virtual machine
@@ -104,31 +106,31 @@ class borg_backup:
 
     def check_repository(self):
         self.vm_name = self.info['name']
-        repository = self.info['borg_repository']
+        repository_path = self.info['borg_repository']
+        vm_repository_path = make_path(repository_path, self.vm_name)
         # Check if borg repository folder exists
-        if os.path.exists(f"{repository}{self.vm_name}"):  # TODO ux-paths
+        if os.path.exists(vm_repository_path):
             # Borg repo exists
             print(f'[{self.vm_name}] A Borg repository for this VM has been found')
         else:
             # Borg repo doesn't exist
             print(
                 f'[{self.vm_name}] Borg repository for this VM doesn\'t exist. Creating a new one')
-            # TODO Use the constructor as intented.
-            path = Path(f"{repository}/{self.vm_name}")
-            path.mkdir(parents=True, exist_ok=True)
+            Path(vm_repository_path).mkdir(parents=True, exist_ok=True)
             # Initializing borg repository
             print(f'[{self.vm_name}] Initializing the new borg repo')
             subprocess.run(["borg", "init", "--encryption",
-                           "none", f"{repository}{self.vm_name}"], check=True)  # TODO ux-paths
+                           "none", vm_repository_path], check=True)
         print(f'[{self.vm_name}] Borg repository setup is OK')
 
     def check_repository_lock(self):
         self.vm_name = self.info['name']
         print(f'[{self.vm_name}] Checking borg repository lock status')
         # Check if borg repo is locked
-        repository = self.info['borg_repository']
+        repository_path = self.info['borg_repository']
+        vm_repository_path = make_path(repository_path, self.vm_name)
         request = subprocess.run(
-            ["borg", "list", f"{repository}{self.vm_name}"], capture_output=True)
+            ["borg", "list", vm_repository_path], capture_output=True)
         if request.returncode == 0:
             print(f'[{self.vm_name}] Borg repository is unlocked, job will continue')
         else:
@@ -136,6 +138,7 @@ class borg_backup:
             raise ValueError(request.stderr.decode("utf-8"))
 
     def checking_files_trace(self, disk):
+        # TODO replace .snap by .snap ?
         if os.path.exists(f'{disk["source"].replace(".snap", "")}.snap'):
             return True
         else:
@@ -247,8 +250,9 @@ class borg_backup:
 
     def borg_prune(self, disk):
         disk_name = disk['device']
-        repository = self.info['borg_repository']
-        command = f'borg prune --keep-daily 30 --prefix "{disk_name}" {repository}{self.vm_name}'
+        repository_path = self.info['borg_repository']
+        vm_repository_path = make_path(repository_path, self.vm_name)
+        command = f'borg prune --keep-daily 30 --prefix "{disk_name}" {vm_repository_path}'
         subprocess.run(command.split(), check=True)
 
         for disk in self.virtual_machine['storage']:
