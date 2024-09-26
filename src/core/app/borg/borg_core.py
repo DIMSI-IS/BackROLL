@@ -191,8 +191,7 @@ class borg_backup:
         repository = self.info['borg_repository']
         vm_name = self.virtual_machine['name']
         disk_source = disk['source']
-        # TODO Python >= 3.9: disk_source.removesuffix(".qcow2")
-        disk_source_path_name = re.sub("\.qcow2$", "", disk_source)
+        disk_source_path_name = disk_source.removesuffix(".qcow2")
         disk_source_file_name = disk_source_path_name.split("/")[-1]
         disk_name = disk['device']
 
@@ -204,7 +203,8 @@ class borg_backup:
         if "pool_id" in self.virtual_machine:
             connector = connectors.filter_connector_by_id(
                 pool.filter_pool_by_id(self.virtual_machine["pool_id"]).connector_id)
-            disk_source = make_path("/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk_source_path_name)
+            disk_source = make_path(
+                "/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk_source_path_name)
 
         cmd = f"""borg create \
         --log-json \
