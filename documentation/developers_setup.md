@@ -41,7 +41,7 @@ If you plan to work remotely on a server, install the remote connexion extension
 
 You can install the [Docker extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker). It provides a UI to manage containers and other Docker stuff directly into Visual Studio Code. However, it may no guess the full docker compose command you used to set up your containers, so just fallback to the command line.
 
-# KVM
+## KVM
 
 To contribute to Backroll, you will need to have an hypervisor and some VMS to play with.
 
