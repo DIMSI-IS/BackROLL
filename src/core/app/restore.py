@@ -255,6 +255,7 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
     print("storage: " + storage_path)
     print("backup: " + backup_name)
     virtual_machine_path = virtual_machine_info
+    # TODO use make_path
     virtual_machine_complete_path = virtual_machine_info + "/"
     print("virtual_machine_path: " + virtual_machine_path)
     virtual_machine_name = os.path.basename(
