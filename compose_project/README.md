@@ -104,7 +104,9 @@ ssh -p 2222 -D 1080 developer@localhost
 
 The password is `developer`. You must ensure that the command is running each time you start working on Backroll.
 
-If you are working on a shared developement server, the port 2222 may be already in use. Run the `docker port` command on the proxy container to find the exposed port.
+If you are working remotely, do not forget to forward the port 2222.
+
+Keep in mind that the port 2222 may be already in use. Run the `docker port` command on the proxy container to find the exposed port.
 
 ##### Connecting to the proxy server
 
@@ -144,7 +146,3 @@ You can acces to the user interfaces on localhost :
   - `prod` http://localhost/admin/dashboard
 - Flower http://localhost:5555/
 - Keycloak http://localhost:8081/admin/master/console/#/backroll
-
-## Miscellaneous
-
-Various details about the current state of the project : [miscellaneous.md](./miscellaneous.md).
