@@ -246,109 +246,110 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
         raise e
 
 
-# @celery.task(name='VM_Restore_To_Path', bind=True, max_retries=3, base=QueueOnce)
-# def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, mode):
-#     """Deactivated task. Mind code factorization and code duplication when re-opening the feature development."""
+@celery.task(name='VM_Restore_To_Path', bind=True, max_retries=3, base=QueueOnce)
+# TODO Fixme but referenced in the code.
+def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, mode):
+    """Deactivated task but referenced in the code. Mind code factorization and code duplication when re-opening the feature development."""
 
-#     print("restore_to_path_task")
-#     print("storage: " + storage_path)
-#     print("backup: " + backup_name)
-#     virtual_machine_path = virtual_machine_info
-#     virtual_machine_complete_path = virtual_machine_info + "/"
-#     print("virtual_machine_path: " + virtual_machine_path)
-#     virtual_machine_name = os.path.basename(
-#         os.path.dirname(virtual_machine_complete_path))
-#     print("virtual_machine_name: " + virtual_machine_name)
+    print("restore_to_path_task")
+    print("storage: " + storage_path)
+    print("backup: " + backup_name)
+    virtual_machine_path = virtual_machine_info
+    virtual_machine_complete_path = virtual_machine_info + "/"
+    print("virtual_machine_path: " + virtual_machine_path)
+    virtual_machine_name = os.path.basename(
+        os.path.dirname(virtual_machine_complete_path))
+    print("virtual_machine_name: " + virtual_machine_name)
 
-#     try:
-#         # Remove existing files inside restore folder
-#         command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
-#         subprocess.run(command.split())
+    try:
+        # Remove existing files inside restore folder
+        command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
+        subprocess.run(command.split())
 
-#         # Create temporary folder to extract borg archive
-#         command = f"mkdir -p {storage_path}/restore/{virtual_machine_name}"
-#         subprocess.run(command.split())
+        # Create temporary folder to extract borg archive
+        command = f"mkdir -p {storage_path}/restore/{virtual_machine_name}"
+        subprocess.run(command.split())
 
-#         # Go into directory
-#         os.chdir(f"{storage_path}/restore/{virtual_machine_name}")
+        # Go into directory
+        os.chdir(f"{storage_path}/restore/{virtual_machine_name}")
 
-#         # TODO Group common code and mind depth independent restore.
-#         cmd = f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}"""
-#         process = subprocess.Popen(
-#             cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-#         while True:
-#             process.stdout.flush()
-#             output = process.stdout.readline()
-#             if output == '' and process.poll() is not None:
-#                 break
-#             elif not output and process.poll() is not None:
-#                 break
+        # TODO Group common code and mind depth independent restore.
+        cmd = f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}"""
+        process = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        while True:
+            process.stdout.flush()
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            elif not output and process.poll() is not None:
+                break
 
-#         diskList = os.popen("ls").read().split('\n')
-#         disk = diskList[0]
-#         print("Disk: " + disk)
-#         storageList = storage.retrieve_storage()
-#         repository = storageList[1]["path"]
-#         print("repo : " + repository)
-#         request = subprocess.run(
-#             ["qemu-img", "info", "--output=json", disk], capture_output=True)
-#         qemu_img_info = request.stdout.decode("utf-8")
-#         qemu_img_info = json.loads(qemu_img_info)
-#         if qemu_img_info.get('full-backing-filename'):
-#             print(
-#                 f'[{virtual_machine_name}] Checking that {virtual_machine_name}\'s backing file has already been backed up')
-#             backing_file = qemu_img_info['full-backing-filename'].split(
-#                 '/')[-1]
-#             print("backing file: " + backing_file)
+        diskList = os.popen("ls").read().split('\n')
+        disk = diskList[0]
+        print("Disk: " + disk)
+        storageList = storage.retrieve_storage()
+        repository = storageList[1]["path"]
+        print("repo : " + repository)
+        request = subprocess.run(
+            ["qemu-img", "info", "--output=json", disk], capture_output=True)
+        qemu_img_info = request.stdout.decode("utf-8")
+        qemu_img_info = json.loads(qemu_img_info)
+        if qemu_img_info.get('full-backing-filename'):
+            print(
+                f'[{virtual_machine_name}] Checking that {virtual_machine_name}\'s backing file has already been backed up')
+            backing_file = qemu_img_info['full-backing-filename'].split(
+                '/')[-1]
+            print("backing file: " + backing_file)
 
-#             shutil.copy(f"{repository}template/{backing_file}",
-#                         f"{storage_path}/restore/{backing_file}")
-#             print(
-#                 f'[{virtual_machine_name}] Backing up the backing file has successfully completed')
+            shutil.copy(f"{repository}template/{backing_file}",
+                        f"{storage_path}/restore/{backing_file}")
+            print(
+                f'[{virtual_machine_name}] Backing up the backing file has successfully completed')
 
-#             # rebase
-#             dst = f"{storage_path}/restore/{backing_file}"
-#             print("dst: " + dst)
-#             print("disk: " + disk)
-#             cmd = f"qemu-img rebase -f qcow2 -u -b {dst} {disk}"
-#             print("cmd: " + cmd)
-#             # rebaseRequest = subprocess.run(["qemu-img ", "rebase", "-f qcow2", "-u", "-b", dst, disk, "--output=json"], capture_output=True)
-#             # rebaseRequest = subprocess.run(cmd, capture_output=True)
-#             # rebaseRequest = subprocess.run([cmd], capture_output=True)
-#             # qemu_img_rebase = rebaseRequest.stdout.decode("utf-8")
-#             # qemu_img_rebase = json.loads(qemu_img_rebase)
-#             rebaseResponse = os.popen(cmd).read().split('\n')
-#             print("end rebase")
+            # rebase
+            dst = f"{storage_path}/restore/{backing_file}"
+            print("dst: " + dst)
+            print("disk: " + disk)
+            cmd = f"qemu-img rebase -f qcow2 -u -b {dst} {disk}"
+            print("cmd: " + cmd)
+            # rebaseRequest = subprocess.run(["qemu-img ", "rebase", "-f qcow2", "-u", "-b", dst, disk, "--output=json"], capture_output=True)
+            # rebaseRequest = subprocess.run(cmd, capture_output=True)
+            # rebaseRequest = subprocess.run([cmd], capture_output=True)
+            # qemu_img_rebase = rebaseRequest.stdout.decode("utf-8")
+            # qemu_img_rebase = json.loads(qemu_img_rebase)
+            rebaseResponse = os.popen(cmd).read().split('\n')
+            print("end rebase")
 
-#             # qemu info to check the rebase
-#             request = subprocess.run(
-#                 ["qemu-img", "info", "--output=json", disk], capture_output=True)
-#             qemu_img_info = request.stdout.decode("utf-8")
-#             qemu_img_info = json.loads(qemu_img_info)
-#             # check if ok
-#             print("end info")
+            # qemu info to check the rebase
+            request = subprocess.run(
+                ["qemu-img", "info", "--output=json", disk], capture_output=True)
+            qemu_img_info = request.stdout.decode("utf-8")
+            qemu_img_info = json.loads(qemu_img_info)
+            # check if ok
+            print("end info")
 
-#             # qemu commit
-#             cmd = f"qemu-img commit -f qcow2 {disk}"
-#             # commitRequest = subprocess.run(["qemu-img ", "commit", "-f qcow2", "--output=json", disk], capture_output=True)
-#             # qemu_img_commit = commitRequest.stdout.decode("utf-8")
-#             # qemu_img_commit = json.loads(qemu_img_commit)
-#             commitResponse = os.popen(cmd).read().split('\n')
-#             print("end commit")
+            # qemu commit
+            cmd = f"qemu-img commit -f qcow2 {disk}"
+            # commitRequest = subprocess.run(["qemu-img ", "commit", "-f qcow2", "--output=json", disk], capture_output=True)
+            # qemu_img_commit = commitRequest.stdout.decode("utf-8")
+            # qemu_img_commit = json.loads(qemu_img_commit)
+            commitResponse = os.popen(cmd).read().split('\n')
+            print("end commit")
 
-#             # rename backring file
-#             os.rename(f"{storage_path}/restore/{backing_file}",
-#                       f"{storage_path}/restore/restore_{virtual_machine_name}")
+            # rename backring file
+            os.rename(f"{storage_path}/restore/{backing_file}",
+                      f"{storage_path}/restore/restore_{virtual_machine_name}")
 
-#             # Remove restore artifacts
-#             try:
-#                 command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
-#                 print("command: " + command)
-#                 request = subprocess.run(command.split())
-#             except Exception as err:
-#                 print(err)
-#                 raise err
-#         print("ok")
-#         test = "test"
-#     except Exception as e:
-#         raise e
+            # Remove restore artifacts
+            try:
+                command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
+                print("command: " + command)
+                request = subprocess.run(command.split())
+            except Exception as err:
+                print(err)
+                raise err
+        print("ok")
+        test = "test"
+    except Exception as e:
+        raise e
