@@ -73,7 +73,6 @@ class items_login(BaseModel):
 
 
 def valid_token(token: str = Security(oauth2_scheme)) -> Json:
-    # TODO Remove the printing if the bug is fixed.
     # print(f"Inspect token at https://jwt.io/#id_token={token}.")
     jwks_client = PyJWKClient(certs_url)
     try:
