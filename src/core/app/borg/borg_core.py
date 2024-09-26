@@ -209,7 +209,7 @@ class borg_backup:
         cmd = f"""borg create \
         --log-json \
         --progress \
-        {repository}{vm_name}::{self.info['backup_name']} \
+        {make_path(repository, vm_name)}::{self.info['backup_name']} \
         {disk_source}"""
 
         process = subprocess.Popen(
@@ -280,7 +280,7 @@ class borg_backup:
 
     def delete_archive(self, payload):
         repository = self.info['borg_repository']
-        command = f'borg delete {repository}{payload["target"]["name"]}::{payload["selected_backup"]["name"]}'
+        command = f'borg delete {make_path(repository, payload["target"]["name"])}::{payload["selected_backup"]["name"]}'
         request = self.remote_request(command)
         self.process_rc(request)
 
@@ -288,7 +288,7 @@ class borg_backup:
 def borg_list_backup(virtual_machine, repository):
     try:
         # Starting ssh access
-        command = f"borg list --json {repository}{virtual_machine}"
+        command = f"borg list - -json {make_path(repository, virtual_machine)}"
         request = subprocess.run(command.split(), capture_output=True)
         result = ""
         if request.returncode == 2:
@@ -307,7 +307,7 @@ def borg_list_backup(virtual_machine, repository):
 def borg_backup_info(virtual_machine, repository, backup_name):
     try:
         # Starting ssh access
-        command = f"borg info --json {repository}{virtual_machine}::{backup_name}"
+        command = f"borg info --json {make_path(repository, virtual_machine)}::{backup_name}"
         request = subprocess.run(command.split(), capture_output=True)
         result = ""
         if request.returncode == 2:
@@ -330,7 +330,7 @@ def borg_backup_info(virtual_machine, repository, backup_name):
 def borg_list_repository(virtual_machine, repository):
     try:
         # Starting ssh access
-        command = f"borg info --json {repository}{virtual_machine}"
+        command = f"borg info --json {make_path(repository, virtual_machine)}"
         request = subprocess.run(command.split(), capture_output=True)
         result = ""
         if request.returncode == 2:
@@ -354,7 +354,7 @@ def borg_list_repository(virtual_machine, repository):
 #     raise e
 
 # def delete_repository(self, repository):
-#   command = f'borg delete {borgserver_CS_repositorypath}{repository}'
+#   command = f'borg delete {make_path(borgserver_CS_repositorypath, repository)}'
 #   print(command)
 #   stdin, stdout, stderr = self.borgSSH.exec_command(command)
 #   stdin.write('YES' + '\n')
