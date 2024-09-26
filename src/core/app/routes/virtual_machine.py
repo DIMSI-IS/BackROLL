@@ -238,6 +238,7 @@ def retrieve_virtual_machine_paths(self):
         for path in storagePathsFromDb:
             subFolders = os.scandir(path.path)
             for subFolder in subFolders:
+                # TODO ux-paths ?
                 configFilePath = subFolder.path + "/config"
                 print("configFilePath _______ " + configFilePath)
                 if os.path.exists(configFilePath):

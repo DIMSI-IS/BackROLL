@@ -34,7 +34,6 @@ def get_snapshot(vm_info, host_info):
 def generate_xmlSnapshot(vm_name, vm_storage):
     sub_xml_disk = ""
     for disk in vm_storage:
-        # TODO .snap replaced by .snap ?
         sub_xml_disk += f"""
         <disk name='{disk["device"]}' snapshot='external'>
           <source file='{disk['source'].replace(".snap", "")}.snap'/>
