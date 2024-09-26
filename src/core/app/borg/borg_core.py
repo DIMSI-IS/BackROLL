@@ -175,8 +175,7 @@ class borg_backup:
                 f'[{vm_name}] Checking that {vm_name}\'s backing file has already been backed up')
             backing_file = qemu_img_info['full-backing-filename'].split(
                 '/')[-1]
-            # TODO ux-paths
-            template_path = f"{repository}template/{backing_file}"
+            template_path = make_path(repository, "template", backing_file)
 
             if not path.exists(template_path):
                 os.makedirs(template_path)
@@ -205,8 +204,7 @@ class borg_backup:
         if "pool_id" in self.virtual_machine:
             connector = connectors.filter_connector_by_id(
                 pool.filter_pool_by_id(self.virtual_machine["pool_id"]).connector_id)
-            # TODO ux-paths
-            disk_source = f'/mnt/{cs_manage_vm.listStorage(connector, disk)["id"]}/{disk_source_path_name}'
+            disk_source = make_path("/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk_source_path_name)
 
         cmd = f"""borg create \
         --log-json \

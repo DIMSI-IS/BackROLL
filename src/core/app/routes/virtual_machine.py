@@ -42,6 +42,8 @@ from app.routes import storage
 
 from app.backup_tasks import manage_backup
 
+from app.patch import make_path
+
 # CS Imports
 from app.cloudstack import virtual_machine as cs_manage_vm
 
@@ -220,10 +222,8 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
             virtual_machine['storage'] = cs_manage_vm.getDisk(
                 connector, virtual_machine)
             for disk in virtual_machine['storage']:
-                repository = "/mnt/" + \
-                    cs_manage_vm.listStorage(connector, disk)[
-                        "id"] + "/"  # TODO ux-paths
-                disk["source"] = repository + disk["source"]
+                disk["source"] = make_path(
+                    "/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk["source"])
         return virtual_machine
     except Exception as e:
         raise ValueError(e)

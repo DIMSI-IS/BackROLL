@@ -19,6 +19,8 @@ import os
 from slack_sdk.webhook import WebhookClient
 from slack_sdk.errors import SlackApiError
 
+from app.patch import make_path
+
 
 def connector(hook, payload):
     webhook = WebhookClient(hook.value)
@@ -96,8 +98,7 @@ def pool_notification(externalhook, success_list, failure_list, pool):
                         "text": "By clicking here",
                     },
                     "value": "click_me_123",
-                    # TODO ux-paths
-                    "url": f"{os.getenv('BASE_URL')}/admin/tasks/backup",
+                    "url": make_path(os.getenv('BASE_URL'), "admin/tasks/backup"),
                     "action_id": "button-action"
                 }
             }
