@@ -16,7 +16,6 @@
 # under the License.
 
 import os
-import re
 import json
 import subprocess
 import os.path
@@ -191,7 +190,7 @@ class borg_backup:
         repository = self.info['borg_repository']
         vm_name = self.virtual_machine['name']
         disk_source = disk['source']
-        disk_source_path_name = disk_source.removesuffix(".qcow2")
+        disk_source_path_name = Path(disk_source).stem
         disk_source_file_name = disk_source_path_name.split("/")[-1]
         disk_name = disk['device']
 
@@ -240,7 +239,7 @@ class borg_backup:
     def remove_snapshot_file(self, disk):
         vm_name = self.virtual_machine['name']
         disk_name = disk['device']
-        disk_source = f"""{disk['source'].split('.')[0]}.snap"""
+        disk_source = f"""{Path(disk['source']).stem}.snap"""
         if os.path.exists(disk_source):
             os.remove(disk_source)
             print(
