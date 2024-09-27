@@ -1,19 +1,19 @@
-## Licensed to the Apache Software Foundation (ASF) under one
-## or more contributor license agreements.  See the NOTICE file
-## distributed with this work for additional information
-## regarding copyright ownership.  The ASF licenses this file
-## to you under the Apache License, Version 2.0 (the
-## "License"); you may not use this file except in compliance
-## with the License.  You may obtain a copy of the License at
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
 ##
-##   http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 ##
-## Unless required by applicable law or agreed to in writing,
-## software distributed under the License is distributed on an
-## "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-## KIND, either express or implied.  See the License for the
-## specific language governing permissions and limitations
-## under the License.
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 import os
 import json
@@ -30,26 +30,32 @@ from pydantic import Json, BaseModel
 from authlib.integrations.starlette_client import OAuth
 
 from app import app
+from app.patch import make_path
 
-app.add_middleware(SessionMiddleware, secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xWTKGM""")
+app.add_middleware(SessionMiddleware,
+                   secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xWTKGM""")
 
 config = Config(".env")
 oauth = OAuth(config)
 
-issuer = os.getenv("OPENID_ISSUER")  # TODO .removesuffix("/")
+issuer_url = os.getenv("OPENID_ISSUER")
+metadata_url = make_path(issuer_url, ".well-known/openid-configuration")
+connect_url = make_path(issuer_url, "protocol/openid-connect")
+auth_url = make_path(connect_url, "auth")
+token_url = make_path(connect_url, "token")
+certs_url = make_path(connect_url, "certs")
 
-CONF_URL = f"""{issuer}/.well-known/openid-configuration"""
 oauth.register(
     name="""openid_provider""",
     client_id=os.getenv("OPENID_CLIENTID"),
     client_secret=os.getenv("OPENID_CLIENTSECRET"),
-    server_metadata_url=CONF_URL,
+    server_metadata_url=metadata_url,
     client_kwargs={"scope": "openid email profile"},
 )
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(
-    authorizationUrl=f"""{issuer}/protocol/openid-connect/auth""",
-    tokenUrl=f"""{issuer}/protocol/openid-connect/token""",
+    authorizationUrl=auth_url,
+    tokenUrl=token_url,
 )
 
 
@@ -67,19 +73,16 @@ class items_login(BaseModel):
 
 
 def valid_token(token: str = Security(oauth2_scheme)) -> Json:
-    # TODO Remove the printing if the bug is fixed.
-    #print(f"Inspect token at https://jwt.io/#id_token={token}.")
-    url = f"""{issuer}/protocol/openid-connect/certs"""
-    #print(f"{url=}")
-    jwks_client = PyJWKClient(url)
+    # print(f"Inspect token at https://jwt.io/#id_token={token}.")
+    jwks_client = PyJWKClient(certs_url)
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)
-        #print(f"{signing_key.key=}")
+        # print(f"{signing_key.key=}")
         return jwt.decode(
             token,
             signing_key.key,
-            issuer=issuer,
-            audience="account", 
+            issuer=issuer_url,
+            audience="account",
             algorithms=["RS256"],
             options={"verify_aud": False}
         )
@@ -96,14 +99,13 @@ def valid_token(token: str = Security(oauth2_scheme)) -> Json:
 def login(item: items_login):
     app_id = item.app_id
     app_secret = item.app_secret
-    url = f"""{os.getenv("OPENID_ISSUER")}/protocol/openid-connect/token"""
     payload = {
         "grant_type": "client_credentials",
         "client_id": app_id,
         "client_secret": app_secret,
     }
-    x = requests.post(url, data=payload, timeout=120)
-    token = json.loads(x.text)
+    response = requests.post(token_url, data=payload, timeout=120)
+    token = json.loads(response.text)
     return token
 
 
