@@ -106,8 +106,8 @@ class borg_backup:
 
     def check_repository(self):
         self.vm_name = self.info['name']
-        repository_path = self.info['borg_repository']
-        vm_repository_path = make_path(repository_path, self.vm_name)
+        vm_repository_path = make_path(
+            self.info['borg_repository'], self.vm_name)
         # Check if borg repository folder exists
         if os.path.exists(vm_repository_path):
             # Borg repo exists
@@ -127,8 +127,8 @@ class borg_backup:
         self.vm_name = self.info['name']
         print(f'[{self.vm_name}] Checking borg repository lock status')
         # Check if borg repo is locked
-        repository_path = self.info['borg_repository']
-        vm_repository_path = make_path(repository_path, self.vm_name)
+        vm_repository_path = make_path(
+            self.info['borg_repository'], self.vm_name)
         request = subprocess.run(
             ["borg", "list", vm_repository_path], capture_output=True)
         if request.returncode == 0:
@@ -248,8 +248,8 @@ class borg_backup:
 
     def borg_prune(self, disk):
         disk_name = disk['device']
-        repository_path = self.info['borg_repository']
-        vm_repository_path = make_path(repository_path, self.vm_name)
+        vm_repository_path = make_path(
+            self.info['borg_repository'], self.vm_name)
         command = f'borg prune --keep-daily 30 --prefix "{disk_name}" {vm_repository_path}'
         subprocess.run(command.split(), check=True)
 
