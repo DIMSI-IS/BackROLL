@@ -43,7 +43,7 @@ You can install the [Docker extension](https://marketplace.visualstudio.com/item
 
 ## KVM
 
-To contribute to Backroll, you will need to have an hypervisor and some VMS to play with.
+To contribute to Backroll, you will need to have an hypervisor and some VMs to play with.
 
 So let’s setup KVM :
 
