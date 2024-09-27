@@ -5,7 +5,7 @@ The Docker Compose projects enable Backroll to be available in several modes :
 - for developpement :
   - `dev`:
     - no configuration (default values)
-    - uses the Docker compose network
+    - uses the Docker Compose network
   - `staging`:
     - you will go through the configuration steps
     - uses your local network
@@ -38,18 +38,18 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
     ```bash
     source source-me.sh prod
     ```
-- use `docker compose` with an argument variable :
+- use [`docker compose`](https://docs.docker.com/reference/cli/docker/compose/) with an argument variable :
   - dev version :
     ```bash
-    docker compose $dev <docker compose command> [some arguments]
+    docker compose $dev [options] [COMMAND] [ARGS...]
     ```
   - staging version :
     ```bash
-    docker compose $staging <docker compose command> [some arguments]
+    docker compose $staging [options] [COMMAND] [ARGS...]
     ```
   - prod version :
     ```bash
-    docker compose $prod <docker compose command> [some arguments]
+    docker compose $prod [options] [COMMAND] [ARGS...]
     ```
 
 Remember to always be in the `compose_project/` directory and to source `source-me.sh` in your terminal.

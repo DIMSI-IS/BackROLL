@@ -12,6 +12,8 @@ If you are on Windows, you can work on linux throught [WSL](https://learn.micros
 
 If you want to work locally, install [Docker Desktop](https://docs.docker.com/desktop/install/windows-install/).
 
+To use Docker in WSL, check your WSL integration settings : `Settings > Resources > WSL integration`.
+
 ### Linux server
 
 If you plan to work remotely on a linux server :
@@ -43,7 +45,7 @@ You can install the [Docker extension](https://marketplace.visualstudio.com/item
 
 ## KVM
 
-To contribute to Backroll, you will need to have an hypervisor and some VMS to play with.
+To contribute to Backroll, you will need to have an hypervisor and some VMs to play with.
 
 So let’s setup KVM :
 
@@ -52,6 +54,6 @@ So let’s setup KVM :
 
 Then create a VM :
 
-- see this [thread](https://unix.stackexchange.com/questions/309788/how-to-create-a-vm-from-scratch-with-virsh). `virt-manager` is a nice tool.
+- see this [thread](https://unix.stackexchange.com/questions/309788/how-to-create-a-vm-from-scratch-with-virsh) : note that `virt-manager` is a nice tool to quickly create a VM for development purposes
 
 If Backroll and KVM are running on the same host (WSL or a linux computer), you can reach the hypervisor by using the special domain name `host.docker.internal`.

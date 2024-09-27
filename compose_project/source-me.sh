@@ -287,7 +287,7 @@ if source backroll/@prod.env 2>/dev/null; then
 fi
 
 echo "
-Docker compose argument variables:
+Docker Compose argument variables:
 
   - dev=${dev:-    # Run “source source-me.sh dev” to setup dev.}
 
