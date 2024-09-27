@@ -13,4 +13,5 @@ def make_path(*paths, rooted=None, directory=None):
         path = f"/{path}"
     if directory:
         path = f"{path}/"
+    print(f"[make_path] {path}")
     return path
