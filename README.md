@@ -22,8 +22,8 @@ It's also
 
 ### Requirements
 
-- Docker and Docker Compose
-- A Bash terminal (Ubuntu is recommended)
+- Docker and Docker Compose (minimal version 2.24)
+- A Bash terminal (Ubuntu is recommended or use WSL)
 
 ### Replaceable components
 
@@ -43,18 +43,10 @@ If you choose to use the default provider, please harden it with SSL certificate
 
 ### Docker and Docker Compose
 
-Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.
+Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them :
 
-- Install Docker https://docs.docker.com/engine/install/
-- Install Docker Compose https://docs.docker.com/compose/install/linux/
-
-Take a look at the `docker compose` command reference at https://docs.docker.com/reference/cli/docker/compose/. You must know about the main commands :
-
-- docker compose start
-- docker compose stop
-- docker compose ps
-- docker compose logs
-- docker compose up
+- install [Docker](https://docs.docker.com/engine/install/)
+- install [Docker Compose](https://docs.docker.com/compose/install/linux/)
 
 ### Quickstart 🚀
 
@@ -70,9 +62,43 @@ After the setup process, the containers will be starting. The default database i
 source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/v0.4.0-alpha-1/quickstart.sh)
 ```
 
-#### Latest release
+#### Manage your containers
 
-Not yet available.
+Those are the basic commands you need to know. Find more details there [dedicated compose project README](./compose_project/README.md).
+
+Go to the compose project directory
+
+```bash
+cd compose_project
+```
+
+Set environment variables
+
+```bash
+source source-me.sh
+```
+
+Start the containers
+
+```bash
+docker compose $prod up -d
+```
+
+Stop the containers
+
+```bash
+docker compose $prod stop
+```
+
+Show containers logs
+
+```bash
+docker compose $prod logs
+```
+
+### Developers’ setup
+
+If you are developer and want to contribute to the project, see the [developers’ setup](./documentation/developers_setup.md).
 
 ## Backroll configuration
 
@@ -93,9 +119,15 @@ Example using a NFS storage:
 # Create directory under /mnt/
 mkdir /mnt/myVM_storage
 
+# Optional, under Ubuntu nfs-common might be required
+apt install nfs-common
+
 # Mount using NFS, to make the mount persistent, edit fstab with corresponding values
 mount -v -t nfs -o nolock NFS_server:/nfs_share1 /mnt/myVM_storage
 
+# Once your NFS share is mounted, please restart the containers
+docker compose $prod stop
+docker compose $prod up -d
 ```
 
 Example using a Cloudstack NFS storage:
@@ -108,6 +140,9 @@ mkdir /mnt/138338fb-xxxx-xxxx-b219-ff968ca3ed3d
 # Mount using NFS, to make the mount persistent, edit fstab with corresponding values
 mount -v -t nfs -o nolock NFS_server:/nfs_shareCS1 /mnt/138338fb-xxxx-xxxx-b219-ff968ca3ed3d
 
+# Once your NFS share is mounted, please restart the containers
+docker compose $prod stop
+docker compose $prod up -d
 ```
 
 #### Backup storage configuration
@@ -150,7 +185,7 @@ In the backroll UI, under Configuration select Connectors.\
 Add a new connector and fill the field with the appropriate information:
 
 - Name: _Name of your connector_
-- Endpoint URL: _URL of your cloudstack instance_
+- Endpoint URL: _ URL of your cloudstack instance API https://x.x.x.x.com/client/api _
 - Login: _API_key of your user dedicated to backroll_
 - Password: _API_secret of your user dedicated to backroll_
 

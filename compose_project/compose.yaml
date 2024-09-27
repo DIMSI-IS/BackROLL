@@ -88,4 +88,5 @@ services:
     depends_on:
       - api
     env_file:
+      - .env
       - front/@$BACKROLL_MODE.env

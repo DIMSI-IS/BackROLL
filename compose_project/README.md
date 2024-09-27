@@ -5,7 +5,7 @@ The Docker Compose projects enable Backroll to be available in several modes :
 - for developpement :
   - `dev`:
     - no configuration (default values)
-    - uses the Docker compose network
+    - uses the Docker Compose network
   - `staging`:
     - you will go through the configuration steps
     - uses your local network
@@ -32,24 +32,24 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
     ```
   - get argument variables and setup `staging` :
     ```bash
-    source souce-me.sh staging
+    source source-me.sh staging
     ```
   - get argument variables and setup `prod` :
     ```bash
-    source souce-me.sh prod
+    source source-me.sh prod
     ```
-- use `docker compose` with an argument variable :
+- use [`docker compose`](https://docs.docker.com/reference/cli/docker/compose/) with an argument variable :
   - dev version :
     ```bash
-    docker compose $dev …
+    docker compose $dev [options] [COMMAND] [ARGS...]
     ```
   - staging version :
     ```bash
-    docker compose $staging …
+    docker compose $staging [options] [COMMAND] [ARGS...]
     ```
   - prod version :
     ```bash
-    docker compose $prod …
+    docker compose $prod [options] [COMMAND] [ARGS...]
     ```
 
 Remember to always be in the `compose_project/` directory and to source `source-me.sh` in your terminal.
@@ -104,7 +104,9 @@ ssh -p 2222 -D 1080 developer@localhost
 
 The password is `developer`. You must ensure that the command is running each time you start working on Backroll.
 
-If you are working on a shared developement server, the port 2222 may be already in use. Run the `docker port` command on the proxy container to find the exposed port.
+If you are working remotely, do not forget to forward the port 2222.
+
+Keep in mind that the port 2222 may be already in use. Run the `docker port` command on the proxy container to find the exposed port.
 
 ##### Connecting to the proxy server
 
@@ -144,7 +146,3 @@ You can acces to the user interfaces on localhost :
   - `prod` http://localhost/admin/dashboard
 - Flower http://localhost:5555/
 - Keycloak http://localhost:8081/admin/master/console/#/backroll
-
-## Miscellaneous
-
-Various details about the current state of the project : [miscellaneous.md](./miscellaneous.md).

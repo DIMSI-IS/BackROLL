@@ -57,7 +57,3 @@ Mind that both your web browser and the `api` container must access to the SSO w
 ### The `dev` storage path
 
 On the “Storage” page, when you click on the “Add new storage” button, you are asked to give a path. For this development setup, use `/mnt/docker_storage/`. A Docker volume is mounted at this point.
-
-### Dashboard & storage
-
-Clicking on "Dashboard" may crash the whole menu. You need to reload the page to make it work again. It occurs if the "used" value of a storage can not be read.
