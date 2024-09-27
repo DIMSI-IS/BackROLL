@@ -288,7 +288,7 @@ class borg_backup:
 def borg_list_backup(virtual_machine, repository):
     try:
         # Starting ssh access
-        command = f"borg list - -json {make_path(repository, virtual_machine)}"
+        command = f"borg list --json {make_path(repository, virtual_machine)}"
         request = subprocess.run(command.split(), capture_output=True)
         result = ""
         if request.returncode == 2:
