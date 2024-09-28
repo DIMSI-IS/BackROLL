@@ -1,44 +1,30 @@
 <template>
   <div class="row">
     <div class="flex lg12 xl10">
-      <va-card class="mb-4" >
+      <va-card class="mb-4">
         <va-card-title>
           <h1>Restore</h1>
           <div class="mr-0 text-right">
-            <va-button
-              color="info"
-              @click="this.$router.push({ path: '/admin/tasks/kickstart', query: {task: 'restore'} })"
-            >
+            <va-button color="info"
+              @click="this.$router.push({ path: '/admin/tasks/kickstart', query: { task: 'restore' } })">
               Start restore task
             </va-button>
           </div>
         </va-card-title>
         <va-card-content>
-          <va-chip
-            v-show="successTaskNumber"
-            color="success"
-            class="mr-4 mb-2"
-          >
+          <va-chip v-show="successTaskNumber" color="success" class="mr-4 mb-2">
             <va-icon name="task_alt" />
             <span style="font-style: bold; padding-left: 5px;">
               {{ successTaskNumber }}
             </span>
           </va-chip>
-          <va-chip
-            v-show="failureTaskNumber"
-            color="danger"
-            class="mr-4 mb-2"
-          >
-            <va-icon name="error"/>
+          <va-chip v-show="failureTaskNumber" color="danger" class="mr-4 mb-2">
+            <va-icon name="error" />
             <span style="font-style: bold; padding-left: 5px;">
               {{ failureTaskNumber }}
             </span>
           </va-chip>
-          <va-chip
-            v-show="pendingTaskNumber"
-            color="info"
-            class="mr-4 mb-2"
-          >
+          <va-chip v-show="pendingTaskNumber" color="info" class="mr-4 mb-2">
             <va-icon name="loop" spin="counter-clockwise" />
             <span style="font-style: bold; padding-left: 5px;">
               {{ pendingTaskNumber }}
@@ -46,12 +32,8 @@
           </va-chip>
           <backup-table :data="tableData" :columns="columns" />
           <div class="flex-center ma-3">
-            <spring-spinner
-              v-if="!$store.state.isbackupTaskTableReady"
-              :animation-duration="2000"
-              :size="30"
-              color="#2c82e0"
-            />
+            <spring-spinner v-if="!$store.state.isbackupTaskTableReady" :animation-duration="2000" :size="30"
+              color="#2c82e0" />
           </div>
         </va-card-content>
       </va-card>
@@ -62,22 +44,13 @@
           Filter by date
         </va-card-title>
         <va-card-content class="row">
-          <va-date-picker
-            v-model="selectedDate"
-            :highlight-today="false"
-            :allowedDays="(date) => new Date(date) < new Date()"
-            first-weekday="Monday"
-            mode="single"
-          />
+          <va-date-picker v-model="selectedDate" :highlight-today="false"
+            :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" mode="single" />
         </va-card-content>
       </va-card>
     </div>
   </div>
-  <va-modal
-    v-model="logModal"
-    size="large"
-    :hide-default-actions="true"
-  >
+  <va-modal v-model="logModal" size="large" :hide-default-actions="true">
     <template #header>
       <h2>
         <va-icon name="bug_report" color="info" />
@@ -104,14 +77,14 @@ import * as spinners from 'epic-spinners'
 export default defineComponent({
   name: 'BackupsTable',
   components: { ...spinners, BackupTable },
-  data () {
+  data() {
     return {
       columns: [
-        {key: 'target', sortable: true},
-        {key: 'started', sortable: true},
-        {key: 'runtime', sortable: true},
-        {key: 'state', sortable: true},
-        {key: 'actions'},
+        { key: 'target', sortable: true },
+        { key: 'started', sortable: true },
+        { key: 'runtime', sortable: true },
+        { key: 'state', sortable: true },
+        { key: 'actions' },
       ],
       selectedDate: new Date(),
       logModal: false,
@@ -129,7 +102,7 @@ export default defineComponent({
   computed: {
     filteredTaskList() {
       if (this.selectedDate) {
-        return Object.values(this.$store.state.restoreTaskList).filter(x =>(this.dateSelector(x.received)))
+        return Object.values(this.$store.state.restoreTaskList).filter(x => (this.dateSelector(x.received)))
       } else {
         return Object.values(this.$store.state.restoreTaskList)
       }
@@ -150,7 +123,8 @@ export default defineComponent({
           uuid: x.uuid,
           name: x.name.replaceAll('_', ' '),
           target: taskArgs?.name ?? "",
-          target_uuid: taskArgs?.uuid,
+          targetPage: "virtualmachines",
+          targetUuid: taskArgs?.uuid,
           started: x.started,
           ipAddress: x.ip_address,
           runtime: x.runtime,
@@ -177,7 +151,7 @@ export default defineComponent({
         return item.id == id
       })
     },
-    parseArgs (x) {
+    parseArgs(x) {
       try {
         return JSON.parse(x.args);
       } catch (error) {
@@ -188,20 +162,23 @@ export default defineComponent({
 })
 </script>
 <style scoped>
-  .text-right {
-    text-align: right;
-    width: 100%;
-  }
-  .center-div {
-      margin: 0 auto;
-      width: 100px;
-  }
-  .consoleStyle {
-    padding: 1% 1% 1% 1%;
-    background: black;
-    color: silver;
-    font-size: 1em;
-    border-radius:5px;
-    max-height: 5%; width: auto;
-  }
+.text-right {
+  text-align: right;
+  width: 100%;
+}
+
+.center-div {
+  margin: 0 auto;
+  width: 100px;
+}
+
+.consoleStyle {
+  padding: 1% 1% 1% 1%;
+  background: black;
+  color: silver;
+  font-size: 1em;
+  border-radius: 5px;
+  max-height: 5%;
+  width: auto;
+}
 </style>
