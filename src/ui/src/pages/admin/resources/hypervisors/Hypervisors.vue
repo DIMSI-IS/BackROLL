@@ -87,7 +87,7 @@
             Cancel
           </va-button>
           <va-spacer class="spacer" />
-          <va-button class="mb-3" @click="$refs.form.validate()">
+          <va-button @click="$refs.form.validate()">
             Validate
           </va-button>
         </div>
