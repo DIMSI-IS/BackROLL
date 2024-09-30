@@ -42,9 +42,8 @@
           </template>
           <template #cell(path)="{ value }"><va-chip size="small" outline square>{{ value }}</va-chip></template>
         </va-data-table>
-        <div class="flex-center ma-3">
-          <spring-spinner v-if="!$store.state.isstorageTableReady" :animation-duration="2000" :size="30"
-            color="#2c82e0" />
+        <div v-if="!$store.state.isstorageTableReady" class="flex-center ma-3">
+          <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
         </div>
       </va-card-content>
     </va-card>
