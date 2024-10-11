@@ -1,7 +1,8 @@
 <template>
-  <va-card>
+  <va-card >
     <va-card-title>
-      <h1>Adding new hypervisor</h1>
+      <h1 v-if="hypervisor && $store.state.ishostTableReady">Update hypervisor {{ hypervisor.hostname }}</h1>
+      <h1 v-if="!hypervisor || !$store.state.ishostTableReady">Adding new hypervisor</h1>
     </va-card-title>
     <va-card-content>
       <va-form
@@ -23,7 +24,7 @@
         <va-select
           label="Select Pool"
           v-model="poolSelection"
-          :options="selectData"
+          :options="selectPoolData"
           :rules="[value => isValid(value) || 'Field is required']"
         />
         <br>
@@ -53,24 +54,50 @@ export default {
         hostname: null,
         ipaddress: null,
         pool: null,
-        tags: null,
+        tags: null
       },
-      poolSelection: {},
+      poolSelection: {}
     }
   },
+  mounted () {
+    if(this.hypervisor){
+      this.host = {...this.hypervisor}
+      this.updatePool(this.host.pool_id)
+    }
+    
+  },
   watch: {
+    hypervisor: function () {
+      this.host = {...this.hypervisor}
+      this.updatePool(this.host.pool_id)
+    },
     validation: function () {
       if (this.validation) {
-        this.addHypervisor()
+        if(this.hypervisor){
+          this.updateHost();
+        }else{
+          this.addHypervisor();
+        }
+        
+      }
+    },
+    selectPoolData: function () {
+      if (this.host.pool !== null) {
+        this.updatePool(this.host.pool)
       }
     }
   },
   computed: {
-    selectData() {
+    hypervisor () {
+      const result = this.$store.state.resources.hostList.filter((item) => {
+        return item.id == this.$route.params.id
+      })
+      return result[0]
+    },
+    selectPoolData() {
       return this.$store.state.resources.poolList.map(x => ({
         text: x.name,
         value: x.id,
-        is_managed: x.is_managed
       }))
     }
   },
@@ -82,6 +109,22 @@ export default {
         return true
       }
     },
+    updatePool(id) {
+      const result = this.selectPoolData.filter((item) => {
+        return item.value == id
+      })
+      this.poolSelection = result[0]
+    },
+    updateHost() {
+      const hypervisor = this.host
+      hypervisor.pool_id = this.poolSelection.value
+      this.$store.dispatch("updateHost", {
+        vm: this,
+        token: this.$keycloak.token,
+        hostValues: hypervisor
+      })
+    },
+
     addHypervisor() {
       const host = this.host
       host.pool = this.poolSelection

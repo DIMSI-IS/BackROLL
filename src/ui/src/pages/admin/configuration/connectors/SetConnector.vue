@@ -1,7 +1,8 @@
 <template>
-  <va-card>
+  <va-card >
     <va-card-title>
-      <h1>Adding new connector</h1>
+      <h1 v-if="connector && $store.state.isconnectorTableReady">Updating connector {{ connector.name }}</h1>
+      <h1 v-if="!connector || !$store.state.isconnectorTableReady">Adding new connector</h1>
     </va-card-title>
     <va-card-content>
       <va-alert
@@ -18,26 +19,26 @@
       >
         <va-input
           label="Name"
-          v-model="inputValue1"
+          v-model="updatedValues.name"
           :rules="[value => (value && value.length > 0) || 'Field is required']"
         />
         <br>
         <va-input
           label="Endpoint URL"
-          v-model="inputValue2"
+          v-model="updatedValues.url"
           :rules="[value => (value && value.length > 0) || 'Field is required']"
         />
         <br>
         <va-input
-          label="API Key"
-          v-model="inputValue3"
+          label="Login"
+          v-model="updatedValues.login"
           :rules="[value => (value && value.length > 0) || 'Field is required']"
         />
         <br>
         <va-input
-          v-model="inputValue4"
+          v-model="updatedValues.password"
           :type="isPasswordVisible ? 'text' : 'password'"
-          label="API Secret"
+          label="Password"
           :rules="[value => (value && value.length > 0) || 'Field is required']"
         >
           <template #appendInner>
@@ -68,17 +69,40 @@ export default {
     return {
       isPasswordVisible: false,
       validation: false,
-      inputValue1: null,
-      inputValue2: null,
-      inputValue3: null,
-      inputValue4: null,
+      updatedValues: { 
+        name: null,
+        url: null,
+        login: null,
+        password: null
+      }
     }
   },
   watch: {
+    connector: function () {
+      this.updatedValues = {...this.connector}
+    },
     validation: function () {
       if (this.validation) {
-        this.addHook()
+        if(this.connector){
+          this.updateConnector();
+        }else{
+          this.addHook();
+        }
       }
+    },
+  },
+  computed: {
+    connector () {
+      const result = this.$store.state.resources.connectorList.filter((item) => {
+        return item.id == this.$route.params.id
+      })
+      console.log(result)
+      return result[0]
+    },
+  },
+  mounted () {
+    if(this.connector){
+      this.updatedValues = {...this.connector}
     }
   },
   methods: {
@@ -89,8 +113,18 @@ export default {
         return true
       }
     },
+    updateConnector() {
+      const connector = this.updatedValues
+      this.$store.dispatch("updateConnector", {
+        vm: this,
+        token: this.$keycloak.token,
+        connectorValues: connector
+      })
+    },
     addHook() {
-      axios.post(`${this.$store.state.endpoint.api}/api/v1/connectors`, { name: this.inputValue1, url: this.inputValue2, login: this.inputValue3, password: this.inputValue3 }, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
+      self = this;
+      const connector = this.updatedValues;
+      axios.post(`${this.$store.state.endpoint.api}/api/v1/connectors`,connector, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
       .then(response => {
         this.$store.dispatch("requestConnector", { token: this.$keycloak.token })
         this.$router.push('/admin/configuration/connectors')
@@ -107,7 +141,6 @@ export default {
   }
 }
 </script>
-
 <style>
 
 </style>

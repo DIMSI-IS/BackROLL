@@ -88,7 +88,7 @@ export default defineComponent({
       .catch(function (error) {
         if (error.response) {
           console.log(error)
-          self.$vaToast.init(({ title: 'Unable to remove connector', message: error.response.data.detail, color: 'danger' }))
+          self.$vaToast.init(({ title: 'Unable to remove connector', message: error.message, color: 'danger' }))
         }
       })
     }

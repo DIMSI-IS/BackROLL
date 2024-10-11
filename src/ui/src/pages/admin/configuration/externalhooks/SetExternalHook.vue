@@ -1,7 +1,8 @@
 <template>
-  <va-card v-if="hook && $store.state.isexternalHookTableReady">
+  <va-card >
     <va-card-title>
-      <h1>Updating external hook - {{ hook.name }}</h1>
+      <h1 v-if="hook && $store.state.isexternalHookTableReady">Updating external hook - {{ hook.name }}</h1>   
+      <h1 v-if="!hook || !$store.state.isexternalHookTableReady">Adding new external hook</h1>
     </va-card-title>
     <va-card-content>
       <va-alert
@@ -20,6 +21,13 @@
           label="Name"
           v-model="updatedValues.name"
           :rules="[value => (value && value.length > 0) || 'Field is required']"
+        />
+        <br>
+        <va-input
+          label="Provider"
+          v-model="updatedValues.provider"
+          :rules="[value => (value && value.length > 0) || 'Field is required']"
+          readonly
         />
         <br>
         <va-input
@@ -50,14 +58,16 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   data () {
     return {
       isPasswordVisible: false,
       validation: false,
       updatedValues: { 
-        name: '',
-        value: '',
+        name: null,
+        provider: "slack",
+        value: null,
       }
     }
   },
@@ -67,7 +77,11 @@ export default {
     },
     validation: function () {
       if (this.validation) {
-        this.updateHook()
+        if(this.hook){
+          this.updateHook()
+        }else{
+          this.addHook()
+        }
       }
     },
   },
@@ -81,7 +95,9 @@ export default {
     },
   },
   mounted () {
-    this.updatedValues = {...this.hook}
+    if(this.hook){
+      this.updatedValues = {...this.hook}
+    }
   },
   methods: {
     isValid(value) {
@@ -97,6 +113,23 @@ export default {
         vm: this,
         token: this.$keycloak.token,
         hookValues: hook
+      })
+    },
+    addHook() {
+      self = this;
+      const hook = this.updatedValues;
+      axios.post(`${this.$store.state.endpoint.api}/api/v1/externalhooks`, hook, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
+      .then(response => {
+        this.$store.dispatch("requestExternalHook", { token: this.$keycloak.token })
+        this.$router.push('/admin/configuration/externalhooks')
+        this.$vaToast.init(({ title: response.data.state, message: "External hook has been successfully added", color: 'success' }))
+      })
+      .catch(function (error) {
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          self.$vaToast.init(({ title: 'Unable to add external hook', message: error.response.data.detail, color: 'danger' }))
+        }
       })
     }
   }

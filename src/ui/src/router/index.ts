@@ -60,12 +60,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'add pool',
             path: '/admin/resources/pools/new',
-            component: () => import('@/pages/admin/resources/pools/AddPool.vue')
+            component: () => import('@/pages/admin/resources/pools/SetPool.vue')
           },
           {
             name: 'updatePool',
             path: '/admin/resources/pools/:id',
-            component: () => import('@/pages/admin/resources/pools/UpdatePool.vue')
+            component: () => import('@/pages/admin/resources/pools/SetPool.vue')
           },
           {
             name: 'hypervisors',
@@ -75,12 +75,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'add hypervisor',
             path: '/admin/resources/hypervisors/new',
-            component: () => import('@/pages/admin/resources/hypervisors/AddHypervisor.vue')
+            component: () => import('@/pages/admin/resources/hypervisors/SetHypervisor.vue')
           },
           {
             name: 'Update hypervisor',
             path: '/admin/resources/hypervisors/:id',
-            component: () => import('@/pages/admin/resources/hypervisors/UpdateHypervisor.vue')
+            component: () => import('@/pages/admin/resources/hypervisors/SetHypervisor.vue')
           },
           {
             name: 'virtualmachines',
@@ -108,12 +108,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'updatePolicy',
             path: '/admin/configuration/policy/:id',
-            component: () => import('@/pages/admin/configuration/policies/UpdatePolicy.vue')
+            component: () => import('@/pages/admin/configuration/policies/SetPolicy.vue')
           },
           {
             name: 'add policy',
             path: '/admin/configuration/policies/new',
-            component: () => import('@/pages/admin/configuration/policies/AddPolicy.vue')
+            component: () => import('@/pages/admin/configuration/policies/SetPolicy.vue')
           },
           {
             name: 'storage',
@@ -138,12 +138,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'add connector',
             path: '/admin/configuration/connectors/new',
-            component: () => import('@/pages/admin/configuration/connectors/AddConnector.vue')
+            component: () => import('@/pages/admin/configuration/connectors/SetConnector.vue')
           },
           {
             name: 'update connector',
             path: '/admin/configuration/connectors/:id',
-            component: () => import('@/pages/admin/configuration/connectors/UpdateConnector.vue')
+            component: () => import('@/pages/admin/configuration/connectors/SetConnector.vue')
           },
           {
             name: 'externalhooks',
@@ -153,12 +153,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'add externalhook',
             path: '/admin/configuration/externalhooks/new',
-            component: () => import('@/pages/admin/configuration/externalhooks/AddExternalHook.vue')
+            component: () => import('@/pages/admin/configuration/externalhooks/SetExternalHook.vue')
           },
           {
             name: 'update externalhook',
             path: '/admin/configuration/externalhooks/:id',
-            component: () => import('@/pages/admin/configuration/externalhooks/UpdateExternalHook.vue')
+            component: () => import('@/pages/admin/configuration/externalhooks/SetExternalHook.vue')
           }
         ],
       },
