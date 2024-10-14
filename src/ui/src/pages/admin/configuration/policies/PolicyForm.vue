@@ -56,42 +56,42 @@
         <va-divider class="divider">
           <span class="px-2"> DATA RETENTION </span>
         </va-divider>
-        <va-slider v-model="formPolicy.retention_day" label="Daily" :max="365">
+        <va-slider v-model="formPolicy.retention.day" label="Daily" :max="365">
           <template #prepend>
             <va-input
               type="number"
-              v-model.number="formPolicy.retention_day"
+              v-model.number="formPolicy.retention.day"
               readonly
             />
           </template>
         </va-slider>
-        <va-slider v-model="formPolicy.retention_week" label="Weekly" :max="52">
+        <va-slider v-model="formPolicy.retention.week" label="Weekly" :max="52">
           <template #prepend>
             <va-input
               type="number"
-              v-model.number="formPolicy.retention_week"
+              v-model.number="formPolicy.retention.week"
               readonly
             />
           </template>
         </va-slider>
         <va-slider
-          v-model="formPolicy.retention_month"
+          v-model="formPolicy.retention.month"
           label="Monthly"
           :max="12"
         >
           <template #prepend>
             <va-input
               type="number"
-              v-model.number="formPolicy.retention_month"
+              v-model.number="formPolicy.retention.month"
               readonly
             />
           </template>
         </va-slider>
-        <va-slider v-model="formPolicy.retention_year" label="Yearly" :max="5">
+        <va-slider v-model="formPolicy.retention.year" label="Yearly" :max="5">
           <template #prepend>
             <va-input
               type="number"
-              v-model.number="formPolicy.retention_year"
+              v-model.number="formPolicy.retention.year"
               readonly
             />
           </template>
@@ -295,10 +295,10 @@ export default {
       policy.externalhook = externalhook?.length > 0 ? externalhook : null;
 
       policy.retention = {
-        day: this.formPolicy.retention_day,
-        week: this.formPolicy.retention_week,
-        month: this.formPolicy.retention_month,
-        year: this.formPolicy.retention_year,
+        day: this.formPolicy.retention.day,
+        week: this.formPolicy.retention.week,
+        month: this.formPolicy.retention.month,
+        year: this.formPolicy.retention.year,
       };
 
       this.$store.dispatch("updatePolicy", {
@@ -354,10 +354,10 @@ export default {
       const externalhook = this.formPolicy.externalhook?.value;
       policy.externalhook = externalhook?.length > 0 ? externalhook : null;
       policy.retention = {
-        day: this.formPolicy.retention_day,
-        week: this.formPolicy.retention_week,
-        month: this.formPolicy.retention_month,
-        year: this.formPolicy.retention_year,
+        day: this.formPolicy.retention.day,
+        week: this.formPolicy.retention.week,
+        month: this.formPolicy.retention.month,
+        year: this.formPolicy.retention.year,
       };
       axios
         .post(
