@@ -123,12 +123,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'add storage',
             path: '/admin/configuration/storage/new',
-            component: () => import('@/pages/admin/configuration/storage/AddStorage.vue')
+            component: () => import('@/pages/admin/configuration/storage/StorageForm.vue')
           },
           {
             name: 'updateStorage',
             path: '/admin/configuration/storage/:id',
-            component: () => import('@/pages/admin/configuration/storage/UpdateStorage.vue')
+            component: () => import('@/pages/admin/configuration/storage/StorageForm.vue')
           },
           {
             name: 'connectors',
