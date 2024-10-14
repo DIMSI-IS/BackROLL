@@ -5,6 +5,20 @@
       <h1 v-else>Adding new storage</h1>
     </va-card-title>
     <va-card-content v-if="!storageId || stateStorage">
+      <va-alert border="top" class="mb-4">
+        <template #icon>
+          <va-icon name="info" />
+        </template>
+        The storage path must be accessible by the BackROLL workers
+        containers.<br />
+        To do this, update the following portion in the docker-compose:
+        <code class="consoleStyle">
+          volumes:<br />
+          - /mnt:/mnt
+        </code>
+        This example gives access to the /mnt directory where NFS shares
+        dedicated to backup storage can be mounted.
+      </va-alert>
       <va-form
         tag="form"
         @submit.prevent="storageId ? updateStorage() : addStorage()"
@@ -12,17 +26,21 @@
         <va-input
           label="Name"
           v-model="formStorage.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          :rules="storageNameRules"
         />
         <br />
         <va-input
           label="Path"
           placeholder="eg. /mnt/myNFSbackend"
           v-model="formStorage.path"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          :rules="storagePathRules"
         />
         <br />
-        <va-button class="mb-3" type="submit">
+        <va-button
+          class="mb-3"
+          type="submit"
+          :disabled="!isNameValid || !isPathValid"
+        >
           {{ storageId ? "Update" : "Validate" }}
         </va-button>
       </va-form>
@@ -44,6 +62,25 @@ export default {
     return {
       storageId: this.$route.params.id,
       formStorage: { name: null, path: null },
+      storageNameRules: [
+        (value) => value?.length > 0 || "Field is required",
+        (value) =>
+          !this.$store.state.storageList.find((s) => s.name === value) ||
+          "This name is already used",
+      ],
+      storagePathRules: [
+        (value) => value?.length > 0 || "Field is required",
+        (value) => value != "/mnt/" || "The path can't only be /mnt/",
+        (value) => /^\/mnt/gi.test(value) || "The path must begin by /mnt",
+        (value) => {
+          value = value?.replace(/\/$/, "");
+          return (
+            !this.$store.state.storageList.find(
+              (s) => s.path.replace(/\/$/, "") === value
+            ) || "A storage already exist for this path"
+          );
+        },
+      ],
     };
   },
   computed: {
@@ -51,6 +88,16 @@ export default {
       return this.$store.state.storageList.find(
         (item) => item.id == this.storageId
       );
+    },
+    isNameValid() {
+      return this.storageNameRules
+        .map((rule) => rule(this.storageName))
+        .every((value) => value === true);
+    },
+    isPathValid() {
+      return this.storagePathRules
+        .map((rule) => rule(this.storagePath))
+        .every((value) => value === true);
     },
   },
   watch: {

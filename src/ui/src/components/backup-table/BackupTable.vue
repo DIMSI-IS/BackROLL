@@ -1,11 +1,6 @@
 <template>
   <div>
-    <va-data-table
-      :items="data"
-      :columns="columns"
-      :per-page="perPage"
-      :current-page="currentPage"
-    >
+    <va-data-table :items="data" :columns="columns" :per-page="perPage" :current-page="currentPage">
       <template #cell(started)="{ value }">
         <va-chip v-if="value" size="small" square outline color="primary">
           {{ new Date(value * 1000).toLocaleTimeString() }}
@@ -59,35 +54,23 @@
       </template>
 
       <template #cell(actions)="{ rowIndex }">
-          <va-button-group gradient :rounded="false">
-            <va-button
-              icon="settings"
-              @click="
-                this.$router.push(
-                  `/resources/virtualmachines/${data[rowIndex].target_uuid}`
-                )
-              "
-            />
-            <va-button
-              v-if="data[rowIndex].state == 'FAILURE'"
-              icon="bug_report"
-              @click="
-                (selectedTask = data[rowIndex]);
-                retrieveTasksLogs(data[rowIndex].uuid)
-              "
-            />
-          </va-button-group>
+        <va-button-group gradient :rounded="false">
+          <va-button icon="settings" @click="
+            this.$router.push(
+              `/resources/${data[rowIndex].targetPage}/${data[rowIndex].targetUuid}`
+            )
+            " />
+          <va-button v-if="data[rowIndex].state == 'FAILURE'" icon="bug_report" @click="
+            (selectedTask = data[rowIndex]);
+          retrieveTasksLogs(data[rowIndex].uuid)
+            " />
+        </va-button-group>
       </template>
 
       <template v-if="pagination" #bodyAppend>
         <tr>
           <td colspan="8" class="table--pagination">
-            <va-pagination
-              v-model="currentPage"
-              input
-              :pages="pages"
-              size="small"
-            />
+            <va-pagination v-model="currentPage" input :pages="pages" size="small" />
           </td>
         </tr>
       </template>
@@ -170,6 +153,7 @@ export default {
   text-align: center;
   text-align: -webkit-center;
 }
+
 .consoleStyle {
   padding: 1% 1% 1% 1%;
   background: black;

@@ -23,7 +23,7 @@ It's also
 ### Requirements
 
 - Docker and Docker Compose (minimal version 2.24)
-- A Bash terminal (Ubuntu is recommended)
+- A Bash terminal (Ubuntu is recommended or use WSL)
 
 ### Replaceable components
 
@@ -43,11 +43,10 @@ If you choose to use the default provider, please harden it with SSL certificate
 
 ### Docker and Docker Compose
 
-Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them.
+Backroll requires Docker and Docker Compose. Please refer to the official Docker documentation to install them :
 
-- Install Docker https://docs.docker.com/engine/install/
-- Install Docker Compose https://docs.docker.com/compose/install/linux/
-
+- install [Docker](https://docs.docker.com/engine/install/)
+- install [Docker Compose](https://docs.docker.com/compose/install/linux/)
 
 ### Quickstart 🚀
 
@@ -64,29 +63,42 @@ source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/v0.4.0-a
 ```
 
 #### Manage your containers
-Thoses are the basic commands to manage a your containers. Find more details there [dedicated compose project README](./compose_project/README.md).
 
-Set environment variables
+Those are the basic commands you need to know. Find more details there [dedicated compose project README](./compose_project/README.md).
+
+Go to the compose project directory
+
 ```bash
 cd compose_project
-source source-me.sh prod
+```
+
+Set environment variables
+
+```bash
+source source-me.sh
 ```
 
 Start the containers
+
 ```bash
 docker compose $prod up -d
 ```
 
 Stop the containers
+
 ```bash
 docker compose $prod stop
 ```
 
 Show containers logs
+
 ```bash
 docker compose $prod logs
 ```
 
+### Developers’ setup
+
+If you are developer and want to contribute to the project, see the [developers’ setup](./documentation/developers_setup.md).
 
 ## Backroll configuration
 
@@ -132,7 +144,6 @@ mount -v -t nfs -o nolock NFS_server:/nfs_shareCS1 /mnt/138338fb-xxxx-xxxx-b219-
 docker compose $prod stop
 docker compose $prod up -d
 ```
-
 
 #### Backup storage configuration
 

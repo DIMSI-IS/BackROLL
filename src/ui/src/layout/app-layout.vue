@@ -4,23 +4,16 @@
     <div class="app-layout__content">
       <div class="app-layout__sidebar-wrapper" :class="{ minimized: isSidebarMinimized }">
         <div v-if="isFullScreenSidebar" class="d-flex justify--end">
-          <va-button
-            class="px-4 py-4"
-            icon="close"
-            flat 
-            color="dark"
-            @click="onCloseSidebarButtonClick"
-          />
+          <va-button class="px-4 py-4" icon="close" flat color="dark" @click="onCloseSidebarButtonClick" />
         </div>
-        <sidebar
-          :width="sidebarWidth"
-          :minimized="isSidebarMinimized" 
-          :minimizedWidth="sidebarMinimizedWidth"
-        />
+        <sidebar :width="sidebarWidth" :minimized="isSidebarMinimized" :minimizedWidth="sidebarMinimizedWidth" />
       </div>
       <div class="app-layout__page">
         <div class="layout fluid gutter--xl">
-          <router-view/>
+          <router-view />
+        </div>
+        <div class="text-center">
+          {{ backrollVersion }}
         </div>
       </div>
     </div>
@@ -42,14 +35,14 @@ export default {
     Navbar, Sidebar
   },
 
-  setup() {   
+  setup() {
     const store = useStore()
     const mobileBreakPointPX = 640
     const tabletBreakPointPX = 768
 
     const sidebarWidth = ref('16rem')
     const sidebarMinimizedWidth = ref(undefined)
-    
+
     const isMobile = ref(false)
     const isTablet = ref(false)
     const isSidebarMinimized = computed(() => store.state.isSidebarMinimized)
@@ -66,7 +59,7 @@ export default {
     }
 
     onMounted(() => {
-      window.addEventListener('resize', onResize)     
+      window.addEventListener('resize', onResize)
     })
 
     onBeforeUnmount(() => {
@@ -89,8 +82,9 @@ export default {
     }
 
     return {
-      isSidebarMinimized, 
-      sidebarWidth, sidebarMinimizedWidth, 
+      backrollVersion: process.env.VUE_APP_BACKROLL_VERSION,
+      isSidebarMinimized,
+      sidebarWidth, sidebarMinimizedWidth,
       isFullScreenSidebar, onCloseSidebarButtonClick
     }
   }
@@ -105,6 +99,7 @@ $tabletBreakPointPX: 768px;
   height: 100vh;
   display: flex;
   flex-direction: column;
+
   &__navbar {
     min-height: 4rem;
   }
@@ -129,12 +124,13 @@ $tabletBreakPointPX: 768px;
           height: 100%;
           position: fixed;
           top: 0;
-          z-index: 999; 
+          z-index: 999;
         }
 
         .va-sidebar:not(.va-sidebar--minimized) {
           // Z-index fix for preventing overflow for close button
           z-index: -1;
+
           .va-sidebar__menu {
             padding: 0;
           }
@@ -142,6 +138,7 @@ $tabletBreakPointPX: 768px;
       }
     }
   }
+
   &__page {
     flex-grow: 2;
     overflow-y: scroll;

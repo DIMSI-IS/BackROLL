@@ -18,13 +18,12 @@
         />
         <br />
         <va-input
-          label="IP Address"
+          label="IP Address or Domain Name"
           v-model="formHypervisor.ipaddress"
           :rules="[
             (value) =>
-              value?.match(
-                `^(?!0)(?!.*\\.$)((1?\\d?\\d|25[0-5]|2[0-4]\\d)(\\.|$)){4}$`
-              ) || 'Field is required and must be a valid IP address',
+              value?.match(/^[0-9a-zA-Z.-]+$/) ||
+              'Field is required and must be a valid IP address or domain name.',
           ]"
         />
         <br />
