@@ -1,7 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="storageId">Updating storage {{ stateStorage.name ?? "" }}</h1>
+      <h1 v-if="storageId">Updating storage {{ stateStorage?.name ?? "" }}</h1>
       <h1 v-else>Adding new storage</h1>
     </va-card-title>
     <va-card-content v-if="!storageId || stateStorage">
@@ -102,12 +102,12 @@ export default {
   },
   watch: {
     stateStorage: function () {
-      propagateStorage();
+      this.propagateStorage();
     },
   },
   mounted() {
     if (this.stateStorage) {
-      propagateStorage();
+      this.propagateStorage();
     }
   },
   methods: {

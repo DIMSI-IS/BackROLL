@@ -1,7 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="poolId">Updating pool {{ statePool.name ?? "" }}</h1>
+      <h1 v-if="poolId">Updating pool {{ statePool?.name ?? "" }}</h1>
       <h1 v-else>Adding new pool</h1>
     </va-card-title>
     <va-card-content v-if="!poolId || statePool">

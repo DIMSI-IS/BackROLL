@@ -1,7 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="hookId">Updating external hook {{ stateHook.name ?? "" }}</h1>
+      <h1 v-if="hookId">Updating external hook {{ stateHook?.name ?? "" }}</h1>
       <h1 v-else>Adding new external hook</h1>
     </va-card-title>
     <va-card-content v-if="!hookId || stateHook">
@@ -76,12 +76,12 @@ export default {
   },
   watch: {
     stateHook: function () {
-      propagateStateHook();
+      this.propagateStateHook();
     },
   },
   mounted() {
     if (this.stateHook) {
-      propagateStateHook();
+      this.propagateStateHook();
     }
   },
   methods: {

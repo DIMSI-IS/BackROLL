@@ -116,7 +116,7 @@ export default createStore({
       }
     },
     async updatePolicy(context, { vm, token, policyValues }) {
-      await axios.patch(`${this.state.endpoint.api}/api/v1/backup_policies/${policyValues.id}`, { name: policyValues.name, description: policyValues.description, retention: policyValues.retention, schedule: policyValues.schedule, storage: policyValues.storage.value, externalhook: policyValues.externalhook, enabled: policyValues.state }, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}})
+      await axios.patch(`${this.state.endpoint.api}/api/v1/backup_policies/${policyValues.id}`, { name: policyValues.name, description: policyValues.description, retention: policyValues.retention, schedule: policyValues.schedule, storage: policyValues.storage, externalhook: policyValues.externalhook, enabled: policyValues.state }, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`}})
       .then(response => {
         if (response.status === 200) {
           context.dispatch("requestPolicy", { token: token })

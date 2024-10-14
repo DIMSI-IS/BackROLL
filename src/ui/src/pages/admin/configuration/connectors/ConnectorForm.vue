@@ -2,7 +2,7 @@
   <va-card>
     <va-card-title>
       <h1 v-if="connectorId">
-        Updating connector {{ stateConnector.name ?? "" }}
+        Updating connector {{ stateConnector?.name ?? "" }}
       </h1>
       <h1 v-else>Adding new connector</h1>
     </va-card-title>

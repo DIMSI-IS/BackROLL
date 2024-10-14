@@ -2,7 +2,7 @@
   <va-card>
     <va-card-title>
       <h1 v-if="hypervisorId">
-        Update hypervisor {{ stateHypervisor.hostname ?? "" }}
+        Update hypervisor {{ stateHypervisor?.hostname ?? "" }}
       </h1>
       <h1 v-else>Adding new hypervisor</h1>
     </va-card-title>
@@ -80,7 +80,7 @@ export default {
   },
   watch: {
     stateHypervisor: function () {
-      propagateStateHypervisor();
+      this.propagateStateHypervisor();
     },
     selectPoolData: function () {
       if (this.formHypervisor.pool !== null) {
@@ -90,7 +90,7 @@ export default {
   },
   mounted() {
     if (this.stateHypervisor) {
-      propagateStateHypervisor();
+      this.propagateStateHypervisor();
     }
   },
   methods: {
