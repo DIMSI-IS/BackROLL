@@ -1,19 +1,15 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="pool && $store.state.ispoolTableReady">
-        Updating pool {{ pool.name }}
-      </h1>
-      <h1 v-if="!pool || !$store.state.ispoolTableReady">Adding new pool</h1>
+      <h1 v-if="poolId">Updating pool {{ statePool.name ?? "" }}</h1>
+      <h1 v-else>Adding new pool</h1>
     </va-card-title>
-    <va-card-content>
-      <va-form ref="form" @validation="validation = $event">
+    <va-card-content v-if="!poolId || statePool">
+      <va-form ref="form" @validation="poolId ? updatePool() : addPool()">
         <va-input
           label="Name"
-          v-model="poolValues.name"
-          :rules="[
-            (value) => (value && value.length > 0) || 'Field is required',
-          ]"
+          v-model="formPool.name"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
         />
         <br />
         <va-select
@@ -35,59 +31,39 @@
       />
       <br />
       <va-button class="mb-3" @click="$refs.form.validate()">
-        Validate
+        {{ poolId ? "Update" : "Validate" }}
       </va-button>
     </va-card-content>
+    <div v-else class="flex-center ma-3">
+      <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
+    </div>
   </va-card>
 </template>
 
 <script>
 import axios from "axios";
+import * as spinners from "epic-spinners";
+
 export default {
+  components: { ...spinners },
   data() {
     return {
-      validation: false,
-      inputValue1: null,
-      policySelection: {},
-      poolValues: {
+      poolId: this.$route.params.id,
+      formPool: {
         name: "",
         policy_id: null,
         connector_id: null,
       },
+      inputValue1: null,
+      policySelection: {},
       connectorSelection: {},
     };
   },
-  watch: {
-    pool: function () {
-      this.poolValues = { ...this.pool };
-      this.updateConnector(this.poolValues.connector_id);
-    },
-    validation: function () {
-      if (this.validation) {
-        if(this.pool){
-          this.updatePool();
-        }else{
-          this.addPool();
-        }
-      }
-    },
-    selectData: function () {
-      if (this.pool && this.poolValues.policy_id !== null) {
-        this.updatePolicy(this.poolValues.policy_id);
-      }
-    },
-    selectConnectorData: function () {
-      if (this.pool && this.poolValues.connector !== null) {
-        this.updateConnector(this.poolValues.connector);
-      }
-    },
-  },
   computed: {
-    pool() {
-      const result = this.$store.state.resources.poolList.filter((item) => {
-        return item.id == this.$route.params.id;
-      });
-      return result[0];
+    statePool() {
+      return this.$store.state.resources.poolList.find(
+        (item) => item.id == this.poolId
+      );
     },
     selectData() {
       return this.$store.state.resources.policyList.map((x) => ({
@@ -102,19 +78,34 @@ export default {
       }));
     },
   },
+  watch: {
+    statePool: function () {
+      this.formPool = { ...this.statePool };
+      this.updateConnector(this.formPool.connector_id);
+    },
+    selectData: function () {
+      if (this.statePool && this.formPool.policy_id !== null) {
+        this.updatePolicy(this.formPool.policy_id);
+      }
+    },
+    selectConnectorData: function () {
+      if (this.statePool && this.formPool.connector !== null) {
+        this.updateConnector(this.formPool.connector);
+      }
+    },
+  },
   mounted() {
-    if (this.pool) {
-      this.poolValues = { ...this.pool };
-      this.updatePolicy(this.poolValues.policy_id);
-      this.updateConnector(this.poolValues.connector_id);
+    if (this.statePool) {
+      this.formPool = { ...this.statePool };
+      this.updatePolicy(this.formPool.policy_id);
+      this.updateConnector(this.formPool.connector_id);
     }
   },
   methods: {
     updateConnector(id) {
-      const result = this.selectConnectorData.filter((item) => {
-        return item.value == id;
-      });
-      this.connectorSelection = result[0];
+      this.connectorSelection = this.selectConnectorData.find(
+        (item) => item.value == id
+      );
     },
     isValid(value) {
       if (Object.keys(value).length < 1) {
@@ -124,13 +115,12 @@ export default {
       }
     },
     updatePolicy(id) {
-      const result = this.selectData.filter((item) => {
+      this.policySelection = this.selectData.find((item) => {
         return item.value == id;
       });
-      this.policySelection = result[0];
     },
     updatePool() {
-      const pool = this.poolValues;
+      const pool = this.formPool;
       pool.policy_id = this.policySelection.value;
       pool.connector_id = this.connectorSelection.value;
       this.$store.dispatch("updatePool", {
@@ -141,20 +131,16 @@ export default {
     },
     addPool() {
       self = this;
-      const pool = this.poolValues;
+      const pool = this.formPool;
       pool.policy_id = this.policySelection.value;
       pool.connector_id = this.connectorSelection.value;
       axios
-        .post(
-          `${this.$store.state.endpoint.api}/api/v1/pools`,
-          pool,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$keycloak.token}`,
-            },
-          }
-        )
+        .post(`${this.$store.state.endpoint.api}/api/v1/pools`, pool, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.$keycloak.token}`,
+          },
+        })
         .then((response) => {
           this.$store.dispatch("requestPool", { token: this.$keycloak.token });
           this.$router.push("/admin/resources/pools");
@@ -180,5 +166,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

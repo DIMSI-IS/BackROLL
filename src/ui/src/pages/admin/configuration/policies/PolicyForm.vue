@@ -1,29 +1,24 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="policy && $store.state.isstorageTableReady">
-        Updating policy {{ policy.name }}
-      </h1>
-      <h1 v-if="!policy || !$store.state.isstorageTableReady">
-        Adding new policy
-      </h1>
+      <h1 v-if="policyId">Updating policy {{ statePolicy.name ?? "" }}</h1>
+      <h1 v-else>Adding new policy</h1>
     </va-card-title>
-    <va-card-content>
-      <va-form tag="form" @submit.prevent="updateBackupPolicy">
+    <va-card-content v-if="!policyId || statePolicy">
+      <va-form
+        tag="form"
+        @submit.prevent="policyId ? updatePolicy() : addPolicy()"
+      >
         <va-input
           label="Name"
-          v-model="updatedValues.name"
-          :rules="[
-            (value) => (value && value.length > 0) || 'Field is required',
-          ]"
+          v-model="formPolicy.name"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
         />
         <va-input
           class="mt-3"
           label="Description"
-          v-model="updatedValues.description"
-          :rules="[
-            (value) => (value && value.length > 0) || 'Field is required',
-          ]"
+          v-model="formPolicy.description"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
         />
         <va-divider class="divider">
           <span class="px-2"> SCHEDULING </span>
@@ -61,54 +56,42 @@
         <va-divider class="divider">
           <span class="px-2"> DATA RETENTION </span>
         </va-divider>
-        <va-slider
-          v-model="updatedValues.retention_day"
-          label="Daily"
-          :max="365"
-        >
+        <va-slider v-model="formPolicy.retention_day" label="Daily" :max="365">
           <template #prepend>
             <va-input
               type="number"
-              v-model.number="updatedValues.retention_day"
+              v-model.number="formPolicy.retention_day"
+              readonly
+            />
+          </template>
+        </va-slider>
+        <va-slider v-model="formPolicy.retention_week" label="Weekly" :max="52">
+          <template #prepend>
+            <va-input
+              type="number"
+              v-model.number="formPolicy.retention_week"
               readonly
             />
           </template>
         </va-slider>
         <va-slider
-          v-model="updatedValues.retention_week"
-          label="Weekly"
-          :max="52"
-        >
-          <template #prepend>
-            <va-input
-              type="number"
-              v-model.number="updatedValues.retention_week"
-              readonly
-            />
-          </template>
-        </va-slider>
-        <va-slider
-          v-model="updatedValues.retention_month"
+          v-model="formPolicy.retention_month"
           label="Monthly"
           :max="12"
         >
           <template #prepend>
             <va-input
               type="number"
-              v-model.number="updatedValues.retention_month"
+              v-model.number="formPolicy.retention_month"
               readonly
             />
           </template>
         </va-slider>
-        <va-slider
-          v-model="updatedValues.retention_year"
-          label="Yearly"
-          :max="5"
-        >
+        <va-slider v-model="formPolicy.retention_year" label="Yearly" :max="5">
           <template #prepend>
             <va-input
               type="number"
-              v-model.number="updatedValues.retention_year"
+              v-model.number="formPolicy.retention_year"
               readonly
             />
           </template>
@@ -118,7 +101,7 @@
         </va-divider>
         <va-select
           label="Select external hook"
-          v-model="updatedValues.externalhook"
+          v-model="formPolicy.externalhook"
           :options="selectExternalHook"
           clearable
         >
@@ -128,7 +111,7 @@
         </va-select>
         <!-- <va-input
           label="External hook"
-          v-model="updatedValues.externalhook"
+          v-model="formPolicy.externalhook"
         >
           <template #prependInner>
             <va-icon
@@ -139,23 +122,42 @@
           </template>
         </va-input> -->
         <br />
-        <va-button class="mb-3" type="submit"> Validate </va-button>
+        <va-button class="mb-3" type="submit">
+          {{ policyId ? "Update" : "Validate" }}
+        </va-button>
       </va-form>
     </va-card-content>
+    <div v-else class="flex-center ma-3">
+      <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
+    </div>
   </va-card>
-  <!-- <div v-else class="flex-center ma-3">
-    <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
-  </div> -->
 </template>
 <script>
-import axios from 'axios'
+import axios from "axios";
 import parser from "cron-parser";
 import * as spinners from "epic-spinners";
+
 export default {
   name: "updatePolicy",
   components: { ...spinners },
   data() {
     return {
+      policyId: this.$route.params.id,
+      formPolicy: {
+        name: "",
+        schedule: null,
+        storage: null,
+        externalhook: {},
+        retention: {
+          day: 0,
+          week: 0,
+          month: 0,
+          year: 0,
+        },
+        id: null,
+        description: "",
+        enabled: null,
+      },
       inputValue1: "",
       inputValue2: "",
       dayList: [
@@ -171,29 +173,13 @@ export default {
       timeToBackup: new Date(new Date().setHours(0, 0, 0, 0)),
       value: 1,
       storageSelection: {},
-      updatedValues: {
-        name: "",
-        schedule: null,
-        storage: null,
-        externalhook: {},
-        retention: {
-          day: 0,
-          week: 0,
-          month: 0,
-          year: 0,
-        },
-        id: null,
-        description: "",
-        enabled: null,
-      },
     };
   },
   computed: {
-    policy() {
-      const result = this.$store.state.resources.policyList.filter((item) => {
-        return item.id == this.$route.params.id;
-      });
-      return result[0];
+    statePolicy() {
+      return this.$store.state.resources.policyList.find(
+        (item) => item.id == this.policyId
+      );
     },
     selectStorage() {
       return this.$store.state.storageList.map((x) => ({
@@ -209,38 +195,38 @@ export default {
     },
   },
   watch: {
-    policy: function () {
-      this.updatedValues = { ...this.policy };
+    statePolicy: function () {
+      this.formPolicy = { ...this.statePolicy };
     },
-    updatedValues: function () {
-      if (this.updatedValues.schedule) {
-        this.parseCron(this.updatedValues.schedule);
+    formPolicy: function () {
+      if (this.formPolicy.schedule) {
+        this.parseCron(this.formPolicy.schedule);
       }
-      if (this.updatedValues.retention) {
-        this.parseRetention(this.updatedValues.retention);
+      if (this.formPolicy.retention) {
+        this.parseRetention(this.formPolicy.retention);
       }
     },
     selectStorage: function () {
-      if (this.updatedValues.storage !== null) {
-        this.updateStorage(this.updatedValues.storage);
+      if (this.formPolicy.storage !== null) {
+        this.updateStorage(this.formPolicy.storage);
       }
     },
     selectExternalHook: function () {
-      if (this.updatedValues.externalhook !== null) {
-        this.updateExternalHook(this.updatedValues.externalhook);
+      if (this.formPolicy.externalhook !== null) {
+        this.updateExternalHook(this.formPolicy.externalhook);
       }
     },
   },
   mounted() {
-    if (this.policy) {
-      this.updatedValues = { ...this.policy };
-      this.updateStorage(this.updatedValues.storage);
-      this.updateExternalHook(this.updatedValues.externalhook);
-      if (this.updatedValues.schedule) {
-        this.parseCron(this.updatedValues.schedule);
+    if (this.statePolicy) {
+      this.formPolicy = { ...this.statePolicy };
+      this.updateStorage(this.formPolicy.storage);
+      this.updateExternalHook(this.formPolicy.externalhook);
+      if (this.formPolicy.schedule) {
+        this.parseCron(this.formPolicy.schedule);
       }
-      if (this.updatedValues.retention) {
-        this.parseRetention(this.updatedValues.retention);
+      if (this.formPolicy.retention) {
+        this.parseRetention(this.formPolicy.retention);
       }
     }
   },
@@ -253,84 +239,18 @@ export default {
       }
     },
     updateStorage(id) {
-      const result = this.selectStorage.filter((item) => {
-        return item.value == id;
-      });
-      this.storageSelection = result[0];
+      this.storageSelection = this.selectStorage.find(
+        (item) => item.value == id
+      );
     },
     updateExternalHook(id) {
-      const result = this.selectExternalHook.filter((item) => {
-        return item.value == id;
-      });
-      this.updatedValues.externalhook = result[0];
+      this.formPolicy.externalhook = this.selectExternalHook.find(
+        (item) => item.value == id
+      );
     },
-    updateBackupPolicy() {
-      if (this.policy) {
-        const policy = this.updatedValues;
-        policy.storage = this.storageSelection;
-        let daySchedule = [];
-        // Handle every day wildcard '*'
-        if (
-          this.daySelection.includes("Monday") &&
-          this.daySelection.includes("Tuesday") &&
-          this.daySelection.includes("Wednesday") &&
-          this.daySelection.includes("Thursday") &&
-          this.daySelection.includes("Friday") &&
-          this.daySelection.includes("Saturday") &&
-          this.daySelection.includes("Sunday")
-        ) {
-          daySchedule.push("*");
-        } else {
-          if (this.daySelection.includes("Monday")) {
-            daySchedule.push(1);
-          }
-          if (this.daySelection.includes("Tuesday")) {
-            daySchedule.push(2);
-          }
-          if (this.daySelection.includes("Wednesday")) {
-            daySchedule.push(3);
-          }
-          if (this.daySelection.includes("Thursday")) {
-            daySchedule.push(4);
-          }
-          if (this.daySelection.includes("Friday")) {
-            daySchedule.push(5);
-          }
-          if (this.daySelection.includes("Saturday")) {
-            daySchedule.push(6);
-          }
-          if (this.daySelection.includes("Sunday")) {
-            daySchedule.push(0);
-            daySchedule.push(7);
-          }
-          daySchedule = daySchedule.sort();
-        }
-        const newSchedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${daySchedule}`;
-        policy.schedule = newSchedule;
-
-        const externalhook = this.updatedValues.externalhook?.value;
-        policy.externalhook = externalhook?.length > 0 ? externalhook : null;
-
-        policy.retention = {
-          day: this.updatedValues.retention_day,
-          week: this.updatedValues.retention_week,
-          month: this.updatedValues.retention_month,
-          year: this.updatedValues.retention_year,
-        };
-
-        this.$store.dispatch("updatePolicy", {
-          vm: this,
-          token: this.$keycloak.token,
-          policyValues: policy,
-        });
-      } else {
-        this.addBackupPolicy();
-      }
-    },
-    addBackupPolicy() {
-      const self = this;
-      const policy = this.updatedValues;
-        policy.storage = this.storageSelection;
+    updatePolicy() {
+      const policy = this.formPolicy;
+      policy.storage = this.storageSelection;
       let daySchedule = [];
       // Handle every day wildcard '*'
       if (
@@ -369,16 +289,76 @@ export default {
         daySchedule = daySchedule.sort();
       }
       const newSchedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${daySchedule}`;
-        policy.schedule = newSchedule;
+      policy.schedule = newSchedule;
 
-        const externalhook = this.updatedValues.externalhook?.value;
-        policy.externalhook = externalhook?.length > 0 ? externalhook : null;
+      const externalhook = this.formPolicy.externalhook?.value;
+      policy.externalhook = externalhook?.length > 0 ? externalhook : null;
+
       policy.retention = {
-          day: this.updatedValues.retention_day,
-          week: this.updatedValues.retention_week,
-          month: this.updatedValues.retention_month,
-          year: this.updatedValues.retention_year,
-        };
+        day: this.formPolicy.retention_day,
+        week: this.formPolicy.retention_week,
+        month: this.formPolicy.retention_month,
+        year: this.formPolicy.retention_year,
+      };
+
+      this.$store.dispatch("updatePolicy", {
+        vm: this,
+        token: this.$keycloak.token,
+        policyValues: policy,
+      });
+    },
+    addPolicy() {
+      const self = this;
+      const policy = this.formPolicy;
+      policy.storage = this.storageSelection;
+      let daySchedule = [];
+      // Handle every day wildcard '*'
+      if (
+        this.daySelection.includes("Monday") &&
+        this.daySelection.includes("Tuesday") &&
+        this.daySelection.includes("Wednesday") &&
+        this.daySelection.includes("Thursday") &&
+        this.daySelection.includes("Friday") &&
+        this.daySelection.includes("Saturday") &&
+        this.daySelection.includes("Sunday")
+      ) {
+        daySchedule.push("*");
+      } else {
+        if (this.daySelection.includes("Monday")) {
+          daySchedule.push(1);
+        }
+        if (this.daySelection.includes("Tuesday")) {
+          daySchedule.push(2);
+        }
+        if (this.daySelection.includes("Wednesday")) {
+          daySchedule.push(3);
+        }
+        if (this.daySelection.includes("Thursday")) {
+          daySchedule.push(4);
+        }
+        if (this.daySelection.includes("Friday")) {
+          daySchedule.push(5);
+        }
+        if (this.daySelection.includes("Saturday")) {
+          daySchedule.push(6);
+        }
+        if (this.daySelection.includes("Sunday")) {
+          daySchedule.push(0);
+          daySchedule.push(7);
+        }
+        daySchedule = daySchedule.sort();
+      }
+      const newSchedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${daySchedule}`;
+      policy.schedule = newSchedule;
+
+      const externalhook = this.formPolicy.externalhook?.value;
+      policy.externalhook = externalhook?.length > 0 ? externalhook : null;
+      policy.retention = {
+        day: this.formPolicy.retention_day,
+        week: this.formPolicy.retention_week,
+        month: this.formPolicy.retention_month,
+        year: this.formPolicy.retention_year,
+      };
       axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/backup_policies`,

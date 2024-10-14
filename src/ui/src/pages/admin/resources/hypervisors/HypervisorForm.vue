@@ -1,0 +1,167 @@
+<template>
+  <va-card>
+    <va-card-title>
+      <h1 v-if="hypervisorId">
+        Update hypervisor {{ stateHypervisor.hostname ?? "" }}
+      </h1>
+      <h1 v-else>Adding new hypervisor</h1>
+    </va-card-title>
+    <va-card-content v-if="!hypervisorId || stateHypervisor">
+      <va-form
+        ref="form"
+        @validation="hypersivorId ? updateHypervisor() : addHypervisor()"
+      >
+        <va-input
+          label="Hostname"
+          v-model="formHypervisor.hostname"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        />
+        <br />
+        <va-input
+          label="IP Address"
+          v-model="formHypervisor.ipaddress"
+          :rules="[
+            (value) =>
+              value?.match(
+                `^(?!0)(?!.*\\.$)((1?\\d?\\d|25[0-5]|2[0-4]\\d)(\\.|$)){4}$`
+              ) || 'Field is required and must be a valid IP address',
+          ]"
+        />
+        <br />
+        <va-select
+          label="Select Pool"
+          v-model="poolSelection"
+          :options="selectPoolData"
+          :rules="[(value) => isValid(value) || 'Field is required']"
+        />
+        <br />
+        <va-input label="Tag (optional)" v-model="formHypervisor.tags" />
+      </va-form>
+      <br />
+      <va-button class="mb-3" @click="$refs.form.validate()">
+        {{ hypervisorId ? "Update" : "Validate" }}
+      </va-button>
+    </va-card-content>
+    <div v-else class="flex-center ma-3">
+      <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
+    </div>
+  </va-card>
+</template>
+
+<script>
+import axios from "axios";
+import * as spinners from "epic-spinners";
+
+export default {
+  components: { ...spinners },
+  data() {
+    return {
+      hypersivorId: this.$route.params.id,
+      formHypervisor: {
+        hostname: null,
+        ipaddress: null,
+        pool: null,
+        tags: null,
+      },
+      poolSelection: {},
+    };
+  },
+  computed: {
+    stateHypervisor() {
+      return this.$store.state.resources.hostList.find(
+        (item) => item.id == this.hypersivorId
+      );
+    },
+    selectPoolData() {
+      return this.$store.state.resources.poolList.map((x) => ({
+        text: x.name,
+        value: x.id,
+      }));
+    },
+  },
+  watch: {
+    stateHypervisor: function () {
+      propagateStateHypervisor();
+    },
+    selectPoolData: function () {
+      if (this.formHypervisor.pool !== null) {
+        this.updatePool(this.formHypervisor.pool);
+      }
+    },
+  },
+  mounted() {
+    if (this.stateHypervisor) {
+      propagateStateHypervisor();
+    }
+  },
+  methods: {
+    propagateStateHypervisor() {
+      this.formHypervisor = { ...this.stateHypervisor };
+      this.updatePool(this.formHypervisor.pool_id);
+    },
+    isValid(value) {
+      // TODO
+      if (Object.keys(value).length < 1) {
+        return false;
+      } else {
+        return true;
+      }
+    },
+    updatePool(id) {
+      // TODO Why ? Properly configure the select component.
+      this.poolSelection = this.selectPoolData.find((item) => item.value == id);
+    },
+    updateHypervisor() {
+      const hypervisor = this.formHypervisor;
+      hypervisor.pool_id = this.poolSelection.value;
+      this.$store.dispatch("updateHost", {
+        vm: this,
+        token: this.$keycloak.token,
+        hostValues: hypervisor,
+      });
+    },
+    addHypervisor() {
+      const host = this.formHypervisor;
+      host.pool = this.poolSelection;
+      axios
+        .post(
+          `${this.$store.state.endpoint.api}/api/v1/hosts`,
+          {
+            hostname: host.hostname,
+            ip_address: this.host.ipaddress,
+            pool_id: host.pool.value,
+            tags: host.tags,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.$keycloak.token}`,
+            },
+          }
+        )
+        .then((response) => {
+          this.$store.dispatch("requestHost", { token: this.$keycloak.token });
+          this.$router.push("/admin/resources/hypervisors");
+          this.$vaToast.init({
+            title: response.data.state,
+            message: "Hypervisor has been successfully added",
+            color: "success",
+          });
+        })
+        .catch(function (error) {
+          if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            self.$vaToast.init({
+              title: "Unable to add hypervisor",
+              message: error.response.data.detail,
+              color: "danger",
+            });
+          }
+        });
+    },
+  },
+};
+</script>
+
+<style></style>
