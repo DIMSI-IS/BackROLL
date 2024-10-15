@@ -19,7 +19,7 @@
         <br />
         <va-input
           label="IP Address or Domain Name"
-          v-model="formHypervisor.ipaddress"
+          v-model="formHypervisor.ipAddress"
           :rules="[
             (value) =>
               value?.match(/^[0-9a-zA-Z.-]+$/) ||
@@ -29,9 +29,9 @@
         <br />
         <va-select
           label="Select Pool"
-          v-model="poolSelection"
-          :options="selectPoolData"
-          :rules="[(value) => isValid(value) || 'Field is required']"
+          v-model="selectedPool"
+          :options="poolOptions"
+          :rules="[(value) => value || 'Field is required']"
         />
         <br />
         <va-input label="Tag (optional)" v-model="formHypervisor.tags" />
@@ -58,11 +58,10 @@ export default {
       hypersivorId: this.$route.params.id,
       formHypervisor: {
         hostname: null,
-        ipaddress: null,
-        pool: null,
+        ipAddress: null,
         tags: null,
       },
-      poolSelection: {},
+      selectedPool: null,
     };
   },
   computed: {
@@ -71,10 +70,10 @@ export default {
         (item) => item.id == this.hypersivorId
       );
     },
-    selectPoolData() {
-      return this.$store.state.resources.poolList.map((x) => ({
-        text: x.name,
-        value: x.id,
+    poolOptions() {
+      return this.$store.state.resources.poolList.map((e) => ({
+        text: e.name,
+        value: e.id,
       }));
     },
   },
@@ -82,9 +81,9 @@ export default {
     stateHypervisor: function () {
       this.propagateStateHypervisor();
     },
-    selectPoolData: function () {
-      if (this.formHypervisor.pool !== null) {
-        this.updatePool(this.formHypervisor.pool);
+    poolOptions: function () {
+      if (this.selectedPool != null) {
+        this.updatePool(this.selectedPool.value);
       }
     },
   },
@@ -96,41 +95,35 @@ export default {
   methods: {
     propagateStateHypervisor() {
       this.formHypervisor = { ...this.stateHypervisor };
+
+      this.formHypervisor.ipAddress = this.stateHypervisor.ipaddress;
+
       this.updatePool(this.formHypervisor.pool_id);
     },
-    isValid(value) {
-      // TODO
-      if (Object.keys(value).length < 1) {
-        return false;
-      } else {
-        return true;
-      }
-    },
     updatePool(id) {
-      // TODO Why ? Properly configure the select component.
-      this.poolSelection = this.selectPoolData.find((item) => item.value == id);
+      this.selectedPool = this.poolOptions.find((e) => e.value == id);
+    },
+    exportHypervisor() {
+      const hypervisor = JSON.parse(JSON.stringify(this.formHypervisor));
+
+      hypervisor.ip_address = this.formHypervisor.ipAddress;
+
+      hypervisor.pool_id = this.selectedPool.value;
+
+      return hypervisor;
     },
     updateHypervisor() {
-      const hypervisor = this.formHypervisor;
-      hypervisor.pool_id = this.poolSelection.value;
       this.$store.dispatch("updateHost", {
         vm: this,
         token: this.$keycloak.token,
-        hostValues: hypervisor,
+        hostValues: this.exportHypervisor(),
       });
     },
     addHypervisor() {
-      const host = this.formHypervisor;
-      host.pool = this.poolSelection;
       axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/hosts`,
-          {
-            hostname: host.hostname,
-            ip_address: this.host.ipaddress,
-            pool_id: host.pool.value,
-            tags: host.tags,
-          },
+          this.exportHypervisor(),
           {
             headers: {
               "Content-Type": "application/json",
