@@ -55,6 +55,10 @@
 import axios from "axios";
 import * as spinners from "epic-spinners";
 
+function removeTrailingSlash(path) {
+  return path.replace(/\/$/, "");
+}
+
 export default {
   name: "updateStorage",
   components: { ...spinners },
@@ -65,18 +69,24 @@ export default {
       storageNameRules: [
         (value) => value?.length > 0 || "Field is required",
         (value) =>
-          !this.$store.state.storageList.find((s) => s.name === value) ||
+          !this.otherStorageList.find((s) => s.name === value) ||
           "This name is already used",
       ],
       storagePathRules: [
         (value) => value?.length > 0 || "Field is required",
-        (value) => value != "/mnt/" || "The path can't only be /mnt/",
+        (value) =>
+          value == null ||
+          removeTrailingSlash(value) != "/mnt" ||
+          "The path can't only be /mnt or /mnt/",
         (value) => /^\/mnt/gi.test(value) || "The path must begin by /mnt",
         (value) => {
-          value = value?.replace(/\/$/, "");
+          if (value == null) {
+            return true;
+          }
+          value = removeTrailingSlash(value);
           return (
-            !this.$store.state.storageList.find(
-              (s) => s.path.replace(/\/$/, "") === value
+            !this.otherStorageList.find(
+              (s) => removeTrailingSlash(s.path) === value
             ) || "A storage already exist for this path"
           );
         },
@@ -84,30 +94,33 @@ export default {
     };
   },
   computed: {
-    stateStorage() {
-      return this.$store.state.storageList.find(
-        (item) => item.id == this.storageId
+    otherStorageList() {
+      return this.$store.state.storageList.filter(
+        (e) => e.id != this.storageId
       );
+    },
+    stateStorage() {
+      return this.$store.state.storageList.find((e) => e.id == this.storageId);
     },
     isNameValid() {
       return this.storageNameRules
-        .map((rule) => rule(this.storageName))
+        .map((rule) => rule(this.formStorage.name))
         .every((value) => value === true);
     },
     isPathValid() {
       return this.storagePathRules
-        .map((rule) => rule(this.storagePath))
+        .map((rule) => rule(this.formStorage.path))
         .every((value) => value === true);
     },
   },
   watch: {
     stateStorage: function () {
-      this.propagateStorage();
+      this.propagateStateStorage();
     },
   },
   mounted() {
     if (this.stateStorage) {
-      this.propagateStorage();
+      this.propagateStateStorage();
     }
   },
   methods: {
