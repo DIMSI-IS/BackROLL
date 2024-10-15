@@ -116,7 +116,7 @@
 import axios from "axios";
 import parser from "cron-parser";
 import * as spinners from "epic-spinners";
-import dayOfWeek from "../../forms/data/dayOfWeek";
+import dayOfWeek from "./dayOfWeek";
 
 export default {
   name: "updatePolicy",
@@ -128,15 +128,7 @@ export default {
         name: "",
         description: "",
       },
-      dayOptions: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
+      dayOptions: dayOfWeek.week(),
       selectedDays: [],
       timeToBackup: new Date(new Date().setHours(0, 0, 0, 0)),
       selectedStorage: null,
