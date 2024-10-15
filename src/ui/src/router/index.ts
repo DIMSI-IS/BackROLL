@@ -55,32 +55,32 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'pools',
             path: 'pools',
-            component: () => import('@/pages/admin/resources/pools/Pools.vue')
+            component: () => import('@/pages/admin/resources/pools/PoolList.vue')
           },
           {
             name: 'add pool',
             path: '/admin/resources/pools/new',
-            component: () => import('@/pages/admin/resources/pools/AddPool.vue')
+            component: () => import('@/pages/admin/resources/pools/PoolForm.vue')
           },
           {
             name: 'updatePool',
             path: '/admin/resources/pools/:id',
-            component: () => import('@/pages/admin/resources/pools/UpdatePool.vue')
+            component: () => import('@/pages/admin/resources/pools/PoolForm.vue')
           },
           {
             name: 'hypervisors',
             path: 'hypervisors',
-            component: () => import('@/pages/admin/resources/hypervisors/Hypervisors.vue')
+            component: () => import('@/pages/admin/resources/hypervisors/HypervisorList.vue')
           },
           {
             name: 'add hypervisor',
             path: '/admin/resources/hypervisors/new',
-            component: () => import('@/pages/admin/resources/hypervisors/AddHypervisor.vue')
+            component: () => import('@/pages/admin/resources/hypervisors/HypervisorForm.vue')
           },
           {
             name: 'Update hypervisor',
             path: '/admin/resources/hypervisors/:id',
-            component: () => import('@/pages/admin/resources/hypervisors/UpdateHypervisor.vue')
+            component: () => import('@/pages/admin/resources/hypervisors/HypervisorForm.vue')
           },
           {
             name: 'virtualmachines',
@@ -103,62 +103,62 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'policies',
             path: 'policies',
-            component: () => import('@/pages/admin/configuration/policies/Policies.vue')
+            component: () => import('@/pages/admin/configuration/policies/PolicyList.vue')
           },
           {
             name: 'updatePolicy',
             path: '/admin/configuration/policy/:id',
-            component: () => import('@/pages/admin/configuration/policies/UpdatePolicy.vue')
+            component: () => import('@/pages/admin/configuration/policies/PolicyForm.vue')
           },
           {
             name: 'add policy',
             path: '/admin/configuration/policies/new',
-            component: () => import('@/pages/admin/configuration/policies/AddPolicy.vue')
+            component: () => import('@/pages/admin/configuration/policies/PolicyForm.vue')
           },
           {
             name: 'storage',
             path: 'storage',
-            component: () => import('@/pages/admin/configuration/storage/Storage.vue')
+            component: () => import('@/pages/admin/configuration/storage/StorageList.vue')
           },
           {
             name: 'add storage',
             path: '/admin/configuration/storage/new',
-            component: () => import('@/pages/admin/configuration/storage/AddStorage.vue')
+            component: () => import('@/pages/admin/configuration/storage/StorageForm.vue')
           },
           {
             name: 'updateStorage',
             path: '/admin/configuration/storage/:id',
-            component: () => import('@/pages/admin/configuration/storage/UpdateStorage.vue')
+            component: () => import('@/pages/admin/configuration/storage/StorageForm.vue')
           },
           {
             name: 'connectors',
             path: 'connectors',
-            component: () => import('@/pages/admin/configuration/connectors/Connectors.vue')
+            component: () => import('@/pages/admin/configuration/connectors/ConnectorList.vue')
           },
           {
             name: 'add connector',
             path: '/admin/configuration/connectors/new',
-            component: () => import('@/pages/admin/configuration/connectors/AddConnector.vue')
+            component: () => import('@/pages/admin/configuration/connectors/ConnectorForm.vue')
           },
           {
             name: 'update connector',
             path: '/admin/configuration/connectors/:id',
-            component: () => import('@/pages/admin/configuration/connectors/UpdateConnector.vue')
+            component: () => import('@/pages/admin/configuration/connectors/ConnectorForm.vue')
           },
           {
             name: 'externalhooks',
             path: 'externalhooks',
-            component: () => import('@/pages/admin/configuration/externalhooks/ExternalHooks.vue')
+            component: () => import('@/pages/admin/configuration/externalhooks/ExternalHookList.vue')
           },
           {
             name: 'add externalhook',
             path: '/admin/configuration/externalhooks/new',
-            component: () => import('@/pages/admin/configuration/externalhooks/AddExternalHook.vue')
+            component: () => import('@/pages/admin/configuration/externalhooks/ExternalHookForm.vue')
           },
           {
             name: 'update externalhook',
             path: '/admin/configuration/externalhooks/:id',
-            component: () => import('@/pages/admin/configuration/externalhooks/UpdateExternalHook.vue')
+            component: () => import('@/pages/admin/configuration/externalhooks/ExternalHookForm.vue')
           }
         ],
       },
