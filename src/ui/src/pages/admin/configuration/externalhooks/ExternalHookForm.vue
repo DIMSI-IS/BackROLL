@@ -87,6 +87,8 @@ export default {
   methods: {
     propagateStateHook() {
       this.formHook = { ...this.stateHook };
+      // Other providers are not supported yet.
+      this.formHook.provider = "slack";
     },
     updateHook() {
       this.$store.dispatch("updateExternalHook", {
