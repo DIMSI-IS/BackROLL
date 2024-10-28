@@ -32,6 +32,18 @@ backroll_setup() {
                     local front_url=front:8080
                     ;;
                 staging|prod)
+                    case $backroll_mode in
+                        prod)
+                            if ! git describe --tags --exact-match 2>/dev/null; then
+                                read -r -p "You are not on a release commit. Run version mismatch protection ? " response
+                                if [[ "$response" != "I know that prod will fail." ]]; then
+                                    echo "Running version mismatch protection…"
+                                    git checkout $(git describe --tags --abbrev=0) || return $?
+                                fi
+                            fi
+                            ;;
+                    esac
+
                     echo "#### BackROLL host IP configuration ####"
                     local host_ip_list=$(hostname -I)
                     echo "Select the access IP you want to use :"
@@ -277,13 +289,17 @@ fi
 
 # $prod
 if source backroll/@prod.env 2>/dev/null; then
-    prod="--env-file backroll/@prod.env
-          --env-file .env
-          -f compose.yaml
-          -f compose.staging_prod.yaml
-          -f compose.prod.yaml
-          ${BACKROLL_DB:+ --profile database}
-          ${BACKROLL_SSO:+ --profile sso}"
+    if git describe --tags --exact-match 2>/dev/null; then
+        prod="--env-file backroll/@prod.env
+            --env-file .env
+            -f compose.yaml
+            -f compose.staging_prod.yaml
+            -f compose.prod.yaml
+            ${BACKROLL_DB:+ --profile database}
+            ${BACKROLL_SSO:+ --profile sso}"
+    else
+        prod="ERROR_VERSION_MISMATCH"
+    fi
 fi
 
 echo "
