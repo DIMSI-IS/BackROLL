@@ -11,9 +11,7 @@ const mapping = [
 ];
 
 function week() {
-  return Array(7)
-    .keys()
-    .map((e) => mapping[e + 1]);
+  return [...Array(7).keys()].map((index) => mapping[index + 1]);
 }
 
 function toSymbols(names) {
