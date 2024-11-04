@@ -165,6 +165,7 @@ class borg_backup:
     def manage_backing_file(self, disk):
         repository = self.info['borg_repository']
         vm_name = self.virtual_machine['name']
+        print(f"[{vm_name}] Getting information about disk at {disk['source']}")
         request = subprocess.run(
             ["qemu-img", "info", "--output=json", disk['source']], capture_output=True)
         qemu_img_info = request.stdout.decode("utf-8")
