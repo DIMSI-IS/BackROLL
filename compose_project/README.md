@@ -28,15 +28,15 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
     ```
   - get argument variables and setup `dev` :
     ```bash
-    source source-me.sh dev
+    source source-me.sh setup-dev
     ```
   - get argument variables and setup `staging` :
     ```bash
-    source source-me.sh staging
+    source source-me.sh setup-staging
     ```
   - get argument variables and setup `prod` :
     ```bash
-    source source-me.sh prod
+    source source-me.sh setup-prod
     ```
 - use [`docker compose`](https://docs.docker.com/reference/cli/docker/compose/) with an argument variable :
   - dev version :
@@ -60,7 +60,7 @@ Remember to always be in the `compose_project/` directory and to source `source-
 
 ```bash
 cd compose_project
-source source-me.sh dev
+source source-me.sh setup-dev
 docker compose $dev up
 ```
 
@@ -68,7 +68,7 @@ docker compose $dev up
 
 ```bash
 cd compose_project
-source source-me.sh staging
+source source-me.sh setup-staging
 docker compose $staging up
 ```
 
@@ -76,7 +76,7 @@ docker compose $staging up
 
 ```bash
 cd compose_project
-source source-me.sh prod
+source source-me.sh setup-prod
 docker compose $prod up
 ```
 

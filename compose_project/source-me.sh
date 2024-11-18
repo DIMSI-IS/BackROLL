@@ -255,7 +255,7 @@ backroll_setup() {
 
 # Setup
 if [[ "$1" != "" ]]; then
-    backroll_setup "$1" || return $?
+    backroll_setup "${1#setup-}" || return $?
 fi
 
 # Context
@@ -305,11 +305,11 @@ fi
 echo "
 Docker Compose argument variables:
 
-  - dev=${dev:-    # Run “source source-me.sh dev” to setup dev.}
+  - dev=${dev:-    # Run “source source-me.sh setup-dev” to setup dev.}
 
-  - staging=${staging:-    # Run “source source-me.sh staging” to setup staging.}
+  - staging=${staging:-    # Run “source source-me.sh setup-staging” to setup staging.}
 
-  - prod=${prod:-    # Run “source source-me.sh prod” to setup prod.}
+  - prod=${prod:-    # Run “source source-me.sh setup-prod” to setup prod.}
 
 Usage:
   - docker compose \$dev …

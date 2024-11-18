@@ -10,6 +10,6 @@ git clone --single-branch --branch main https://github.com/DIMSI-IS/backroll.git
 cd BackROLL && \\
 git checkout "$tag_name" && \\
 cd compose_project && \\
-source source-me.sh prod && \\
+source source-me.sh setup-prod && \\
 docker compose \$prod up
 HEREDOC
