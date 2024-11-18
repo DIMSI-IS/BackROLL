@@ -50,11 +50,11 @@ Backroll requires Docker and Docker Compose. Please refer to the official Docker
 
 ### Quickstart 🚀
 
-Backroll is distributed through git and structured as a Docker Compose project. We have baked quickstart script which clones the repository and runs the commands from the [dedicated compose project README](./compose_project/README.md).
+Backroll is distributed through git and structured as a Docker Compose project. We have baked up a quickstart script which clones the repository and runs the commands from the [dedicated compose project README](./compose_project/README.md).
 
 Use Bash to get and run the quickstart script of the release you target. You will be guided through the setup of the components and some accounts. To use your own OpenID provider or database please prepare your credentials.
 
-After the setup process, the containers will be starting. The default database initialization lasts approximately one minute. Then open your host address in a web browser to access the Backroll UI.
+After the setup process, the containers will be starting. The default database initialization lasts around one minute. Then open your host address in a web browser to access the Backroll UI.
 
 #### Latest prerelease or release
 
