@@ -109,8 +109,12 @@ export default {
     },
     exportPool() {
       const pool = JSON.parse(JSON.stringify(this.formPool));
-      pool.policy_id = this.selectedPolicy.value;
-      pool.connector_id = this.selectedConnector.value;
+      if (this.selectedPolicy) {
+        pool.policy_id = this.selectedPolicy.value;
+      }
+      if (this.selectedConnector) {
+        pool.connector_id = this.selectedConnector.value;
+      }
       return pool;
     },
     updatePool() {
