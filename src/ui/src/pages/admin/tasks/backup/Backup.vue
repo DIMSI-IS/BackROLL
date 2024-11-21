@@ -83,6 +83,9 @@ export default defineComponent({
       loadingBackupType: "SelfBuildingSquareSpinner"
     }
   },
+  mounted () {
+    this.$store.dispatch("requestBackupTask", { token: this.$keycloak.token })
+  },
   computed: {
     filteredTaskList() {
       if (this.selectedDate) {

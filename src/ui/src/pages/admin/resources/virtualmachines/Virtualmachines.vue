@@ -102,6 +102,9 @@ export default defineComponent({
       return this.useCustomFilteringFn ? this.filterExact : undefined
     }
   },
+  mounted () {
+    this.$store.dispatch("requestVirtualMachine", { token: this.$keycloak.token })
+  },
   methods: {
     filterExact(source) {
       if (this.filter === '') {
