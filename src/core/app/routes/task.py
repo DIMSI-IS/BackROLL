@@ -107,21 +107,6 @@ def retrieve_backup_task_jobs():
         json_key = aggregated_jobs_list[key]
         json_key["args"] = json.dumps(
             task_handler.parse_task_args(json_key["args"]))
-
-    redis_client = redis.Redis(host="redis", port=6379, db=0)
-    for key in redis_client.keys():
-        key = key.decode()
-        if key.startswith("celery-task-meta"):
-            task = json.loads(redis_client.get(key).decode())
-            try:
-                print(f"{task.args=}")
-            except:
-                pass
-            try:
-                print(f"{task["args"]=}")
-            except:
-                pass
-
     return aggregated_jobs_list
 
 
@@ -236,3 +221,16 @@ def list_backup_tasks(identity: Json = Depends(auth.valid_token)):
 @app.get('/api/v1/tasks/restore', status_code=200)
 def list_restore_tasks(identity: Json = Depends(auth.valid_token)):
     return {'info': retrieve_restore_task_jobs()}
+
+@app.get('/api/v1/tasks', status_code=200)
+def list_tasks(identity: Json = Depends(auth.valid_token)):
+    # TODO filter by task name with job.retrieve_jobs ?
+    redis_client = redis.Redis(host="redis", port=6379, db=0)
+    task_list = []
+    for key in redis_client.scan_iter("celery-task-meta*"):
+        key = key.decode()
+        value = redis_client.get(key).decode()
+        task = json.loads(value)
+        task_list.append(task)
+    redis_client.quit()
+    return task_list
