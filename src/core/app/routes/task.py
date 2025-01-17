@@ -24,7 +24,6 @@ from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 import requests
 from requests.auth import HTTPBasicAuth
-import redis
 import json
 
 from typing import Optional
@@ -107,23 +106,6 @@ def retrieve_backup_task_jobs():
         json_key = aggregated_jobs_list[key]
         json_key["args"] = json.dumps(
             task_handler.parse_task_args(json_key["args"]))
-
-    redis_client = redis.Redis(host="redis", port=6379, db=0)
-    for key in redis_client.keys():
-        key = key.decode()
-        if key.startswith("celery-task-meta"):
-            task = json.loads(redis_client.get(key).decode())
-            try:
-                #print(f"{task.args=}")
-                pass
-            except:
-                pass
-            try:
-                #print(f"{task["args"]=}")
-                pass
-            except:
-                pass
-
     return aggregated_jobs_list
 
 
