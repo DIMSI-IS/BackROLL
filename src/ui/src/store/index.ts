@@ -20,6 +20,7 @@ export default createStore({
     isstorageTableReady: false,
     isbackupTaskTableReady: false,
     isrestoreTaskTableReady: false,
+    areCeleryTasksReady: false,
     isexternalHookTableReady: false,
     isconnectorTableReady: false,
     // Resources list
@@ -34,6 +35,7 @@ export default createStore({
     jobList: [],
     backupTaskList: [],
     restoreTaskList: [],
+    celeryTaskList: [],
     storageList: [],
   },
   getters: {
@@ -405,7 +407,22 @@ export default createStore({
     updateRestoreTaskList(context, taskList) {
       context.commit("restoreTaskList", taskList);
     },
-    // Ask and retrieve restore task from BackROLL API
+    // Ask and retrive celery tasks from BackROLL API
+    async requestCeleryTasks(context, { token }) {
+      const { data } = await axios.get(
+        `${this.state.endpoint.api}/api/v1/tasks`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      context.commit("loadingCeleryTasks", true);
+      context.dispatch("updateCeleryTaskList", data.info);
+      setTimeout(() => {
+        context.dispatch("requestCeleryTasks", { token: token });
+      }, 10000);
+    },
+    updateCeleryTaskList(context, taskList) {
+      context.commit("celeryTaskList", taskList);
+    },
+    // Ask and retrieve jobs (task types) from BackROLL API
     async requestJob(context, { token }) {
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/jobs`,
@@ -651,6 +668,15 @@ export default createStore({
     },
     loadingRestoreTask(state, loadingState) {
       state.isrestoreTaskTableReady = loadingState;
+    },
+    celeryTaskList(state, taskList) {
+      // TODO Sure ?
+      state.areCeleryTasksReady = true;
+      state.celeryTaskList = taskList;
+    },
+    loadingCeleryTasks(state, loadingState) {
+      // TODO Sure ?
+      state.areCeleryTasksReady = loadingState;
     },
     updateSidebarCollapsedState(state, isSidebarMinimized) {
       state.isSidebarMinimized = isSidebarMinimized;
