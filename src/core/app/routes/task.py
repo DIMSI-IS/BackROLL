@@ -114,11 +114,13 @@ def retrieve_backup_task_jobs():
         if key.startswith("celery-task-meta"):
             task = json.loads(redis_client.get(key).decode())
             try:
-                print(f"{task.args=}")
+                #print(f"{task.args=}")
+                pass
             except:
                 pass
             try:
-                print(f"{task["args"]=}")
+                #print(f"{task["args"]=}")
+                pass
             except:
                 pass
 
@@ -163,10 +165,10 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
             'total': 1,
             'status': str(task.info)
         }
-        if "not found" in str(task.info):
-            raise HTTPException(status_code=404, detail=response)
-        else:
-            raise HTTPException(status_code=500, detail=response)
+        # if "not found" in str(task.info):
+        #     raise HTTPException(status_code=404, detail=response)
+        # else:
+        #     raise HTTPException(status_code=500, detail=response)
     return response
 
 

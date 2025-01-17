@@ -298,6 +298,7 @@ def borg_list_backup(virtual_machine, repository):
                 result = '{"archives": [], "state": "unlocked"}'
         else:
             result = request.stdout.decode("utf-8")
+            print(result)
         return result
     except ValueError as err:
         print(err.args[0])

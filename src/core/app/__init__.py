@@ -95,6 +95,10 @@ celery.conf.ONCE = {
     'default_timeout': 60 * 60 * 12
   }
 }
+celery.conf.resultrepr_maxsize = 4096
+
+
+
 celery.conf.update(settings)
 
 celery.conf.update(

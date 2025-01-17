@@ -383,17 +383,22 @@ export default defineComponent({
         : this.filtered.length
     },
     nextRun () {
-      if (this.policy.schedule) {
-        const options = {
-          currentDate: new Date(),
-          tz: 'Europe/Paris'
+      try{
+        if (this.policy.schedule) {
+          const options = {
+            currentDate: new Date(),
+            tz: 'Europe/Paris'
+          }
+          const interval = parser.parseExpression(this.policy.schedule, options)
+          const result = `${new Date(interval.next()).toLocaleDateString()} - ${new Date(interval.next()).toLocaleTimeString()}`
+          return result
+        } else {
+          return 'N/A'
         }
-        const interval = parser.parseExpression(this.policy.schedule, options)
-        const result = `${new Date(interval.next()).toLocaleDateString()} - ${new Date(interval.next()).toLocaleTimeString()}`
-        return result
-      } else {
+      }catch(error){
         return 'N/A'
       }
+      
     }
   },
   mounted () {
