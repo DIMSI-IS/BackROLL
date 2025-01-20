@@ -61,55 +61,6 @@ class restorebackup_start(BaseModel):
         }
 
 
-@celery.task(name='restore_task_jobs')
-def retrieve_restore_task_jobs():
-    single_vm_payload = {"taskname": "VM_Restore_Disk"}
-    single_vm_response = requests.get(
-        'http://flower:5555/api/tasks', params=single_vm_payload)
-    single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
-    for key in single_vm_task:
-        json_key = single_vm_task[key]
-        json_key["args"] = json.dumps(
-            task_handler.parse_task_args(json_key["args"]))
-
-    vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
-    vm_retore_path_response = requests.get(
-        'http://flower:5555/api/tasks', params=vm_retore_path_payload)
-    vm_retore_path_task = json.loads(
-        vm_retore_path_response.content.decode('ascii'))
-    for key in vm_retore_path_task:
-        json_key = vm_retore_path_task[key]
-        json_key["args"] = json.dumps(
-            task_handler.parse_task_args(json_key["args"]))
-
-    single_vm_task.update(vm_retore_path_task)
-    return single_vm_task
-
-
-@celery.task(name='backuptask_jobs')
-def retrieve_backup_task_jobs():
-    single_vm_payload = {"taskname": "	Single_VM_Backup"}
-    single_vm_response = requests.get(
-        'http://flower:5555/api/tasks', params=single_vm_payload)
-    pool_payload = {"taskname": "Pool_VM_Backup"}
-    pool_response = requests.get(
-        'http://flower:5555/api/tasks', params=pool_payload)
-    subtask_payload = {"taskname": "backup_subtask"}
-    subtask_response = requests.get(
-        'http://flower:5555/api/tasks', params=subtask_payload)
-    single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
-    pool_vm_task = json.loads(pool_response.content.decode('ascii'))
-    subtask = json.loads(subtask_response.content.decode('ascii'))
-    aggregated_jobs_list = single_vm_task.copy()
-    aggregated_jobs_list.update(pool_vm_task)
-    aggregated_jobs_list.update(subtask)
-    for key in aggregated_jobs_list:
-        json_key = aggregated_jobs_list[key]
-        json_key["args"] = json.dumps(
-            task_handler.parse_task_args(json_key["args"]))
-    return aggregated_jobs_list
-
-
 def get_task_logs(task_id):
     response = requests.get(f'http://flower:5555/api/task/info/{task_id}')
     return response.content
@@ -213,6 +164,67 @@ def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = D
     return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
+def retrieve_celery_tasks():
+    # TODO filter by task name with job.retrieve_jobs ?
+    redis_client = redis.Redis(host="redis", port=6379, db=0)
+    task_dict = {}
+    for key in redis_client.scan_iter("celery-task-meta*"):
+        key = key.decode()
+        value = redis_client.get(key).decode()
+        
+        task = json.loads(value)
+        task_dict[task["task_id"]] = task
+    redis_client.quit()
+    return task_dict
+
+
+@celery.task(name='restore_task_jobs')
+def retrieve_restore_task_jobs():
+    single_vm_payload = {"taskname": "VM_Restore_Disk"}
+    single_vm_response = requests.get(
+        'http://flower:5555/api/tasks', params=single_vm_payload)
+    single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
+    
+    vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
+    vm_retore_path_response = requests.get(
+        'http://flower:5555/api/tasks', params=vm_retore_path_payload)
+    vm_retore_path_task = json.loads(
+        vm_retore_path_response.content.decode('ascii'))
+
+    single_vm_task.update(vm_retore_path_task)
+
+    celery_tasks = retrieve_celery_tasks()
+    for key, value in single_vm_task.items():
+        value["args"] = celery_tasks[key]["args"]
+    
+    return single_vm_task
+
+
+@celery.task(name='backuptask_jobs')
+def retrieve_backup_task_jobs():
+    single_vm_payload = {"taskname": "	Single_VM_Backup"}
+    single_vm_response = requests.get(
+        'http://flower:5555/api/tasks', params=single_vm_payload)
+    pool_payload = {"taskname": "Pool_VM_Backup"}
+    pool_response = requests.get(
+        'http://flower:5555/api/tasks', params=pool_payload)
+    subtask_payload = {"taskname": "backup_subtask"}
+    subtask_response = requests.get(
+        'http://flower:5555/api/tasks', params=subtask_payload)
+    single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
+    pool_vm_task = json.loads(pool_response.content.decode('ascii'))
+    subtask = json.loads(subtask_response.content.decode('ascii'))
+    aggregated_jobs_list = single_vm_task.copy()
+    aggregated_jobs_list.update(pool_vm_task)
+    aggregated_jobs_list.update(subtask)
+
+    celery_tasks = retrieve_celery_tasks()
+    for key, value in aggregated_jobs_list.items():
+        value["args"] = celery_tasks[key]["args"]
+
+    return aggregated_jobs_list
+
+
 @app.get('/api/v1/tasks/backup', status_code=200)
 def list_backup_tasks(identity: Json = Depends(auth.valid_token)):
     return {'info': retrieve_backup_task_jobs()}
@@ -221,16 +233,3 @@ def list_backup_tasks(identity: Json = Depends(auth.valid_token)):
 @app.get('/api/v1/tasks/restore', status_code=200)
 def list_restore_tasks(identity: Json = Depends(auth.valid_token)):
     return {'info': retrieve_restore_task_jobs()}
-
-@app.get('/api/v1/tasks', status_code=200)
-def list_tasks(identity: Json = Depends(auth.valid_token)):
-    # TODO filter by task name with job.retrieve_jobs ?
-    redis_client = redis.Redis(host="redis", port=6379, db=0)
-    task_list = []
-    for key in redis_client.scan_iter("celery-task-meta*"):
-        key = key.decode()
-        value = redis_client.get(key).decode()
-        task = json.loads(value)
-        task_list.append(task)
-    redis_client.quit()
-    return task_list
