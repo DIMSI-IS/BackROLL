@@ -112,63 +112,6 @@ export default defineComponent({
         win.print()
         win.close()
       }, 200)
-    },
-    getPool(id) {
-      return this.$store.state.resources.poolList.filter((item) => {
-        return item.id == id
-      })
-    },
-    retrievePoolTarget(args) {
-      if (args) {
-        const ArgsArray = args.split("'")
-        for (const [i, v] of ArgsArray.entries()) {
-          if (v === 'pool_id' && this.getPool(ArgsArray[i + 2])[0]) {
-            return this.getPool(ArgsArray[i + 2])[0].name
-          }
-        }
-        return null
-      } else {
-        return null
-      }
-    },
-    retrieveArgs(x) {
-      let result = ''
-      if (x.name == 'Single_VM_Backup') {
-        const mySubString = x.args.substring(
-          x.args.lastIndexOf("{") + 1,
-          x.args.lastIndexOf("}")
-        )
-        result = "{" + mySubString.replaceAll("'", '"') + "}"
-        result = result.toLowerCase()
-        return JSON.parse(result)
-      } else if (x.name == 'Pool_VM_Backup') {
-        const mySubString1 = x.args.substring(
-          x.args.lastIndexOf("{") + 1,
-          x.args.lastIndexOf("}")
-        )
-        result = "{" + mySubString1 + "}"
-        result = result.replaceAll("'", '"')
-        result = result.toLowerCase()
-        result = JSON.parse(result)
-        return result
-      } else if (x.name == 'backup_subtask') {
-        const mySubString = x.args.substring(
-          x.args.lastIndexOf("{") + 1,
-          x.args.lastIndexOf("}")
-        )
-        result = mySubString.replaceAll("'", '"')
-        result = `{${result}}`
-        result = result.toLowerCase()
-        result = JSON.parse(result)
-        return result
-      }
-    },
-    parseArgs(x) {
-      try {
-        return JSON.parse(x.args);
-      } catch (error) {
-        console.error(error);
-      }
     }
   },
   computed: {
@@ -216,20 +159,18 @@ export default defineComponent({
     },
     tableData() {
       return this.filteredData.map(x => {
-        const taskArgs = this.parseArgs(x)
         const isPool = x.name == "Pool_VM_Backup"
+        const pool_id = x.args[0].pool_id
         return {
           uuid: x.uuid,
           name: x.name.replaceAll('_', ' '),
-          target: isPool ? this.retrievePoolTarget(x.args) : this.retrieveArgs(x).name,
+          target: isPool ? this.$store.state.resources.poolList.find(e => e.id == pool_id)?.name : x.args[0].name,
           targetPage: isPool ? "pools" : "virtualmachines",
-          targetUuid: taskArgs?.uuid,
+          targetUuid: x.args[0].uuid,
           started: x.started,
           ipAddress: x.ip_address,
           runtime: isPool ? null : x.runtime,
           state: x.state,
-          // args: this.retrieveArgs(x),
-          // _showDetails: isPool,
           parent: x.name == 'backup_subtask' ? x.parent : null
         }
       })
