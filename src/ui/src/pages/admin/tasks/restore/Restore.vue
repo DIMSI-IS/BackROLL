@@ -117,13 +117,12 @@ export default defineComponent({
     },
     tableData() {
       return this.filteredTaskList.map(x => {
-        const taskArgs = this.parseArgs(x)
         return {
           uuid: x.uuid,
           name: x.name.replaceAll('_', ' '),
-          target: taskArgs?.name ?? "",
+          target: x.args[0].name,
           targetPage: "virtualmachines",
-          targetUuid: taskArgs?.uuid,
+          targetUuid: x.args[0].uuid,
           started: x.started,
           ipAddress: x.ip_address,
           runtime: x.runtime,
@@ -135,27 +134,11 @@ export default defineComponent({
   methods: {
     dateSelector(dateToCheck) {
       const convertedDateCheck = new Date(dateToCheck * 1000)
-      if (
+      return (
         this.selectedDate.getFullYear() === convertedDateCheck.getFullYear() &&
         this.selectedDate.getMonth() === convertedDateCheck.getMonth() &&
         this.selectedDate.getDate() === convertedDateCheck.getDate()
-      ) {
-        return true
-      } else {
-        return false
-      }
-    },
-    getPool(id) {
-      return this.$store.state.resources.poolList.filter((item) => {
-        return item.id == id
-      })
-    },
-    parseArgs(x) {
-      try {
-        return JSON.parse(x.args);
-      } catch (error) {
-        console.error(error);
-      }
+      )
     }
   }
 })

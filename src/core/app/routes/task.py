@@ -38,11 +38,9 @@ from app.backup_tasks import single_backup
 from app.routes import host
 from app.routes import virtual_machine
 
-from app import task_handler
-
 from app import auth
 from app import restore
-
+from app import patch
 
 class restorebackup_start(BaseModel):
     virtual_machine_id: str
@@ -163,19 +161,19 @@ def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = D
         virtual_machine_id, backup_name, storage, mode)).apply_async()
     return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
 
-
-def retrieve_celery_tasks():
-    # TODO filter by task name with job.retrieve_jobs ?
+# TODO Also for a single task, to use it in the python code (in task_handler.py).
+# With an optional redis client input parameter.
+def manage_task_args(task_dict):
     redis_client = redis.Redis(host="redis", port=6379, db=0)
-    task_dict = {}
-    for key in redis_client.scan_iter("celery-task-meta*"):
-        key = key.decode()
-        value = redis_client.get(key).decode()
-        
-        task = json.loads(value)
-        task_dict[task["task_id"]] = task
+    for uuid, task in task_dict.items():
+        celery_task_bytes = redis_client.get(f"celery-task-meta-{uuid}")
+        if celery_task_bytes is not None:
+            celery_task_json = celery_task_bytes.decode()
+            celery_task = json.loads(celery_task_json)
+            task["args"] = celery_task["args"]
+        else:
+            task["args"] = patch.parse_python_data(task["args"])
     redis_client.quit()
-    return task_dict
 
 
 @celery.task(name='restore_task_jobs')
@@ -193,9 +191,7 @@ def retrieve_restore_task_jobs():
 
     single_vm_task.update(vm_retore_path_task)
 
-    celery_tasks = retrieve_celery_tasks()
-    for key, value in single_vm_task.items():
-        value["args"] = celery_tasks[key]["args"]
+    manage_task_args(single_vm_task)
     
     return single_vm_task
 
@@ -218,9 +214,7 @@ def retrieve_backup_task_jobs():
     aggregated_jobs_list.update(pool_vm_task)
     aggregated_jobs_list.update(subtask)
 
-    celery_tasks = retrieve_celery_tasks()
-    for key, value in aggregated_jobs_list.items():
-        value["args"] = celery_tasks[key]["args"]
+    manage_task_args(aggregated_jobs_list)
 
     return aggregated_jobs_list
 
