@@ -32,6 +32,7 @@ from app.routes import backup_policy as policy_route
 from app.routes import external_hooks as hook_route
 
 from app import restore
+from app import task
 
 from app.webhooks import slack
 
@@ -43,46 +44,6 @@ def list_running_tasks(application):
 def retrieve_task_info(task_id):
     response = requests.get(f"http://flower:5555/api/task/info/{task_id}")
     return response.content
-
-
-def eval_python_data(data_string):
-    data_string = str(data_string)
-    data_string_len = len(data_string)
-    for _ in range(0, data_string_len):
-        try:
-            return eval(data_string)
-        except SyntaxError as e:
-            column = e.offset
-            if column == 0:
-                data_string = data_string[1:]
-            elif column == len(data_string) - 1:
-                data_string = data_string[:column]
-            else:
-                data_string = data_string[:column-1] + data_string[column:]
-        except Exception as e:
-            raise ValueError(
-                f"With Python {sys.version}, failed to fix data string “{data_string}”.")
-
-
-def ensure_dict(value):
-    if isinstance(value, dict):
-        return value
-
-    if isinstance(value, tuple) or isinstance(value, list):
-        return ensure_dict(value[0])
-
-    return None
-
-
-def ensure_json_serializable(value):
-    def typeAsString(object):
-        return str(type(object))
-
-    return json.loads(json.dumps(value, default=typeAsString))
-
-
-def parse_task_args(args):
-    return ensure_json_serializable(ensure_dict(eval_python_data(args)))
 
 
 def convert(seconds):
@@ -103,14 +64,15 @@ def convert(seconds):
 def handle_task_success(task_id, msg):
 
     task_result = json.loads(retrieve_task_info(task_id).decode('ascii'))
-    task_args = parse_task_args(task_result['args'])
+    task.manage_task_args(task_result)
+    task_arg = task_result['args'][0]
 
-    if "host" in task_args:
-        host = host_route.filter_host_by_id(task_args['host'])
+    if "host" in task_arg:
+        host = host_route.filter_host_by_id(task_arg['host'])
         pool = pool_route.filter_pool_by_id(host.pool_id)
         policy = policy_route.filter_policy_by_id(pool.policy_id)
     else:
-        pool = pool_route.filter_pool_by_id(task_args["pool_id"])
+        pool = pool_route.filter_pool_by_id(task_arg["pool_id"])
         policy = policy_route.filter_policy_by_id(pool.policy_id)
 
     if policy.externalhook:
@@ -140,7 +102,7 @@ def handle_task_success(task_id, msg):
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": f"*Target*\n{task_args['name']}"
+                                "text": f"*Target*\n{task_arg['name']}"
                             },
                             {
                                 "type": "mrkdwn",
@@ -177,9 +139,10 @@ def handle_task_success(task_id, msg):
 def handle_task_failure(task_id, msg):
 
     task_result = json.loads(retrieve_task_info(task_id).decode('ascii'))
-    task_args = parse_task_args(task_result['args'])
+    task.manage_task_args(task_result)
+    task_arg = task_result['args'][0]
 
-    host = host_route.filter_host_by_id(task_args['host'])
+    host = host_route.filter_host_by_id(task_arg['host'])
     pool = pool_route.filter_pool_by_id(host.pool_id)
     policy = policy_route.filter_policy_by_id(pool.policy_id)
 
@@ -210,7 +173,7 @@ def handle_task_failure(task_id, msg):
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": f"*Target*\n{task_args['name']}"
+                                "text": f"*Target*\n{task_arg['name']}"
                             },
                             {
                                 "type": "mrkdwn",
