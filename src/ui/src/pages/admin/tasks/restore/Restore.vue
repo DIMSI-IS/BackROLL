@@ -116,19 +116,17 @@ export default defineComponent({
       return this.filteredTaskList.filter(x => x.state === 'RECEIVED').length
     },
     tableData() {
-      return this.filteredTaskList.map(x => {
-        return {
-          uuid: x.uuid,
-          name: x.name.replaceAll('_', ' '),
-          target: x.args[0].name,
-          targetPage: "virtualmachines",
-          targetUuid: x.args[0].uuid,
-          started: x.started,
-          ipAddress: x.ip_address,
-          runtime: x.runtime,
-          state: x.state,
-        }
-      })
+      return this.filteredTaskList.map(x => ({
+        uuid: x.uuid,
+        name: x.name.replaceAll('_', ' '),
+        target: x.args[0]?.name ?? "N/A",
+        targetPage: "virtualmachines",
+        targetUuid: x.args[0]?.uuid,
+        started: x.started,
+        ipAddress: x.ip_address,
+        runtime: x.runtime,
+        state: x.state,
+      }))
     }
   },
   methods: {

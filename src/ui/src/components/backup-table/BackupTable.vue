@@ -59,7 +59,7 @@
             this.$router.push(
               `/resources/${data[rowIndex].targetPage}/${data[rowIndex].targetUuid}`
             )
-            " />
+            " :disabled="!data[rowIndex].targetUuid" />
           <va-button v-if="data[rowIndex].state == 'FAILURE'" icon="bug_report" @click="
             (selectedTask = data[rowIndex]);
           retrieveTasksLogs(data[rowIndex].uuid)
