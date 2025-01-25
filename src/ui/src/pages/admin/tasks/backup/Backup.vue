@@ -105,14 +105,15 @@ export default defineComponent({
     },
     tableData() {
       return this.filteredTaskList.map(x => {
-        const taskArgs = this.parseArgs(x)
         const isPool = x.name == "Pool_VM_Backup"
+        const taskArg = x.args[0]
+        const poolId = taskArg?.pool_id
         return {
           uuid: x.uuid,
           name: x.name.replaceAll('_', ' '),
-          target: isPool ? this.retrievePoolTarget(x.args) : taskArgs?.name ?? "",
+          target: isPool ? this.$store.state.resources.poolList.find(e => e.id == poolId)?.name : taskArg?.name ?? "N/A",
           targetPage: isPool ? "pools" : "virtualmachines",
-          targetUuid: taskArgs?.uuid,
+          targetUuid: taskArg?.uuid,
           started: x.started,
           ipAddress: x.ip_address,
           runtime: isPool ? null : x.runtime,
@@ -132,32 +133,6 @@ export default defineComponent({
         return true
       } else {
         return false
-      }
-    },
-    getPool(id) {
-      return this.$store.state.resources.poolList.filter((item) => {
-        return item.id == id
-      })
-    },
-    retrievePoolTarget(args) {
-      // TODO Use parseArgs
-      if (args) {
-        const ArgsArray = args.split("'")
-        for (const [i, v] of ArgsArray.entries()) {
-          if (v === 'pool_id' && this.getPool(ArgsArray[i + 2])[0]) {
-            return this.getPool(ArgsArray[i + 2])[0].name
-          }
-        }
-        return null
-      } else {
-        return null
-      }
-    },
-    parseArgs(x) {
-      try {
-        return JSON.parse(x.args);
-      } catch (error) {
-        console.error(error);
       }
     }
   }
