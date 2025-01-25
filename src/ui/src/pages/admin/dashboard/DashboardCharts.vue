@@ -160,13 +160,14 @@ export default defineComponent({
     tableData() {
       return this.filteredData.map(x => {
         const isPool = x.name == "Pool_VM_Backup"
-        const pool_id = x.args[0]?.pool_id
+        const task_arg = x.args[0]
+        const pool_id = task_arg?.pool_id
         return {
           uuid: x.uuid,
           name: x.name.replaceAll('_', ' '),
-          target: isPool ? this.$store.state.resources.poolList.find(e => e.id == pool_id)?.name : x.args[0]?.name ?? "N/A",
+          target: isPool ? this.$store.state.resources.poolList.find(e => e.id == pool_id)?.name : task_arg?.name ?? "N/A",
           targetPage: isPool ? "pools" : "virtualmachines",
-          targetUuid: x.args[0]?.uuid,
+          targetUuid: task_arg?.uuid,
           started: x.started,
           ipAddress: x.ip_address,
           runtime: isPool ? null : x.runtime,
