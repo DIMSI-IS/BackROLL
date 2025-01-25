@@ -24,6 +24,6 @@ def manage_task_dict_args(task_dict):
     redis_client = redis.Redis(host="redis", port=6379, db=0)
 
     for task in task_dict.values():
-        manage_task_args(task)
+        manage_task_args(task, redis_client)
     
     redis_client.quit()
