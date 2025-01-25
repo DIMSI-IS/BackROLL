@@ -117,13 +117,13 @@ export default defineComponent({
     },
     tableData() {
       return this.filteredTaskList.map(x => {
-        const task_arg = x.args[0]
+        const taskArg = x.args[0]
         return {
           uuid: x.uuid,
           name: x.name.replaceAll('_', ' '),
-          target: task_arg?.name ?? "N/A",
+          target: taskArg?.name ?? "N/A",
           targetPage: "virtualmachines",
-          targetUuid: task_arg?.uuid,
+          targetUuid: taskArg?.uuid,
           started: x.started,
           ipAddress: x.ip_address,
           runtime: x.runtime,
