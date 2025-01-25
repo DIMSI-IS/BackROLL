@@ -40,7 +40,7 @@ from app.routes import virtual_machine
 
 from app import auth
 from app import restore
-from app import task
+from app import task_helper
 
 class restorebackup_start(BaseModel):
     virtual_machine_id: str
@@ -177,7 +177,7 @@ def retrieve_restore_task_jobs():
 
     single_vm_task.update(vm_retore_path_task)
 
-    task.manage_task_dict_args(single_vm_task)
+    task_helper.manage_task_dict_args(single_vm_task)
     
     return single_vm_task
 
@@ -200,7 +200,7 @@ def retrieve_backup_task_jobs():
     aggregated_jobs_list.update(pool_vm_task)
     aggregated_jobs_list.update(subtask)
 
-    task.manage_task_dict_args(aggregated_jobs_list)
+    task_helper.manage_task_dict_args(aggregated_jobs_list)
 
     return aggregated_jobs_list
 

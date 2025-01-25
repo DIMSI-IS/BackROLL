@@ -32,7 +32,7 @@ from app.routes import backup_policy as policy_route
 from app.routes import external_hooks as hook_route
 
 from app import restore
-from app import task
+from app import task_helper
 
 from app.webhooks import slack
 
@@ -63,9 +63,9 @@ def convert(seconds):
 @celery.task(name='Handle task success', max_retries=None)
 def handle_task_success(task_id, msg):
 
-    task_result = json.loads(retrieve_task_info(task_id).decode('ascii'))
-    task.manage_task_args(task_result)
-    task_arg = task_result['args'][0]
+    task = json.loads(retrieve_task_info(task_id).decode('ascii'))
+    task_helper.manage_task_args(task)
+    task_arg = task['args'][0]
 
     if "host" in task_arg:
         host = host_route.filter_host_by_id(task_arg['host'])
@@ -84,7 +84,7 @@ def handle_task_success(task_id, msg):
             time.sleep(10)
             context_smiley = "white_check_mark"
             alerting = ""
-            duration_time = f"{convert(task_result['runtime'])}"
+            duration_time = f"{convert(task['runtime'])}"
             block_msg = {
                 "blocks": [
                     {
@@ -106,11 +106,11 @@ def handle_task_success(task_id, msg):
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": f"*State*\n{task_result['state']} :{context_smiley}:"
+                                "text": f"*State*\n{task['state']} :{context_smiley}:"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": f"*Created on*\n{datetime.fromtimestamp(task_result['started'])}"
+                                "text": f"*Created on*\n{datetime.fromtimestamp(task['started'])}"
                             },
                             {
                                 "type": "mrkdwn",
@@ -126,7 +126,7 @@ def handle_task_success(task_id, msg):
                         "elements": [
                             {
                                 "type": "mrkdwn",
-                                "text": f"*TYPE*: {task_result['name']}"
+                                "text": f"*TYPE*: {task['name']}"
                             }
                         ]
                     }
@@ -138,9 +138,9 @@ def handle_task_success(task_id, msg):
 @celery.task(name='Handle task failure')
 def handle_task_failure(task_id, msg):
 
-    task_result = json.loads(retrieve_task_info(task_id).decode('ascii'))
-    task.manage_task_args(task_result)
-    task_arg = task_result['args'][0]
+    task = json.loads(retrieve_task_info(task_id).decode('ascii'))
+    task_helper.manage_task_args(task)
+    task_arg = task['args'][0]
 
     host = host_route.filter_host_by_id(task_arg['host'])
     pool = pool_route.filter_pool_by_id(host.pool_id)
@@ -177,11 +177,11 @@ def handle_task_failure(task_id, msg):
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": f"*State*\n{task_result['state']} :{context_smiley}:"
+                                "text": f"*State*\n{task['state']} :{context_smiley}:"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": f"*Created on*\n{datetime.fromtimestamp(task_result['started'])}"
+                                "text": f"*Created on*\n{datetime.fromtimestamp(task['started'])}"
                             },
                             {
                                 "type": "mrkdwn",
@@ -197,7 +197,7 @@ def handle_task_failure(task_id, msg):
                         "elements": [
                             {
                                 "type": "mrkdwn",
-                                "text": f"*TYPE*: {task_result['name']}"
+                                "text": f"*TYPE*: {task['name']}"
                             }
                         ]
                     }
