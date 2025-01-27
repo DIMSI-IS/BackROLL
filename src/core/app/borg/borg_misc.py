@@ -22,6 +22,7 @@ from app import app
 from app import celery
 from app.routes import storage
 from app.patch import make_path
+from app import shell
 
 
 def borglock(payload):
@@ -45,7 +46,6 @@ def borgbreaklock(virtual_machine_list, virtual_machine_id):
             raise ValueError(
                 f'Borg repository not found for virtual machine with {virtual_machine_id}')
 
-        command = f'borg break-lock {vm_repository}'
-        subprocess.run(command.split(), check=True)
+        shell.subprocess_run(f'borg break-lock {vm_repository}')
     except Exception as e:
         raise ValueError(e)

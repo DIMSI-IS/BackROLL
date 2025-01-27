@@ -25,6 +25,7 @@ from app.routes import storage
 from fastapi.encoders import jsonable_encoder
 
 from app.patch import make_path
+from app import shell
 
 
 def vm_info(virtual_machine_list, virtual_machine_id):
@@ -39,17 +40,18 @@ def vm_info(virtual_machine_list, virtual_machine_id):
         return selected_vm
 
 
-def borg_rc(cmd):
-    print(cmd.returncode)
-    if cmd.returncode != 0:
-        error_msg = cmd.stderr
-        error_msg = error_msg.replace(
-            "Warning: Attempting to access a previously unknown unencrypted repository!\nDo you want to continue? [yN] yes (from BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK)", "")
-        error_msg = error_msg.strip("\n")
+def borg_rc(command):
+    try:
+        request = shell.subprocess_run(command)
+        if request.stdout is None:
+            return None
+        return json.loads(request.stdout.strip("\n"))
+    except:
+        error_msg = command.stderr \
+            .replace(
+                "Warning: Attempting to access a previously unknown unencrypted repository!\nDo you want to continue? [yN] yes (from BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK)", "") \
+            .strip("\n")
         raise ValueError(error_msg)
-    if not cmd.stdout:
-        return None
-    return json.loads(cmd.stdout.strip("\n"))
 
 
 def get_backup(virtual_machine, backup_name):
@@ -57,19 +59,16 @@ def get_backup(virtual_machine, backup_name):
         virtual_machine)
     borg_repository = make_path(
         storage_repository['path'], virtual_machine['name'])
-    request = subprocess.run(
-        ["borg", "info", "--json", f"{borg_repository}::{backup_name}"], text=True, capture_output=True)
-    return borg_rc(request)
+    return borg_rc(f"borg info --json {borg_repository}::{backup_name}")
 
 
 def delete_backup(virtual_machine, backup_name):
     storage_repository = storage.retrieveStoragePathFromHostBackupPolicy(
         virtual_machine)
-    borg_repository = make_path(storage_repository['path'], virtual_machine['name'])
+    borg_repository = make_path(
+        storage_repository['path'], virtual_machine['name'])
     get_backup(virtual_machine, backup_name)
-    request = subprocess.run(
-        ["borg", "delete", f"{borg_repository}::{backup_name}"], text=True, capture_output=True)
-    return borg_rc(request)
+    return borg_rc(f"borg delete {borg_repository}::{backup_name}")
 
 
 @celery_app.task(name='Get VM archive info')
