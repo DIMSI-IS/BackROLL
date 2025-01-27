@@ -43,7 +43,7 @@ def vm_info(virtual_machine_list, virtual_machine_id):
 def borg_rc(command):
     try:
         request = shell.subprocess_run(command)
-        if request.stdout is None:
+        if request.stdout is None or len(request.stdout) == 0:
             return None
         return json.loads(request.stdout.strip("\n"))
     except:
