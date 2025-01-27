@@ -74,12 +74,19 @@
         <va-alert icon="info" color="danger" border="top" border-color="warning" class="mb-4">
           The local user must have access rights to KVM
         </va-alert>
-        <div style="position: relative;">
-          <va-input class="mb-4" style="max-width:720px;" v-model="sshKey" type="textarea" label="BackROLL SSH key"
-            :autosize="true" :min-rows="2" readonly />
-          <va-icon name="content_copy" @click="copyToClipboard(sshKey)"
-            style="position: absolute; top: 0; right: 0; margin-top: 4px; margin-right: 4px;" />
-        </div>
+        <va-tabs v-model="currentTabKey">
+          <template #tabs>
+            <va-tab v-for="{ name } in sshKeys" :key="name" :name="name">
+              {{ name }}
+            </va-tab>
+          </template>
+          <div style="position: relative;">
+            <va-input class="mb-4" style="max-width:720px;" v-model="currentSshKey" type="textarea"
+              label="BackROLL SSH key" :autosize="true" :min-rows="2" readonly />
+            <va-icon name="content_copy" @click="copyToClipboard(currentSshKey)"
+              style="position: absolute; top: 0; right: 0; margin-top: 4px; margin-right: 4px;" />
+          </div>
+        </va-tabs>
         <va-input class="mb-4" style="max-width:720px;" label="Specify the user on the server" v-model="user"
           type="text" :rules="[value => (value && value.length > 0) || 'Field is required']" />
         <div class="d-flex">
@@ -130,7 +137,8 @@ export default defineComponent({
       ],
       validation: false,
       user: null,
-      sshKey: null,
+      sshKeys: [],
+      currentTabKey: null,
       showConnectModal: false,
       showDeleteModal: false,
       selectedHost: null
@@ -138,6 +146,16 @@ export default defineComponent({
   },
   mounted() {
     this.requestKey()
+  },
+  computed: {
+    currentSshKey() {
+      return this.sshKeys.find(({ name }) => name == this.currentTabKey)?.fullLine;
+    },
+  },
+  watch: {
+    sshKeys(newValue) {
+      this.currentTabKey = newValue[0].name
+    }
   },
   methods: {
     copyToClipboard(text) {
@@ -190,7 +208,7 @@ export default defineComponent({
       const self = this
       axios.get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
-          this.sshKey = response.data.info.public_key
+          self.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
         })
         .catch(function (error) {
           if (error.response) {

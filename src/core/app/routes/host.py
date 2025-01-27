@@ -17,6 +17,7 @@
 
 #!/usr/bin/env python
 import os
+import dataclasses
 from uuid import UUID
 from app.patch import ensure_uuid
 import paramiko
@@ -213,14 +214,6 @@ def api_delete_host(host_id):
     return {'state': 'SUCCESS'}
 
 
-def getSSHPubKey():
-    try:
-        pubkey = shell.os_popen('cat /root/.ssh/id_rsa.pub')
-        return {'state': 'SUCCESS', 'info': {'public_key': pubkey}}
-    except Exception as e:
-        raise ValueError('Unable to retrieve appliance public key')
-
-
 @app.post("/api/v1/hosts", status_code=201)
 def create_host(item: items_create_host, identity: Json = Depends(auth.valid_token)):
     return api_create_host(item)
@@ -266,4 +259,7 @@ def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json =
 
 @app.get("/api/v1/publickeys", status_code=200)
 def list_ssh_public_keys(identity: Json = Depends(auth.valid_token)):
-    return getSSHPubKey()
+    try:
+        return {'state': 'SUCCESS', 'info': list(map(dataclasses.asdict, ssh.list_public_keys()))}
+    except Exception as e:
+        raise ValueError('Unable to retrieve appliance public key')

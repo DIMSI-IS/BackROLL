@@ -15,6 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from dataclasses import dataclass
+from pathlib import Path
 # SSH Module Imports
 import paramiko
 import select
@@ -22,6 +24,7 @@ import select
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
 from app.patch import ensure_uuid
+from app import shell
 # Misc
 import os
 from re import search
@@ -29,6 +32,21 @@ from re import search
 from app import database
 from app.database import Hosts
 from app.routes import host
+
+
+@dataclass
+class SshPublicKey:
+    name: str
+    full_line: str
+
+
+def list_public_keys() -> list[SshPublicKey]:
+    return list(map(
+        lambda path: SshPublicKey(
+            Path(path).stem.removeprefix("id_"),
+            shell.os_popen(f"cat {path}").strip()
+        ),
+        filter(None, shell.os_popen('find /root/.ssh/*.pub').split("\n"))))
 
 
 def init_ssh_connection(host_id, ip_address, username):
