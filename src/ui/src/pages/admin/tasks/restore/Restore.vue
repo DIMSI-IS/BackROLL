@@ -132,6 +132,9 @@ export default defineComponent({
       })
     }
   },
+  mounted () {
+    this.$store.dispatch("requestRestoreTask", { token: this.$keycloak.token })
+  },
   methods: {
     dateSelector(dateToCheck) {
       const convertedDateCheck = new Date(dateToCheck * 1000)

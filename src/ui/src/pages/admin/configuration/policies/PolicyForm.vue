@@ -29,6 +29,7 @@
           :options="dayOptions"
           v-model="selectedDays"
           multiple
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
         >
           <template #prependInner>
             <va-icon name="event" size="small" color="primary" />

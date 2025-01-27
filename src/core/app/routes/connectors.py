@@ -31,7 +31,7 @@ from app import celery
 from app import auth
 from app import database
 
-from app.database import Hosts
+from app.database import Pools
 from app.database import Connectors
 
 class items_create_connector(BaseModel):
@@ -59,10 +59,10 @@ def filter_connector_by_id(connector_id):
     with Session(engine) as session:
       statement = select(Connectors).where(Connectors.id == ensure_uuid(connector_id))
       results = session.exec(statement)
-      storage = results.one()
-      if not storage:
+      connector = results.one()
+      if not connector:
         raise ValueError(f'Connector with id {connector_id} not found')
-    return storage
+    return connector
   except Exception as e:
     raise ValueError(e)
 
@@ -137,20 +137,26 @@ def api_delete_connector(connector_id):
     raise ValueError(e)
   records = []
   with Session(engine) as session:
-    statement = select(Hosts).where(Hosts.connector_id == ensure_uuid(connector_id))
+    statement = select(Pools).where(
+      Pools.connector_id == ensure_uuid(connector_id))
     results = session.exec(statement)
-    for host in results:
-      records.append(host)
+    for pool in results:
+      records.append(pool)
     if len(records) > 0:
-      raise ValueError('One or more hosts are linked to this connector')
-  try:
-    connector = filter_connector_by_id(connector_id)
-    with Session(engine) as session:
+      raise ValueError('One or more pools are linked to this connector')
+    try:
+      statement2 = select(Connectors).where(
+          Connectors.id == ensure_uuid(connector_id))
+      results = session.exec(statement2)
+      connector = results.one()
+      if not connector:
+          raise ValueError(
+              f'Backup policy with id {connector_id} not found')
       session.delete(connector)
       session.commit()
-    return {'state': 'SUCCESS'}
-  except Exception as e:
-    raise ValueError(e)
+      return {'state': 'SUCCESS'}
+    except Exception as e:
+      raise ValueError(e)
 
 @app.post('/api/v1/connectors', status_code=201)
 def create_connector(item: items_create_connector, identity: Json = Depends(auth.valid_token)):
