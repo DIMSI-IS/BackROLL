@@ -154,7 +154,7 @@ export default defineComponent({
   },
   watch: {
     sshKeys(newValue) {
-      this.currentTabKey = newValue[0].name
+      this.currentTabKey = newValue[0]?.name
     }
   },
   methods: {
