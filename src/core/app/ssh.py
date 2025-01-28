@@ -44,22 +44,20 @@ def list_public_keys() -> list[SshPublicKey]:
     return list(map(
         lambda path: SshPublicKey(
             Path(path).stem.removeprefix("id_"),
-            shell.os_popen(f"cat {path}").strip()
+            # Removing simple quotes to prevent exiting from the sed script.
+            shell.os_popen(f"cat {path}").strip().replace("'", "")
         ),
-        filter(None, shell.os_popen('find /root/.ssh/*.pub').split("\n"))))
+        shell.os_popen('find /root/.ssh/*.pub').splitlines()))
 
 
 def init_ssh_connection(host_id, ip_address, username):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    keyfile = os.path.expanduser('~/.ssh/id_rsa.pub')
-
     try:
         client.connect(
             hostname=ip_address,
             username=username,
-            key_filename=keyfile,
         )
         client.close()
     except Exception as e:
@@ -85,17 +83,20 @@ def init_ssh_connection(host_id, ip_address, username):
 
 def remove_key(ip_address, username):
     try:
-        hostname = "backroll-appliance"
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(
             hostname=ip_address,
             username=username,
         )
-        # TODO fix me : only target “backroll”.
-        cmd = f'sed -i "/{hostname}/d" ~/.ssh/authorized_keys'
-        client.exec_command(cmd)
+        for public_key in list_public_keys():
+            # The sed script is with simple quotes to prevent shell parameter expension.
+            _, _, stderr = client.exec_command(
+                f"sed -i '\\|{public_key.full_line}|d' ~/.ssh/authorized_keys")
+            error = stderr.read().decode()
+            if error:
+                print(
+                    f"[Warning] Removing {public_key.name} SSH public key from {ip_address} failed: {error}")
         client.close()
-        return
     except Exception as e:
         raise ValueError(e)
