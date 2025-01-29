@@ -43,11 +43,11 @@
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
               <va-button v-if="!$store.state.resources.hostList[rowIndex].ssh" icon="link"
-                @click="selectedHost = $store.state.resources.hostList[rowIndex], showConnectModal = !showConnectModal" />
+                @click="selectedHost = $store.state.resources.hostList[rowIndex], showConnectModal = true" />
               <va-button icon="settings"
                 @click="this.$router.push(`/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`)" />
               <va-button icon="delete"
-                @click="selectedHost = $store.state.resources.hostList[rowIndex], showDeleteModal = !showDeleteModal" />
+                @click="selectedHost = $store.state.resources.hostList[rowIndex], showDeleteModal = true" />
             </va-button-group>
           </template>
         </va-data-table>
@@ -57,18 +57,20 @@
       </va-card-content>
     </va-card>
     <va-modal v-model="showConnectModal" size="large" hide-default-actions>
-      <va-form ref="form" @validation="validation = $event, connectHost()">
+      <template #header>
         <h2>
           <va-icon name="link" />
           Connecting to the hypervisor at {{ selectedHost.hostname }}
         </h2>
-        <hr class="mb-4">
+      </template>
+      <hr class="mb-4">
+      <va-form ref="form" @validation="validation = $event, connectHost()">
         <va-input label="Specify the user on the server" messages="The user must have the access rights to KVM."
-          v-model="user" type="text" :rules="[value => value?.length > 0 || 'Field is required']" class="mb-3" />
+          v-model="user" type="text" :rules="[value => value?.trim().length > 0 || 'Field is required']" class="mb-3" />
         <va-tabs v-model="currentTabKey">
           <template #tabs>
             <va-tab v-for="{ name } in sshKeys" :key="name" :name="name">
-              {{ name }}
+              {{ name.toUpperCase() }}
             </va-tab>
           </template>
           <div style="position: relative;">
@@ -80,12 +82,12 @@
           </div>
         </va-tabs>
         <div class="d-flex">
-          <va-button flat @click="showConnectModal = !showConnectModal">
+          <va-button flat @click="showConnectModal = false">
             Cancel
           </va-button>
           <va-spacer class="spacer" />
           <va-button @click="$refs.form.validate()">
-            Validate
+            Done
           </va-button>
         </div>
       </va-form>
@@ -184,7 +186,7 @@ export default defineComponent({
           .then(response => {
             this.$store.dispatch("requestHost", { token: this.$keycloak.token })
             this.$vaToast.init(({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' }))
-            this.showConnectModal = !this.showConnectModal
+            this.showConnectModal = false
           })
           .catch(function (error) {
             if (error.response) {
