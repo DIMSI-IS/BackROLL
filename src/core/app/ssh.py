@@ -45,8 +45,9 @@ def list_public_keys() -> list[SshPublicKey]:
         lambda path: SshPublicKey(
             Path(path).stem.removeprefix("id_"),
             # Removing simple quotes to prevent exiting from the sed script.
-            shell.os_popen(f"cat {path}").strip().replace("'", "")
-        ),
+            # Pipes are the chosen delimiters for the sed address thus they are removed.
+            shell.os_popen(f"cat {path}").strip()
+                .replace("'", "").replace("|", "")),
         shell.os_popen('find /root/.ssh/*.pub').splitlines()))
 
 
@@ -90,7 +91,8 @@ def remove_key(ip_address, username):
             username=username,
         )
         for public_key in list_public_keys():
-            # The sed script is with simple quotes to prevent shell parameter expension.
+            # The sed script is delimited with simple quotes to prevent shell parameter expansion.
+            # Slashes are used to encode the key in base64 so the sed address is delimeted with pipes.
             _, _, stderr = client.exec_command(
                 f"sed -i '\\|{public_key.full_line}|d' ~/.ssh/authorized_keys")
             error = stderr.read().decode()
