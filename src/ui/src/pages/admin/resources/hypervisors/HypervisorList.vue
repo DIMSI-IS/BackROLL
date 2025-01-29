@@ -195,11 +195,7 @@ export default defineComponent({
             this.showConnectModal = false
           })
           .catch(function (error) {
-            if (error.response) {
-              // The request was made and the server responded with a status code
-              // that falls out of the range of 2xx
-              self.$vaToast.init(({ message: error.response.data.detail, title: 'Error', color: 'danger' }))
-            }
+            self.$vaToast.init(({ message: error?.response?.data?.detail ?? error, title: 'Error', color: 'danger' }))
           })
       }
     },
