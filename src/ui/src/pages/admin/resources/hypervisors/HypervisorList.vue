@@ -77,7 +77,7 @@
             <va-input label="BackROLL SSH key"
               messages="Copy-paste one of the keys into the ~/.ssh/authorized_keys file on the server."
               v-model="currentSshKey" type="textarea" :autosize="true" :min-rows="2" readonly class="mb-4" />
-            <va-icon name="content_copy" @click="copyToClipboard(currentSshKey)"
+            <va-icon name="content_copy" :size="20" @click="copyToClipboard(currentSshKey)"
               style="position: absolute; top: 0; right: 0; margin-top: 4px; margin-right: 4px;" />
           </div>
         </va-tabs>
