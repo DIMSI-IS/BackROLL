@@ -184,7 +184,6 @@ export default defineComponent({
         return null
       }
     },
-    // TODO Error message if connection fails.
     connectHost() {
       if (this.validation) {
         const self = this
