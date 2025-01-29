@@ -78,7 +78,7 @@
               messages="Copy-paste one of the keys into the ~/.ssh/authorized_keys file on the server."
               v-model="currentSshKey" type="textarea" :autosize="true" :min-rows="2" readonly class="mb-4" />
             <va-icon name="content_copy" :size="20" @click="copyToClipboard(currentSshKey)"
-              style="position: absolute; top: 0; right: 0; margin-top: 4px; margin-right: 4px;" />
+              style="position: absolute; top: 0; right: 0; margin-top: 6px; margin-right: 4px;" />
           </div>
         </va-tabs>
         <div class="d-flex">
