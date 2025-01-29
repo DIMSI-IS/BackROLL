@@ -56,24 +56,15 @@
         </div>
       </va-card-content>
     </va-card>
-    <va-modal style="width: 1920px;" v-model="showConnectModal" size="large" hide-default-actions>
+    <va-modal v-model="showConnectModal" size="large" hide-default-actions>
       <va-form ref="form" @validation="validation = $event, connectHost()">
-        <template #header>
-          <h2>
-            <va-icon name="link" />
-            Connecting hypervisor {{ selectedHost.hostname }}
-          </h2>
-        </template>
-        <hr>
-        <div style="width: 100%;">
-          Copy the key below into the authorized_keys file of your server
-        </div>
-        <va-alert color="secondary" class="mb-4">
-          ie. /{local_user}/.ssh/authorized_keys
-        </va-alert>
-        <va-alert icon="info" color="danger" border="top" border-color="warning" class="mb-4">
-          The local user must have access rights to KVM
-        </va-alert>
+        <h2>
+          <va-icon name="link" />
+          Connecting to the hypervisor at {{ selectedHost.hostname }}
+        </h2>
+        <hr class="mb-4">
+        <va-input label="Specify the user on the server" messages="The user must have the access rights to KVM."
+          v-model="user" type="text" :rules="[value => value?.length > 0 || 'Field is required']" class="mb-3" />
         <va-tabs v-model="currentTabKey">
           <template #tabs>
             <va-tab v-for="{ name } in sshKeys" :key="name" :name="name">
@@ -81,14 +72,13 @@
             </va-tab>
           </template>
           <div style="position: relative;">
-            <va-input class="mb-4" style="max-width:720px;" v-model="currentSshKey" type="textarea"
-              label="BackROLL SSH key" :autosize="true" :min-rows="2" readonly />
+            <va-input label="BackROLL SSH key"
+              messages="Copy-paste one of the keys into the ~/.ssh/authorized_keys file on the server."
+              v-model="currentSshKey" type="textarea" :autosize="true" :min-rows="2" readonly class="mb-4" />
             <va-icon name="content_copy" @click="copyToClipboard(currentSshKey)"
               style="position: absolute; top: 0; right: 0; margin-top: 4px; margin-right: 4px;" />
           </div>
         </va-tabs>
-        <va-input class="mb-4" style="max-width:720px;" label="Specify the user on the server" v-model="user"
-          type="text" :rules="[value => (value && value.length > 0) || 'Field is required']" />
         <div class="d-flex">
           <va-button flat @click="showConnectModal = !showConnectModal">
             Cancel
@@ -186,6 +176,7 @@ export default defineComponent({
         return null
       }
     },
+    // TODO Error message if connection fails.
     connectHost() {
       if (this.validation) {
         const self = this
