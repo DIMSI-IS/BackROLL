@@ -13,34 +13,19 @@
         containers.<br />
         To do this, update the following portion in the docker-compose:
         <code class="consoleStyle">
-          volumes:<br />
-          - /mnt:/mnt
-        </code>
+  volumes:<br />
+  - /mnt:/mnt
+</code>
         This example gives access to the /mnt directory where NFS shares
         dedicated to backup storage can be mounted.
       </va-alert>
-      <va-form
-        tag="form"
-        @submit.prevent="storageId ? updateStorage() : addStorage()"
-      >
-        <va-input
-          label="Name"
-          v-model="formStorage.name"
-          :rules="storageNameRules"
-        />
+      <va-form tag="form" @submit.prevent="storageId ? updateStorage() : addStorage()">
+        <va-input label="Name" v-model="formStorage.name" :rules="storageNameRules" />
         <br />
-        <va-input
-          label="Path"
-          placeholder="eg. /mnt/myNFSbackend"
-          v-model="formStorage.path"
-          :rules="storagePathRules"
-        />
+        <va-input label="Path" placeholder="eg. /mnt/myNFSbackend" v-model="formStorage.path"
+          :rules="storagePathRules" />
         <br />
-        <va-button
-          class="mb-3"
-          type="submit"
-          :disabled="!isNameValid || !isPathValid"
-        >
+        <va-button class="mb-3" type="submit" :disabled="!isNameValid || !isPathValid">
           {{ storageId ? "Update" : "Validate" }}
         </va-button>
       </va-form>
@@ -163,16 +148,11 @@ export default {
           });
         })
         .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            // TODO error.message ?
-            self.$vaToast.init({
-              title: "Unable to add storage",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+          self.$vaToast.init({
+            title: "Unable to add storage",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
   },

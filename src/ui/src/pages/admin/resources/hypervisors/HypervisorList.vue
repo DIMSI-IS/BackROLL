@@ -178,11 +178,11 @@ export default defineComponent({
             this.showConnectModal = !this.showConnectModal
           })
           .catch(function (error) {
-            if (error.response) {
-              // The request was made and the server responded with a status code
-              // that falls out of the range of 2xx
-              self.$vaToast.init(({ message: error.response.data.detail, title: 'Error', color: 'danger' }))
-            }
+            self.$vaToast.init({
+              title: 'Error',
+              message: error?.response?.data?.detail ?? error,
+              color: 'danger'
+            })
           })
       }
     },
@@ -193,11 +193,11 @@ export default defineComponent({
           this.sshKey = response.data.info.public_key
         })
         .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init(({ title: 'Unable to retrieve BackROLL SSH key', message: error.response.data.detail, color: 'danger' }))
-          }
+          self.$vaToast.init({
+            title: 'Unable to retrieve BackROLL SSH key',
+            message: error?.response?.data?.detail ?? error,
+            color: 'danger'
+          })
         })
     },
     deleteHost() {
@@ -208,11 +208,11 @@ export default defineComponent({
           this.$vaToast.init(({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' }))
         })
         .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init(({ title: 'Unable to delete Hypervisor', message: error.response.data.detail, color: 'danger' }))
-          }
+          self.$vaToast.init({
+            title: 'Unable to delete Hypervisor',
+            message: error?.response?.data?.detail ?? error,
+            color: 'danger'
+          })
         })
     }
   }

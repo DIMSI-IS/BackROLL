@@ -1,16 +1,8 @@
 <template>
-  <va-select
-    label="Backup"
-    v-model="backupSelection"
-    :options="selectDataVirtualMachine"
-    :loading="this.loadingBackups"
-  >
+  <va-select label="Backup" v-model="backupSelection" :options="selectDataVirtualMachine"
+    :loading="this.loadingBackups">
     <template #prependInner>
-      <va-icon
-        name="today"
-        size="small"
-        color="primary"
-      />
+      <va-icon name="today" size="small" color="primary" />
     </template>
   </va-select>
 </template>
@@ -20,12 +12,12 @@ import axios from 'axios'
 
 export default defineComponent({
   name: 'BackupList',
-  props: ['virtualMachine','job'],
-  data () {
+  props: ['virtualMachine', 'job'],
+  data() {
     return {
       loadingBackups: false,
       selectedBackup: null,
-      backupInfo: {archives: []}
+      backupInfo: { archives: [] }
     }
   },
   watch: {
@@ -33,7 +25,7 @@ export default defineComponent({
       this.requestBackupList()
     }
   },
-  mounted () {
+  mounted() {
     this.requestBackupList()
   },
   computed: {
@@ -49,42 +41,47 @@ export default defineComponent({
     },
   },
   methods: {
-    getBackupList (location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: {'Authorization': `Bearer ${this.$keycloak.token}`}})
-      .then(response => {
-        if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
-          setTimeout(()=>{
-            this.getBackupList(location)
-          },2000)
-        } else if (response.data.state === 'SUCCESS') {
-          this.backupInfo = response.data.info
-          this.loadingBackups = false
-        } else if (response.data.state === 'FAILURE') {
-          this.loadingBackups = false
-          this.$vaToast.init(({ message: response.data.status, color: 'danger' }))
-        }
-      })
-      .catch(e => {
-        console.log(e)
-      })
+    getBackupList(location) {
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        .then(response => {
+          if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
+            setTimeout(() => {
+              this.getBackupList(location)
+            }, 2000)
+          } else if (response.data.state === 'SUCCESS') {
+            this.backupInfo = response.data.info
+            this.loadingBackups = false
+          } else if (response.data.state === 'FAILURE') {
+            this.loadingBackups = false
+            this.$vaToast.init({ message: response.data.status, color: 'danger' })
+          }
+        })
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
+        })
     },
     getVirtualMachineBackupsFromPath(archives) {
-      if(archives){
+      if (archives) {
         this.loadingBackups = false;
-        if(archives.length > 0) {
+        if (archives.length > 0) {
           this.backupInfo = archives;
         }
-      }      
+      }
     },
-    requestBackupList () {
-      if(this.job == "mounted") {
+    requestBackupList() {
+      if (this.job == "mounted") {
         const urlToCall = `${this.$store.state.endpoint.api}/api/v1/virtualmachinebackupsfrompath`;
 
         let virtualMachineBackupsRequest = {}
         virtualMachineBackupsRequest.virtualMachineName = this.virtualMachine.substring(this.virtualMachine.lastIndexOf('/'))
         virtualMachineBackupsRequest.storagePath = this.virtualMachine.substring(0, this.virtualMachine.lastIndexOf('/'));
 
-        axios.post(urlToCall, JSON.stringify(virtualMachineBackupsRequest), { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
+        axios.post(urlToCall, JSON.stringify(virtualMachineBackupsRequest), { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
           .then(response => {
             this.loadingBackups = true
             // this.getVirtualMachineBackupsFromPath(response.data.backups.archives)
@@ -96,14 +93,14 @@ export default defineComponent({
       }
       else {
         const urlToCall = `${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine}/backups`;
-        axios.get(urlToCall, { headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}`}})
-        .then(response => {
-          this.loadingBackups = true
-          this.getBackupList(response.data.Location)
-        })
-        .catch(e => {
-          console.log(e)
-        })
+        axios.get(urlToCall, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+          .then(response => {
+            this.loadingBackups = true
+            this.getBackupList(response.data.Location)
+          })
+          .catch(e => {
+            console.log(e)
+          })
       }
     },
   }

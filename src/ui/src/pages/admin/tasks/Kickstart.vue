@@ -246,14 +246,14 @@ export default {
           } else {
             this.$router.push('/admin/tasks/backup');
           }
-          this.$vaToast.init(({ title: response.data.state, message: `Task has been successfully triggered`, color: 'success' }))
+          this.$vaToast.init({ title: response.data.state, message: `Task has been successfully triggered`, color: 'success' })
         })
         .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            this.$vaToast.init({ message: 'Task triggering has failed', title: 'Error', color: 'danger' })
-          }
+          this.$vaToast.init({
+            title: 'Error',
+            message: 'Task triggering has failed',
+            color: 'danger'
+          })
         })
 
     }

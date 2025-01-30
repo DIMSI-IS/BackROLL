@@ -111,14 +111,12 @@ export default createStore({
           }
         })
         .catch(function (error) {
-          if (error.response) {
-            console.error(error.response.data.detail);
-            vm.$vaToast.init({
-              title: "Error !",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+          console.error(error);
+          vm.$vaToast.init({
+            title: "Error !",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
     updatePoolList(context, poolsList) {
@@ -189,14 +187,12 @@ export default createStore({
           }
         })
         .catch(function (error) {
-          if (error.response) {
-            console.error(error.response.data.detail);
-            vm.$vaToast.init({
-              title: "Error !",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+          console.error(error);
+          vm.$vaToast.init({
+            title: "Error !",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
     updatePolicyList(context, policiesList) {
@@ -256,14 +252,12 @@ export default createStore({
           }
         })
         .catch(function (error) {
-          if (error.response) {
-            console.error(error.response.data.detail);
-            vm.$vaToast.init({
-              title: "Error !",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+          console.error(error);
+          vm.$vaToast.init({
+            title: "Error !",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
     updateHostList(context, hostList) {
@@ -369,9 +363,12 @@ export default createStore({
           }
         })
         .catch(function (error) {
-          if (error.response) {
-            console.error(error.response.data.detail);
-          }
+          console.error(error);
+          vm.$vaToast.init({
+            title: "Error !",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
     updateStorageList(context, storageList) {
@@ -511,14 +508,12 @@ export default createStore({
           }
         })
         .catch(function (error) {
-          if (error.response) {
-            console.error(error.response.data.detail);
-            vm.$vaToast.init({
-              title: "Error !",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+          console.error(error);
+          vm.$vaToast.init({
+            title: "Error !",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
     updateExternalHooksList(context, externalHookList) {
@@ -590,14 +585,12 @@ export default createStore({
           }
         })
         .catch(function (error) {
-          if (error.response) {
-            console.error(error.response.data.detail);
-            vm.$vaToast.init({
-              title: "Error !",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+          console.error(error);
+          vm.$vaToast.init({
+            title: "Error !",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
     updateConnectorsList(context, connectorList) {

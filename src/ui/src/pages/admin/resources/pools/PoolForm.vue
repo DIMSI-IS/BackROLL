@@ -6,29 +6,17 @@
     </va-card-title>
     <va-card-content v-if="!poolId || statePool">
       <va-form ref="form" @validation="poolId ? updatePool() : addPool()">
-        <va-input
-          label="Name"
-          v-model="formPool.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+        <va-input label="Name" v-model="formPool.name" :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-select
-          label="Select policy"
-          v-model="selectedPolicy"
-          :options="policyOptions"
-          :rules="[(value) => value || 'Field is required']"
-        >
+        <va-select label="Select policy" v-model="selectedPolicy" :options="policyOptions"
+          :rules="[(value) => value || 'Field is required']">
           <template #prependInner>
             <va-icon name="storage" size="small" color="primary" />
           </template>
         </va-select>
       </va-form>
       <br />
-      <va-select
-        label="Select connector"
-        v-model="selectedConnector"
-        :options="connectorOptions"
-      />
+      <va-select label="Select connector" v-model="selectedConnector" :options="connectorOptions" />
       <br />
       <va-button class="mb-3" @click="$refs.form.validate()">
         {{ poolId ? "Update" : "Validate" }}
@@ -147,15 +135,11 @@ export default {
           });
         })
         .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init({
-              title: "Unable to add pool",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+          self.$vaToast.init({
+            title: "Unable to add pool",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
   },
