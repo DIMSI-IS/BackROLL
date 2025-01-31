@@ -14,6 +14,7 @@ def os_system(command, check=True):
 
 
 def os_popen(command):
+    # TODO Add check ?
     print(f"[os_popen] {command}")
     return os.popen(command).read()
 

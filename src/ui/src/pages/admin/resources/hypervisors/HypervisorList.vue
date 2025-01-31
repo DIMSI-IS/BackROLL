@@ -43,11 +43,11 @@
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
               <va-button v-if="!$store.state.resources.hostList[rowIndex].ssh" icon="link"
-                @click="selectedHost = $store.state.resources.hostList[rowIndex], showConnectModal = !showConnectModal" />
+                @click="selectedHost = $store.state.resources.hostList[rowIndex], showConnectModal = true" />
               <va-button icon="settings"
                 @click="this.$router.push(`/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`)" />
               <va-button icon="delete"
-                @click="selectedHost = $store.state.resources.hostList[rowIndex], showDeleteModal = !showDeleteModal" />
+                @click="selectedHost = $store.state.resources.hostList[rowIndex], showDeleteModal = true" />
             </va-button-group>
           </template>
         </va-data-table>
@@ -56,39 +56,38 @@
         </div>
       </va-card-content>
     </va-card>
-    <va-modal style="width: 1920px;" v-model="showConnectModal" size="large" hide-default-actions>
+    <va-modal v-model="showConnectModal" size="large" hide-default-actions>
+      <template #header>
+        <h2>
+          <va-icon name="link" />
+          Connecting to the hypervisor at {{ selectedHost.hostname }}
+        </h2>
+      </template>
+      <hr class="mb-4">
       <va-form ref="form" @validation="validation = $event, connectHost()">
-        <template #header>
-          <h2>
-            <va-icon name="link" />
-            Connecting hypervisor {{ selectedHost.hostname }}
-          </h2>
-        </template>
-        <hr>
-        <div style="width: 100%;">
-          Copy the key below into the authorized_keys file of your server
-        </div>
-        <va-alert color="secondary" class="mb-4">
-          ie. /{local_user}/.ssh/authorized_keys
-        </va-alert>
-        <va-alert icon="info" color="danger" border="top" border-color="warning" class="mb-4">
-          The local user must have access rights to KVM
-        </va-alert>
-        <div style="position: relative;">
-          <va-input class="mb-4" style="max-width:720px;" v-model="sshKey" type="textarea" label="BackROLL SSH key"
-            :autosize="true" :min-rows="2" readonly />
-          <va-icon name="content_copy" @click="copyToClipboard(sshKey)"
-            style="position: absolute; top: 0; right: 0; margin-top: 4px; margin-right: 4px;" />
-        </div>
-        <va-input class="mb-4" style="max-width:720px;" label="Specify the user on the server" v-model="user"
-          type="text" :rules="[value => (value && value.length > 0) || 'Field is required']" />
+        <va-input label="Specify the user on the server" messages="The user must have the access rights to KVM."
+          v-model="user" type="text" :rules="[value => value?.trim().length > 0 || 'Field is required']" class="mb-3" />
+        <va-tabs v-model="currentTabKey">
+          <template #tabs>
+            <va-tab v-for="{ name } in sshKeys" :key="name" :name="name">
+              {{ name.toUpperCase() }}
+            </va-tab>
+          </template>
+          <div style="position: relative;">
+            <va-input label="BackROLL SSH key"
+              messages="Copy-paste one of the keys into the ~/.ssh/authorized_keys file on the server."
+              v-model="currentSshKey" type="textarea" :autosize="true" :min-rows="2" readonly class="mb-4" />
+            <va-icon :name="isKeyCopied ? 'check' : 'content_copy'" :size="20" @click="copyToClipboard(currentSshKey)"
+              style="position: absolute; top: 0; right: 0; margin-top: 6px; margin-right: 4px;" />
+          </div>
+        </va-tabs>
         <div class="d-flex">
-          <va-button flat @click="showConnectModal = !showConnectModal">
+          <va-button flat @click="showConnectModal = false">
             Cancel
           </va-button>
           <va-spacer class="spacer" />
           <va-button @click="$refs.form.validate()">
-            Validate
+            Done
           </va-button>
         </div>
       </va-form>
@@ -130,7 +129,9 @@ export default defineComponent({
       ],
       validation: false,
       user: null,
-      sshKey: null,
+      sshKeys: [],
+      currentTabKey: null,
+      isKeyCopied: false,
       showConnectModal: false,
       showDeleteModal: false,
       selectedHost: null
@@ -138,6 +139,19 @@ export default defineComponent({
   },
   mounted() {
     this.requestKey()
+  },
+  computed: {
+    currentSshKey() {
+      return this.sshKeys.find(({ name }) => name == this.currentTabKey)?.fullLine;
+    },
+  },
+  watch: {
+    sshKeys(newValue) {
+      this.currentTabKey = newValue[0]?.name
+    },
+    currentTabKey() {
+      this.isKeyCopied = false
+    }
   },
   methods: {
     copyToClipboard(text) {
@@ -159,6 +173,8 @@ export default defineComponent({
 
       // Supprime le textarea du document
       document.body.removeChild(textarea);
+
+      this.isKeyCopied = true;
     },
     getPool(id) {
       const result = this.$store.state.resources.poolList.find(item => item.id === id)
@@ -175,14 +191,10 @@ export default defineComponent({
           .then(response => {
             this.$store.dispatch("requestHost", { token: this.$keycloak.token })
             this.$vaToast.init(({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' }))
-            this.showConnectModal = !this.showConnectModal
+            this.showConnectModal = false
           })
           .catch(function (error) {
-            if (error.response) {
-              // The request was made and the server responded with a status code
-              // that falls out of the range of 2xx
-              self.$vaToast.init(({ message: error.response.data.detail, title: 'Error', color: 'danger' }))
-            }
+            self.$vaToast.init(({ message: error?.response?.data?.detail ?? error, title: 'Error', color: 'danger' }))
           })
       }
     },
@@ -190,7 +202,7 @@ export default defineComponent({
       const self = this
       axios.get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
-          this.sshKey = response.data.info.public_key
+          self.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
         })
         .catch(function (error) {
           if (error.response) {
