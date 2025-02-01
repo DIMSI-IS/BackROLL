@@ -14,9 +14,16 @@ def os_system(command, check=True):
 
 
 def os_popen(command):
-    # TODO Add check ?
     print(f"[os_popen] {command}")
-    return os.popen(command).read()
+    file = os.popen(command)
+    result = file.read()
+
+    exit_status = file.close()
+    if exit_status is not None:
+        exit_code = os.waitstatus_to_exitcode(exit_status)
+        raise RuntimeError(f"[os_popen] {exit_code=}")
+
+    return result
 
 
 def subprocess_run(command, check=True):

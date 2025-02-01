@@ -43,6 +43,7 @@
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
               <va-button v-if="!$store.state.resources.hostList[rowIndex].ssh" icon="link"
+                :disabled="sshKeys.length == 0"
                 @click="selectedHost = $store.state.resources.hostList[rowIndex], showConnectModal = true" />
               <va-button icon="settings"
                 @click="this.$router.push(`/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`)" />
@@ -138,7 +139,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.requestKey()
+    this.requestKeys()
   },
   computed: {
     currentSshKey() {
@@ -198,18 +199,18 @@ export default defineComponent({
           })
       }
     },
-    requestKey() {
+    requestKeys() {
       const self = this
       axios.get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           self.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
         })
         .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init(({ title: 'Unable to retrieve BackROLL SSH key', message: error.response.data.detail, color: 'danger' }))
-          }
+          self.$vaToast.init({
+            title: 'Unable to retrieve BackROLL SSH keys',
+            message: error?.response?.data?.detail ?? error,
+            color: 'danger'
+          })
         })
     },
     deleteHost() {
