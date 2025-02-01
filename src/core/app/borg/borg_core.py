@@ -89,13 +89,6 @@ class borg_backup:
         except:
             pass
 
-    def process_rc(self, request):
-        """ Processing return code of specified command """
-        # Locally runned command
-        if request.returncode == 2:
-            print(request.stderr.decode("utf-8"))
-            raise ValueError(request.stderr.decode("utf-8"))
-
     def init(self, virtual_machine, storage):
         self.vm_name = self.info['name']
         print(f'[{self.vm_name}] Gathering data...')
@@ -166,9 +159,9 @@ class borg_backup:
         repository = self.info['borg_repository']
         vm_name = self.virtual_machine['name']
         print(f"[{vm_name}] Getting information about disk at {disk['source']}")
-        request = shell.subprocess_run(
+        json_output = shell.subprocess_run(
             f"qemu-img info --output=json {disk['source']}")
-        qemu_img_info = json.loads(request.stdout)
+        qemu_img_info = json.loads(json_output)
         if qemu_img_info.get('full-backing-filename'):
             print(
                 f'[{vm_name}] Checking that {vm_name}\'s backing file has already been backed up')
@@ -273,22 +266,25 @@ class borg_backup:
         command = f'borg delete {make_path(repository, payload["target"]["name"])}::{
             payload["selected_backup"]["name"]}'
         request = self.remote_request(command)
-        self.process_rc(request)
+        if request.returncode == 2:
+            print(request.stderr.decode("utf-8"))
+            raise ValueError(request.stderr.decode("utf-8"))
 
 
 def borg_list_backup(virtual_machine, repository):
     try:
         # Starting ssh access
-        request = shell.subprocess_run(
-            f"borg list --json {make_path(repository, virtual_machine)}", check=False)
-        result = ""
-        if request.returncode == 2:
-            if 'lock' in request.stderr:
-                result = '{"archives": [], "state": "locked"}'
+        try:
+            result = shell.subprocess_run(
+                f"borg list --json {make_path(repository, virtual_machine)}")
+        except shell.ShellException as exception:
+            if exception.exit_code == 2:
+                if 'lock' in exception.stderr:
+                    result = '{"archives": [], "state": "locked"}'
+                else:
+                    result = '{"archives": [], "state": "unlocked"}'
             else:
-                result = '{"archives": [], "state": "unlocked"}'
-        else:
-            result = request.stdout
+                raise
         return result
     except ValueError as err:
         print(err.args[0])
@@ -298,18 +294,20 @@ def borg_list_backup(virtual_machine, repository):
 def borg_backup_info(virtual_machine, repository, backup_name):
     try:
         # Starting ssh access
-        request = shell.subprocess_run(
-            f"borg info --json {make_path(repository, virtual_machine)}::{backup_name}", check=False)
-        result = ""
-        if request.returncode == 2:
-            if 'lock' in request.stderr:
-                result = '{"archive": [], "state": "locked"}'
+        try:
+            result = shell.subprocess_run(
+                f"borg info --json {make_path(repository, virtual_machine)}::{backup_name}")
+        except shell.ShellException as exception:
+            if exception.exit_code == 2:
+                if 'lock' in exception.stderr:
+                    result = '{"archive": [], "state": "locked"}'
+                else:
+                    # TODO Not consistent with borg info duplicated code.
+                    result = f'{"archive": [], "error": "{exception.stderr}"}'
             else:
-                result = f'{"archive": [], "error": "{request.stdout}"}'
-        else:
-            result = json.loads(request.stdout)
-            result = result['archives'][0]['stats']
-        return result
+                raise
+        result = json.loads(result)
+        return result['archives'][0]['stats']
     except ValueError as err:
         print(err.args[0])
         raise
@@ -318,16 +316,18 @@ def borg_backup_info(virtual_machine, repository, backup_name):
 def borg_list_repository(virtual_machine, repository):
     try:
         # Starting ssh access
-        request = shell.subprocess_run(
-            f"borg info --json {make_path(repository, virtual_machine)}", check=False)
-        result = ""
-        if request.returncode == 2:
-            if 'lock' in request.stderr:
-                result = '{"archives": [], "state": "locked"}'
+        try:
+            result = shell.subprocess_run(
+                f"borg info --json {make_path(repository, virtual_machine)}")
+        except shell.ShellException as exception:
+            if exception.exit_code == 2:
+                if 'lock' in exception.stderr:
+                    result = '{"archives": [], "state": "locked"}'
+                else:
+                    result = '{"archives": [], "state": "unlocked"}'
             else:
-                result = '{"archives": [], "state": "unlocked"}'
-        else:
-            result = request.stdout
+                # TODO everywhere raise or raise exception ?
+                raise
         return result
     except ValueError as err:
         print(err.args[0])

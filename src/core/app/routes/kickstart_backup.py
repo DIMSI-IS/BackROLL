@@ -64,7 +64,7 @@ def getVMtobackup(pool_id):
                     shell.os_system(
                         f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
                     is_host_up = True
-                except shell.OsShellException:
+                except shell.ShellException:
                     # TODO Be more precise than before and check the exit code ?
                     pass
 

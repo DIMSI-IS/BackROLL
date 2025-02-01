@@ -186,7 +186,7 @@ def retrieve_host():
             try:
                 shell.os_system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
                 host.state = 'Reachable'
-            except shell.OsShellException:
+            except shell.ShellException:
                 # TODO Be more precise than before and check the exit code ?
                 host.state = 'Unreachable'
         return jsonable_encoder(records)
@@ -211,7 +211,7 @@ def api_delete_host(host_id):
             shell.os_system(
                 f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
             is_host_up = True
-        except shell.OsShellException:
+        except shell.ShellException:
             # TODO Be more precise than before and check the exit code ?
             pass
 
