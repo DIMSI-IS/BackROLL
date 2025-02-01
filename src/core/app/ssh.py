@@ -15,6 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from dataclasses import dataclass
+from pathlib import Path
 # SSH Module Imports
 import paramiko
 import select
@@ -22,6 +24,7 @@ import select
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
 from app.patch import ensure_uuid
+from app import shell
 # Misc
 import os
 from re import search
@@ -31,17 +34,31 @@ from app.database import Hosts
 from app.routes import host
 
 
+@dataclass
+class SshPublicKey:
+    name: str
+    full_line: str
+
+
+def list_public_keys() -> list[SshPublicKey]:
+    return list(map(
+        lambda path: SshPublicKey(
+            Path(path).stem.removeprefix("id_"),
+            # Removing simple quotes to prevent exiting from the sed script.
+            # Pipes are the chosen delimiters for the sed address thus they are removed.
+            shell.os_popen(f"cat {path}").strip()
+                .replace("'", "").replace("|", "")),
+        shell.os_popen('find /root/.ssh/*.pub').splitlines()))
+
+
 def init_ssh_connection(host_id, ip_address, username):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    keyfile = os.path.expanduser('~/.ssh/id_rsa.pub')
 
     try:
         client.connect(
             hostname=ip_address,
             username=username,
-            key_filename=keyfile,
         )
         client.close()
     except Exception as e:
@@ -67,17 +84,21 @@ def init_ssh_connection(host_id, ip_address, username):
 
 def remove_key(ip_address, username):
     try:
-        hostname = "backroll-appliance"
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(
             hostname=ip_address,
             username=username,
         )
-        # TODO fix me : only target “backroll”.
-        cmd = f'sed -i "/{hostname}/d" ~/.ssh/authorized_keys'
-        client.exec_command(cmd)
+        for public_key in list_public_keys():
+            # The sed script is delimited with simple quotes to prevent shell parameter expansion.
+            # Slashes are used to encode the key in base64 so the sed address is delimeted with pipes.
+            _, _, stderr = client.exec_command(
+                f"sed -i '\\|{public_key.full_line}|d' ~/.ssh/authorized_keys")
+            error = stderr.read().decode()
+            if error:
+                print(
+                    f"[Warning] Removing {public_key.name} SSH public key from {ip_address} failed: {error}")
         client.close()
-        return
     except Exception as e:
         raise ValueError(e)
