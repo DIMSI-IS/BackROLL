@@ -2,15 +2,16 @@ import os
 import subprocess
 
 
-def os_system(command, check=True):
+class OsShellException(Exception):
+    pass
+
+
+def os_system(command):
     print(f"[os_system] {command}")
-    return_code = os.system(command)
-
-    if not check:
-        return return_code
-
-    if return_code != 0:
-        raise RuntimeError(f"[os_system] {return_code=}")
+    exit_status = os.system(command)
+    exit_code = os.waitstatus_to_exitcode(exit_status)
+    if exit_code != 0:
+        raise OsShellException(f"[os_system] {exit_code=}")
 
 
 def os_popen(command):
@@ -21,7 +22,7 @@ def os_popen(command):
     exit_status = file.close()
     if exit_status is not None:
         exit_code = os.waitstatus_to_exitcode(exit_status)
-        raise RuntimeError(f"[os_popen] {exit_code=}")
+        raise OsShellException(f"[os_popen] {exit_code=}")
 
     return result
 

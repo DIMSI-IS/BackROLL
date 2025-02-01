@@ -186,7 +186,8 @@ def retrieve_host():
             try:
                 shell.os_system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
                 host.state = 'Reachable'
-            except:
+            except shell.OsShellException:
+                # TODO Be more precise than before and check the exit code ?
                 host.state = 'Unreachable'
         return jsonable_encoder(records)
     except Exception as e:
@@ -194,7 +195,6 @@ def retrieve_host():
 
 
 def api_delete_host(host_id):
-    ssh_status = 0
     try:
         engine = database.init_db_connection()
     except Exception as e:
@@ -205,8 +205,16 @@ def api_delete_host(host_id):
         host = results.first()
         if not host:
             raise ValueError(f'Host with id {host_id} not found')
-        is_host_up = True if shell.os_system(
-            f"nc -z -w 1 {host.ipaddress} 22 > /dev/null", check=False) == 0 else False
+
+        is_host_up = False
+        try:
+            shell.os_system(
+                f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
+            is_host_up = True
+        except shell.OsShellException:
+            # TODO Be more precise than before and check the exit code ?
+            pass
+
         if (host.ssh == 1) and is_host_up:
             ssh.remove_key(host.ipaddress, host.username)
         session.delete(host)
@@ -251,7 +259,6 @@ def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
 
 @app.post('/api/v1/connect/{host_id}', status_code=200)
 def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.valid_token)):
-    print("init ssh  " + shell.os_popen("cat /etc/hostname"))
     ip_address = item.ip_address
     username = item.username
     return ssh.init_ssh_connection(host_id, ip_address, username)

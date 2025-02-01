@@ -59,8 +59,15 @@ def getVMtobackup(pool_id):
                 Hosts.pool_id == ensure_uuid(pool_id))
             results = session.exec(statement)
             for host in results:
-                is_host_up = True if shell.os_system(
-                    f"nc -z -w 1 {host.ipaddress} 22 > /dev/null", check=False) == 0 else False
+                is_host_up = False
+                try:
+                    shell.os_system(
+                        f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
+                    is_host_up = True
+                except shell.OsShellException:
+                    # TODO Be more precise than before and check the exit code ?
+                    pass
+
                 if is_host_up and host.ssh == 1:
                     try:
                         item_host = host.to_json()
