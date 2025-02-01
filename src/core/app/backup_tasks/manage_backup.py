@@ -42,12 +42,12 @@ def vm_info(virtual_machine_list, virtual_machine_id):
 
 def borg_rc(command):
     try:
-        request = shell.subprocess_run(command)
-        if request.stdout is None or len(request.stdout) == 0:
+        result = shell.subprocess_run(command)
+        if result is None or len(result) == 0:
             return None
-        return json.loads(request.stdout.strip("\n"))
-    except:
-        error_msg = command.stderr \
+        return json.loads(result.strip("\n"))
+    except shell.ShellException as exception:
+        error_msg = exception.stderr \
             .replace(
                 "Warning: Attempting to access a previously unknown unencrypted repository!\nDo you want to continue? [yN] yes (from BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK)", "") \
             .strip("\n")
@@ -59,6 +59,7 @@ def get_backup(virtual_machine, backup_name):
         virtual_machine)
     borg_repository = make_path(
         storage_repository['path'], virtual_machine['name'])
+    # TODO Test error ?
     return borg_rc(f"borg info --json {borg_repository}::{backup_name}")
 
 
