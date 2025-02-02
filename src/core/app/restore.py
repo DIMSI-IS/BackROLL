@@ -143,8 +143,8 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         try:
             # Extract selected borg archive
-            shell.subprocess_popen(f"""borg extract --sparse {make_path(
-                borg_repository, virtual_machine_info['name'])}::{backup_name}""")
+            shell.subprocess_popen(
+                f"""borg extract --sparse {make_path(borg_repository, virtual_machine_info['name'])}::{backup_name}""")
 
             # Skip directories
             shell.os_system('mv $(find -type f) ./')
