@@ -28,6 +28,7 @@ from app.kvm import kvm_list_disk
 
 from app.routes import connectors
 from app.routes import pool
+from app.routes import backup_policy
 
 from app.cloudstack import virtual_machine as cs_manage_vm
 
@@ -119,7 +120,9 @@ def backup_subtask(info):
           # Remove snapshot's remaining associated file
           backup_job.remove_snapshot_file(disk)
           # Borg Prune
-          backup_job.borg_prune(disk)
+        host_obj = host.filter_host_by_id(virtual_machine['host'])
+        pool_obj = pool.filter_pool_by_id(host_obj.pool_id)
+        backup_job.borg_prune(disk, backup_policy.filter_policy_by_id(pool_obj.policy_id))
         # Remove VM snapshot
         backup_job.delete_snapshot()
         # Return backup name

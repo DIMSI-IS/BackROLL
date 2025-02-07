@@ -28,6 +28,7 @@ import shutil
 
 from app.routes import pool
 from app.routes import connectors
+from app.routes import backup_policy
 
 # KVM custom module import
 from app.kvm import kvm_manage_snapshot
@@ -246,12 +247,22 @@ class borg_backup:
             print(
                 f"[{vm_name}] Successfully removed snapshot file '{disk_source}' for disk {disk_name}")
 
-    def borg_prune(self, disk):
+    def borg_prune(self, disk, backup_policy):
         disk_name = disk['device']
         vm_repository_path = make_path(
             self.info['borg_repository'], self.vm_name)
-        command = f'borg prune --keep-daily 30 --prefix "{disk_name}" {vm_repository_path}'
-        subprocess.run(command.split(), check=True)
+        command = f'borg prune --keep-daily {1 if backup_policy.retention_day == 0 else backup_policy.retention_day}' \
+          f'{f" --keep-weekly {backup_policy.retention_week}" if backup_policy.retention_week > 0 else ""}' \
+          f'{f" --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
+          f'{f" --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
+          f' --glob-archives {disk_name}* {vm_repository_path}'
+
+        print(command.split())  # Ceci vous montrera le contenu de la commande
+        request = subprocess.run(command.split(), check=True, capture_output=True)
+
+        print(request)  # Cela montre le résultats de l'exécution
+        print(request.stdout.decode())  # Pour afficher le stdout
+        print(request.stderr.decode())
 
         for disk in self.virtual_machine['storage']:
             if ".snap" in disk['source']:
