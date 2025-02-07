@@ -34,6 +34,7 @@ from app.routes import pool
 from app.routes import connectors
 
 from app.patch import make_path
+from app import shell
 
 # KVM custom module import
 from app.kvm import kvm_manage_vm
@@ -118,12 +119,10 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
         disk_device = backup_name.split('_')[0]
 
         # Remove existing files inside restore folder
-        command = f"rm -rf {restore_path}"
-        subprocess.run(command.split())
+        shell.subprocess_run(f"rm -rf {restore_path}")
 
         # Create temporary folder to extract borg archive
-        command = f"mkdir -p {restore_path}"
-        subprocess.run(command.split())
+        shell.subprocess_run(f"mkdir -p {restore_path}")
 
         # Go into directory
         os.chdir(restore_path)
@@ -144,20 +143,11 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         try:
             # Extract selected borg archive
-            cmd = f"""borg extract --sparse {make_path(borg_repository, virtual_machine_info['name'])}::{backup_name}"""
-            process = subprocess.Popen(
-                cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            while True:
-                process.stdout.flush()
-                output = process.stdout.readline()
-                if output == '' and process.poll() is not None:
-                    break
-                elif not output and process.poll() is not None:
-                    break
+            shell.subprocess_popen(
+                f"""borg extract --sparse {make_path(borg_repository, virtual_machine_info['name'])}::{backup_name}""")
 
             # Skip directories
-            # TODO May fail silently with os.system(…).
-            os.system('mv $(find -type f) ./')
+            shell.os_system('mv $(find -type f) ./')
 
             # Loop through VM's disks to find filedisk
             for disk in vm_storage_info:
@@ -193,30 +183,27 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
                     kvm_manage_vm.stop_vm(virtual_machine_info, hypervisor)
 
             try:
-                # TODO May fail silently with os.system(…).
 
                 kvm_storage_disk_path = make_path(
                     kvm_storagepath, virtual_machine_diskName)
                 kvm_storage_disk_path_tmp = f"{kvm_storage_disk_path}.tmp"
 
                 # subprocess.run(['cp', virtual_machine_diskName, kvm_storage_disk_path_tmp], check = True)
-                os.system(
+                shell.os_system(
                     f"cp {virtual_machine_diskName} {kvm_storage_disk_path_tmp}")
 
                 # Fix chmod ownership of new qcow2 filedisk
                 # subprocess.run(['chmod', '644', kvm_storage_disk_path_tmp], check = True)
-                os.system(
-                    f"chmod 644 {kvm_storage_disk_path_tmp}")
+                shell.os_system(f"chmod 644 {kvm_storage_disk_path_tmp}")
 
                 # Replace disk by extracted backup
                 # subprocess.run(['mv', kvm_storage_disk_path_tmp, kvm_storage_disk_path], check = True)
-                os.system(
+                shell.os_system(
                     f"mv {kvm_storage_disk_path_tmp} {kvm_storage_disk_path}")
 
                 # Remove temporary folder used to extract borg archive
                 # subprocess.run(['rm', "-rf", restore_path])
-                os.system(
-                    f"rm -rf {restore_path}")
+                shell.os_system(f"rm -rf {restore_path}")
             except Exception as e:
                 raise e
 
@@ -230,16 +217,14 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         except Exception as e:
             # Remove restore artifacts
-            command = f"rm -rf {restore_path}"
-            request = subprocess.run(command.split())
+            shell.subprocess_run(f"rm -rf {restore_path}")
             raise e
         print("Debug - restore_task - end")
     except Exception as e:
 
         # Remove restore artifacts
         try:
-            command = f"rm -rf {restore_path}"
-            request = subprocess.run(command.split())
+            shell.subprocess_run(f"rm -rf {restore_path}")
         except Exception as err:
             print(err)
 
@@ -264,38 +249,28 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
 
     try:
         # Remove existing files inside restore folder
-        command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
-        subprocess.run(command.split())
+        shell.subprocess_run(
+            f"rm -rf {storage_path}/restore/{virtual_machine_name}")
 
         # Create temporary folder to extract borg archive
-        command = f"mkdir -p {storage_path}/restore/{virtual_machine_name}"
-        subprocess.run(command.split())
+        shell.subprocess_run(
+            f"mkdir -p {storage_path}/restore/{virtual_machine_name}")
 
         # Go into directory
         os.chdir(f"{storage_path}/restore/{virtual_machine_name}")
 
         # TODO Group common code and mind depth independent restore.
-        cmd = f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}"""
-        process = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        while True:
-            process.stdout.flush()
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            elif not output and process.poll() is not None:
-                break
+        shell.subprocess_popen(
+            f"""borg extract --sparse --strip-components=2 {virtual_machine_path}::{backup_name}""")
 
-        diskList = os.popen("ls").read().split('\n')
+        diskList = shell.os_popen("ls").split('\n')
         disk = diskList[0]
         print("Disk: " + disk)
         storageList = storage.retrieve_storage()
         repository = storageList[1]["path"]
         print("repo : " + repository)
-        request = subprocess.run(
-            ["qemu-img", "info", "--output=json", disk], capture_output=True)
-        qemu_img_info = request.stdout.decode("utf-8")
-        qemu_img_info = json.loads(qemu_img_info)
+        request = shell.subprocess_run(f"qemu-img info --output=json {disk}")
+        qemu_img_info = json.loads(request.stdout)
         if qemu_img_info.get('full-backing-filename'):
             print(
                 f'[{virtual_machine_name}] Checking that {virtual_machine_name}\'s backing file has already been backed up')
@@ -319,14 +294,13 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
             # rebaseRequest = subprocess.run([cmd], capture_output=True)
             # qemu_img_rebase = rebaseRequest.stdout.decode("utf-8")
             # qemu_img_rebase = json.loads(qemu_img_rebase)
-            rebaseResponse = os.popen(cmd).read().split('\n')
+            shell.os_popen(cmd).split('\n')
             print("end rebase")
 
             # qemu info to check the rebase
-            request = subprocess.run(
-                ["qemu-img", "info", "--output=json", disk], capture_output=True)
-            qemu_img_info = request.stdout.decode("utf-8")
-            qemu_img_info = json.loads(qemu_img_info)
+            request = shell.subprocess_run(
+                f"qemu-img info --output=json {disk}")
+            qemu_img_info = json.loads(request.stdout)
             # check if ok
             print("end info")
 
@@ -335,7 +309,7 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
             # commitRequest = subprocess.run(["qemu-img ", "commit", "-f qcow2", "--output=json", disk], capture_output=True)
             # qemu_img_commit = commitRequest.stdout.decode("utf-8")
             # qemu_img_commit = json.loads(qemu_img_commit)
-            commitResponse = os.popen(cmd).read().split('\n')
+            shell.os_popen(cmd).split('\n')
             print("end commit")
 
             # rename backring file
@@ -344,13 +318,10 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
 
             # Remove restore artifacts
             try:
-                command = f"rm -rf {storage_path}/restore/{virtual_machine_name}"
-                print("command: " + command)
-                request = subprocess.run(command.split())
+                shell.subprocess_run(
+                    f"rm -rf {storage_path}/restore/{virtual_machine_name}")
             except Exception as err:
                 print(err)
                 raise err
-        print("ok")
-        test = "test"
     except Exception as e:
         raise e

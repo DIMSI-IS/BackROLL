@@ -11,7 +11,7 @@ It's also
 
 - A beautiful web UI to manage and monitor your backups, launch restore tasks, etc.
 - No downtime during backups
-- No agent on guests nor KVM hosts
+- The only required agent is the QEMU guest agent
 - Fully containerized with minimum maintenance needed
 
 ## Cloudstack Collaboration Conference November 2023
@@ -102,12 +102,16 @@ If you are developer and want to contribute to the project, see the [developersâ
 
 ## Backroll configuration
 
+### VM configuration
+
+Chech that the QEMU guest agent is running on the VMs.
+
 ### Storage configuration
 
 To perform backup and restore tasks, Backroll's workers need an access to the VMs storage and to a backup storage. \
 By default in the docker-compose.yml, /mnt/ is mapped to /mnt/ in the workers.
 
-#### VM Storage configuration
+#### VM storage configuration
 
 On the backroll VM, mount the VMs storage to a path that is mapped in docker-compose.yml.
 If you are mounting a Cloudstack Primary storage please respect the Cloudstack format such as: /mnt/PR_STORAGE_ID

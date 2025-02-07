@@ -37,6 +37,7 @@ from app.kvm import kvm_manage_snapshot
 from app.cloudstack import virtual_machine as cs_manage_vm
 
 from app.patch import make_path
+from app import shell
 
 
 class borg_backup:
@@ -89,13 +90,6 @@ class borg_backup:
         except:
             pass
 
-    def process_rc(self, request):
-        """ Processing return code of specified command """
-        # Locally runned command
-        if request.returncode == 2:
-            print(request.stderr.decode("utf-8"))
-            raise ValueError(request.stderr.decode("utf-8"))
-
     def init(self, virtual_machine, storage):
         self.vm_name = self.info['name']
         print(f'[{self.vm_name}] Gathering data...')
@@ -119,8 +113,8 @@ class borg_backup:
             Path(vm_repository_path).mkdir(parents=True, exist_ok=True)
             # Initializing borg repository
             print(f'[{self.vm_name}] Initializing the new borg repo')
-            subprocess.run(["borg", "init", "--encryption",
-                           "none", vm_repository_path], check=True)
+            shell.subprocess_run(
+                f"borg init --encryption none {vm_repository_path}")
         print(f'[{self.vm_name}] Borg repository setup is OK')
 
     def check_repository_lock(self):
@@ -129,16 +123,15 @@ class borg_backup:
         # Check if borg repo is locked
         vm_repository_path = make_path(
             self.info['borg_repository'], self.vm_name)
-        request = subprocess.run(
-            ["borg", "list", vm_repository_path], capture_output=True)
-        if request.returncode == 0:
+        try:
+            shell.subprocess_run(
+                f"borg list {vm_repository_path}")
             print(f'[{self.vm_name}] Borg repository is unlocked, job will continue')
-        else:
+        except:
             print(f'[{self.vm_name}] Borg repository is locked, job will stop')
-            raise ValueError(request.stderr.decode("utf-8"))
+            raise
 
     def checking_files_trace(self, disk):
-        # TODO replace .snap by .snap ?
         if os.path.exists(f'{disk["source"].replace(".snap", "")}.snap'):
             return True
         else:
@@ -149,10 +142,10 @@ class borg_backup:
             self.info['vm_info'], self.info['host_info'])
         if vm_state['snapshot'] == 1:
             print(
-                f"[{self.virtual_machine['name'] }] A snapshot has been detected !")
+                f"[{self.virtual_machine['name']}] A snapshot has been detected !")
             return True
         else:
-            print(f"[{self.virtual_machine['name'] }] No snapshot detected")
+            print(f"[{self.virtual_machine['name']}] No snapshot detected")
             return False
 
     def create_snapshot(self):
@@ -167,10 +160,9 @@ class borg_backup:
         repository = self.info['borg_repository']
         vm_name = self.virtual_machine['name']
         print(f"[{vm_name}] Getting information about disk at {disk['source']}")
-        request = subprocess.run(
-            ["qemu-img", "info", "--output=json", disk['source']], capture_output=True)
-        qemu_img_info = request.stdout.decode("utf-8")
-        qemu_img_info = json.loads(qemu_img_info)
+        json_output = shell.subprocess_run(
+            f"qemu-img info --output=json {disk['source']}")
+        qemu_img_info = json.loads(json_output)
         if qemu_img_info.get('full-backing-filename'):
             print(
                 f'[{vm_name}] Checking that {vm_name}\'s backing file has already been backed up')
@@ -207,21 +199,11 @@ class borg_backup:
             disk_source = make_path(
                 "/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk_source_path_name)
 
-        cmd = f"""borg create \
-        --log-json \
-        --progress \
-        {make_path(repository, vm_name)}::{self.info['backup_name']} \
-        {disk_source}"""
-
-        process = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        while True:
-            process.stdout.flush()
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            elif not output and process.poll() is not None:
-                break
+        shell.subprocess_popen(f"""borg create \
+            --log-json \
+            --progress \
+            {make_path(repository, vm_name)}::{self.info['backup_name']} \
+            {disk_source}""")
 
         print(f'[{vm_name}] Borg archive successfully created for {disk_name}')
 
@@ -236,7 +218,8 @@ class borg_backup:
         vm_name = self.virtual_machine['name']
         kvm_manage_snapshot.deleteSnapshot(
             self.info['vm_info'], self.info['host_info'])
-        print(f'[{vm_name}] Snapshot {vm_name}.snap has been successfully deleted')
+        print(
+            f'[{vm_name}] Snapshot {vm_name}.snap has been successfully deleted')
 
     def remove_snapshot_file(self, disk):
         vm_name = self.virtual_machine['name']
@@ -256,13 +239,8 @@ class borg_backup:
           f'{f" --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
           f'{f" --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
           f' --glob-archives {disk_name}* {vm_repository_path}'
-
-        print(command.split())  # Ceci vous montrera le contenu de la commande
-        request = subprocess.run(command.split(), check=True, capture_output=True)
-
-        print(request)  # Cela montre le résultats de l'exécution
-        print(request.stdout.decode())  # Pour afficher le stdout
-        print(request.stderr.decode())
+          
+        shell.subprocess_run(command)
 
         for disk in self.virtual_machine['storage']:
             if ".snap" in disk['source']:
@@ -291,24 +269,28 @@ class borg_backup:
 
     def delete_archive(self, payload):
         repository = self.info['borg_repository']
-        command = f'borg delete {make_path(repository, payload["target"]["name"])}::{payload["selected_backup"]["name"]}'
+        command = f'borg delete {make_path(repository, payload["target"]["name"])}::{
+            payload["selected_backup"]["name"]}'
         request = self.remote_request(command)
-        self.process_rc(request)
+        if request.returncode == 2:
+            print(request.stderr.decode("utf-8"))
+            raise ValueError(request.stderr.decode("utf-8"))
 
 
 def borg_list_backup(virtual_machine, repository):
     try:
         # Starting ssh access
-        command = f"borg list --json {make_path(repository, virtual_machine)}"
-        request = subprocess.run(command.split(), capture_output=True)
-        result = ""
-        if request.returncode == 2:
-            if 'lock' in request.stderr.decode("utf-8"):
-                result = '{"archives": [], "state": "locked"}'
+        try:
+            result = shell.subprocess_run(
+                f"borg list --json {make_path(repository, virtual_machine)}")
+        except shell.ShellException as exception:
+            if exception.exit_code == 2:
+                if 'lock' in exception.stderr:
+                    result = '{"archives": [], "state": "locked"}'
+                else:
+                    result = '{"archives": [], "state": "unlocked"}'
             else:
-                result = '{"archives": [], "state": "unlocked"}'
-        else:
-            result = request.stdout.decode("utf-8")
+                raise
         return result
     except ValueError as err:
         print(err.args[0])
@@ -318,21 +300,20 @@ def borg_list_backup(virtual_machine, repository):
 def borg_backup_info(virtual_machine, repository, backup_name):
     try:
         # Starting ssh access
-        command = f"borg info --json {make_path(repository, virtual_machine)}::{backup_name}"
-        request = subprocess.run(command.split(), capture_output=True)
-        result = ""
-        if request.returncode == 2:
-            print(request.stdout)
-            if 'lock' in request.stderr.decode("utf-8"):
-                result = '{"archive": [], "state": "locked"}'
+        try:
+            result = shell.subprocess_run(
+                f"borg info --json {make_path(repository, virtual_machine)}::{backup_name}")
+        except shell.ShellException as exception:
+            if exception.exit_code == 2:
+                if 'lock' in exception.stderr:
+                    result = '{"archive": [], "state": "locked"}'
+                else:
+                    # TODO Not consistent with borg info duplicated code.
+                    result = f'{"archive": [], "error": "{exception.stderr}"}'
             else:
-                print(request.stdout)
-                result = f'{"archive": [], "error": "{request.stdout.decode("utf-8")}"}'
-        else:
-            result = request.stdout.decode("utf-8")
-            result = json.loads(result)
-            result = result['archives'][0]['stats']
-        return result
+                raise
+        result = json.loads(result)
+        return result['archives'][0]['stats']
     except ValueError as err:
         print(err.args[0])
         raise
@@ -341,16 +322,18 @@ def borg_backup_info(virtual_machine, repository, backup_name):
 def borg_list_repository(virtual_machine, repository):
     try:
         # Starting ssh access
-        command = f"borg info --json {make_path(repository, virtual_machine)}"
-        request = subprocess.run(command.split(), capture_output=True)
-        result = ""
-        if request.returncode == 2:
-            if 'lock' in request.stderr.decode("utf-8"):
-                result = '{"archives": [], "state": "locked"}'
+        try:
+            result = shell.subprocess_run(
+                f"borg info --json {make_path(repository, virtual_machine)}")
+        except shell.ShellException as exception:
+            if exception.exit_code == 2:
+                if 'lock' in exception.stderr:
+                    result = '{"archives": [], "state": "locked"}'
+                else:
+                    result = '{"archives": [], "state": "unlocked"}'
             else:
-                result = '{"archives": [], "state": "unlocked"}'
-        else:
-            result = request.stdout.decode("utf-8")
+                # TODO everywhere raise or raise exception ?
+                raise
         return result
     except ValueError as err:
         print(err.args[0])
