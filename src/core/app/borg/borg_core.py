@@ -232,16 +232,18 @@ class borg_backup:
 
     def borg_prune(self, disk, backup_policy):
         disk_name = disk['device']
+        
         vm_repository_path = make_path(
             self.info['borg_repository'], self.vm_name)
-        
-        command = f'borg prune --keep-daily {1 if backup_policy.retention_day == 0 else backup_policy.retention_day}' \
-          f'{f" --keep-weekly {backup_policy.retention_week}" if backup_policy.retention_week > 0 else ""}' \
-          f'{f" --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
-          f'{f" --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
-          f' --glob-archives {disk_name}* {vm_repository_path}'
+        if backup_policy.retention_day > 0 or backup_policy.retention_week > 0 or backup_policy.retention_month > 0 or backup_policy.retention_year > 0 :
+            command = f'borg prune' \
+                f'{f" --keep-daily {backup_policy.retention_day}" if backup_policy.retention_day > 0 else ""}' \
+                f'{f" --keep-weekly {backup_policy.retention_week}" if backup_policy.retention_week > 0 else ""}' \
+                f'{f" --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
+                f'{f" --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
+                f' --glob-archives {disk_name}* {vm_repository_path}'
           
-        shell.subprocess_run(command)
+            shell.subprocess_run(command)
 
         for disk in self.virtual_machine['storage']:
             if ".snap" in disk['source']:
