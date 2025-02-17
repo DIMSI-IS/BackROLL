@@ -16,7 +16,7 @@ def os_system(command):
     exit_code = os.waitstatus_to_exitcode(exit_status)
     if exit_code != 0:
         print(f"[os_system] {exit_code=}")
-        raise ShellException(f"[os_system] {exit_code=}", exit_code)
+        raise ShellException(f"[os_system]", exit_code)
 
 
 def os_popen(command):
@@ -28,12 +28,12 @@ def os_popen(command):
     if exit_status is not None:
         exit_code = os.waitstatus_to_exitcode(exit_status)
         print(f"[os_popen] {exit_code=}")
-        raise ShellException(f"[os_popen] {exit_code=}", exit_code)
+        raise ShellException(f"[os_popen]", exit_code)
 
     print(f"[os_popen] {result=}")
     return result
 
-
+# TODO Check all usages.
 def subprocess_run(command):
     print(f"[subprocess_run] {command}")
     try:
