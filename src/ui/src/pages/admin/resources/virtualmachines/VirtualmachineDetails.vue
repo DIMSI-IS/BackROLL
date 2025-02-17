@@ -20,7 +20,6 @@
           </template>
         </va-tabs>
         <div v-if="selectedTab === 'info'" style="padding-top: 1%;">
-
           <div class="row">
             <div class="flex xs6">
               <div class="item">
@@ -62,7 +61,7 @@
           <div v-if="loadingStorage" class="flex-center ma-3">
             <looping-rhombuses-spinner :animation-duration="1500" :size="50" color="#2c82e0" />
           </div>
-          <va-data-table v-else :items="storageList" :columns="[
+          <va-data-table v-else class="mb-4" :items="storageList" :columns="[
             { key: 'device', sortable: true },
             { key: 'source', sortable: true },
             { key: 'available', label: 'state', sortable: true }
