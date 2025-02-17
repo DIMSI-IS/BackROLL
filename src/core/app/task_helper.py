@@ -1,13 +1,16 @@
 import redis
 import json
 from app import patch
+from celery.result import AsyncResult
+from app import celery
 
-def manage_task_args(task, redis_client = None):
+
+def manage_task_args(task, redis_client=None):
     is_client_local = redis_client is None
 
     if is_client_local:
         redis_client = redis.Redis(host="redis", port=6379, db=0)
-    
+
     celery_task_bytes = redis_client.get(f"celery-task-meta-{task["uuid"]}")
     if celery_task_bytes is not None:
         celery_task_json = celery_task_bytes.decode()
@@ -19,11 +22,16 @@ def manage_task_args(task, redis_client = None):
     if is_client_local:
         redis_client.quit()
 
+    result = AsyncResult(task["uuid"])
+    print(f"{result=}")
+    print(f"{type(result)=}")
+    print(f"{dir(result)=}")
+
 
 def manage_task_dict_args(task_dict):
     redis_client = redis.Redis(host="redis", port=6379, db=0)
 
     for task in task_dict.values():
         manage_task_args(task, redis_client)
-    
+
     redis_client.quit()
