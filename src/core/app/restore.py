@@ -269,8 +269,9 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
         storageList = storage.retrieve_storage()
         repository = storageList[1]["path"]
         print("repo : " + repository)
-        request = shell.subprocess_run(f"qemu-img info --output=json {disk}")
-        qemu_img_info = json.loads(request.stdout)
+        json_output = shell.subprocess_run(
+            f"qemu-img info --output=json {disk}")
+        qemu_img_info = json.loads(json_output)
         if qemu_img_info.get('full-backing-filename'):
             print(
                 f'[{virtual_machine_name}] Checking that {virtual_machine_name}\'s backing file has already been backed up')
@@ -298,9 +299,9 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
             print("end rebase")
 
             # qemu info to check the rebase
-            request = shell.subprocess_run(
+            json_output = shell.subprocess_run(
                 f"qemu-img info --output=json {disk}")
-            qemu_img_info = json.loads(request.stdout)
+            qemu_img_info = json.loads(json_output)
             # check if ok
             print("end info")
 
