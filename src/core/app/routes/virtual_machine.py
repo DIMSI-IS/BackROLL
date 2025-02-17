@@ -227,15 +227,15 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
                     "/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk["source"])
 
         for disk in virtual_machine["storage"]:
-            reachable = False
+            available = False
             try:
                 shell.subprocess_run(
                     f"qemu-img info --output=json {disk["source"]}")
-                reachable = True
+                available = True
             except:
                 pass
 
-            disk["reachable"] = reachable
+            disk["available"] = available
 
         return virtual_machine
     except Exception as e:

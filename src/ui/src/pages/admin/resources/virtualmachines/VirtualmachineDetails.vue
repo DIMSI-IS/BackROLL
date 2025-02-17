@@ -59,23 +59,28 @@
               STORAGE
             </span>
           </va-divider>
-          <va-list v-if="!loadingStorage">
-            <va-list-item v-for="(storage, index) in storageList" :key="index">
-              <va-list-item-section>
-                <va-list-item-label>
-                  <va-chip size="small" square color="info">
-                    {{ storage.device.toUpperCase() }}
-                  </va-chip>
-                </va-list-item-label>
-                <va-list-item-label caption>
-                  <b>{{ storage.source }}</b>
-                </va-list-item-label>
-              </va-list-item-section>
-            </va-list-item>
-          </va-list>
-          <div v-else class="flex-center ma-3">
+          <div v-if="loadingStorage" class="flex-center ma-3">
             <looping-rhombuses-spinner :animation-duration="1500" :size="50" color="#2c82e0" />
           </div>
+          <va-data-table v-else :items="storageList" :columns="[
+            { key: 'device', sortable: true },
+            { key: 'source', sortable: true },
+            { key: 'available', label: 'state', sortable: true }
+          ]">
+            <template #cell(device)="cell">
+              <va-chip size="small" square color="info">
+                {{ cell.source.toUpperCase() }}
+              </va-chip>
+            </template>
+            <template #cell(source)="cell">
+              {{ cell.source }}
+            </template>
+            <template #cell(available)="cell">
+              <va-chip size="small" :color="cell.source ? 'success' : 'danger'">
+                {{ cell.source ? 'Available' : 'Unavailable' }}
+              </va-chip>
+            </template>
+          </va-data-table>
           <va-divider class="divider">
             <span class="px-2">
               MISCELLANEOUS
