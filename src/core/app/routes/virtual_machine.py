@@ -43,6 +43,7 @@ from app.routes import storage
 from app.backup_tasks import manage_backup
 
 from app.patch import make_path
+from app import shell
 
 # CS Imports
 from app.cloudstack import virtual_machine as cs_manage_vm
@@ -224,6 +225,18 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
             for disk in virtual_machine['storage']:
                 disk["source"] = make_path(
                     "/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk["source"])
+
+        for disk in virtual_machine["storage"]:
+            reachable = False
+            try:
+                shell.subprocess_run(
+                    f"qemu-img info --output=json {disk["source"]}")
+                reachable = True
+            except:
+                pass
+
+            disk["reachable"] = reachable
+
         return virtual_machine
     except Exception as e:
         raise ValueError(e)
