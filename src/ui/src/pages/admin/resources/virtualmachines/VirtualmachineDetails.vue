@@ -76,7 +76,7 @@
               {{ cell.source }}
             </template>
             <template #cell(available)="cell">
-              <va-chip v-bind="props" size="small" :color="cell.source ? 'success' : 'danger'">
+              <va-chip size="small" :color="cell.source ? 'success' : 'danger'">
                 {{ cell.source ? 'Available' : 'Unavailable' }}
               </va-chip>
             </template>
