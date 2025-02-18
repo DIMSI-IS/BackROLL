@@ -81,8 +81,10 @@
               </va-chip>
             </template>
             <template #cell(availabilityError)="cell">
-              <va-button v-if="!storageList[cell.rowIndex].available" icon="bug_report"
-                @click="storageErrorToShow = cell.source"></va-button>
+              <va-button-group gradient :rounded="false">
+                <va-button v-if="!storageList[cell.rowIndex].available" icon="bug_report"
+                  @click="storageErrorToShow = cell.source"></va-button>
+              </va-button-group>
             </template>
           </va-data-table>
           <va-divider class="divider">
