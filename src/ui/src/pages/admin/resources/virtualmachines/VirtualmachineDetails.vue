@@ -116,7 +116,7 @@
                   <va-button class="mb-4"
                     @click_="this.$router.push({ path: '/admin/tasks/kickstart', query: { task: 'backup', target: virtualMachine.uuid } })"
                     @click="startBackup" :disabled="backingUp">
-                    Backup now
+                    {{ backingUp ? "Backing up…" : "Backup now" }}
                   </va-button>
                 </div>
               </div>
@@ -226,6 +226,8 @@ import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 import axios from 'axios'
 import parser from 'cron-parser'
+
+import ErrorModal from "@/components/modal/ErrorModal.vue"
 
 export default defineComponent({
   name: 'VirtualmachineDetails',
