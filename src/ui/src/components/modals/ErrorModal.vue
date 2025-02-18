@@ -1,5 +1,5 @@
 <template>
-    <va-modal v-model="isStorageErrorModalShown" size="large" :hide-default-actions="true">
+    <va-modal modal-class="fit-content-modal" v-model="showModal" size="large" :hide-default-actions="true">
         <template #header>
             <h2>
                 <va-icon name="bug_report" color="info" />
@@ -7,11 +7,11 @@
             </h2>
         </template>
         <hr />
-        <div class="consoleStyle">
+        <div class="console">
             {{ error }}
         </div>
         <template #footer>
-            <va-button @click="showModal = false">
+            <va-button @click="error = null">
                 Close
             </va-button>
         </template>
@@ -21,29 +21,41 @@
 export default {
     name: "error-modal",
     props: {
-        title: { type: "string" },
-        error: { type: "string" }
+        modelValue: String,
+        title: String
     },
-    data() {
-        return {
-            showModal: false,
-        }
-    },
-    watch: {
-        error(new_value) {
-            this.showModal = Boolean(new_value);
+    computed: {
+        error: {
+            get() {
+                return this.modelValue;
+            },
+            set(value) {
+                this.$emit("update:modelValue", value);
+            }
+        },
+        showModal() {
+            return Boolean(this.error);
         }
     }
 }
 </script>
 <style>
-.consoleStyle {
+.fit-content-modal {
+    width: fit-content !important;
+    max-width: none !important;
+    min-width: auto !important;
+}
+
+.console {
     padding: 1% 1% 1% 1%;
     background: black;
     color: silver;
     font-size: 1em;
     border-radius: 5px;
-    max-height: 5%;
-    width: auto;
+
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 </style>

@@ -82,7 +82,7 @@
             </template>
             <template #cell(availabilityError)="cell">
               <va-button v-if="!storageList[cell.rowIndex].available" icon="bug_report"
-                @click="showStorageErrorModal(cell.source)"></va-button>
+                @click="storageErrorToShow = cell.source"></va-button>
             </template>
           </va-data-table>
           <va-divider class="divider">
@@ -168,23 +168,8 @@
     <div v-else class="flex-center ma-3">
       <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
     </div>
-    <va-modal v-model="isStorageErrorModalShown" size="large" :hide-default-actions="true">
-      <template #header>
-        <h2>
-          <va-icon name="bug_report" color="info" />
-          Storage error
-        </h2>
-      </template>
-      <hr />
-      <div class="consoleStyle">
-        {{ storageErrorToShow }}
-      </div>
-      <template #footer>
-        <va-button @click="isStorageErrorModalShown = false">
-          Close
-        </va-button>
-      </template>
-    </va-modal>
+    <error-modal v-model="storageErrorToShow" title="Storage error">
+    </error-modal>
     <va-modal v-model="showDiskRestoreModal" @ok="restoreDiskFile()">
       <template #header>
         <h2>
@@ -227,11 +212,14 @@ import * as spinners from 'epic-spinners'
 import axios from 'axios'
 import parser from 'cron-parser'
 
-import ErrorModal from "@/components/modal/ErrorModal.vue"
+import ErrorModal from "@/components/modals/ErrorModal.vue"
 
 export default defineComponent({
   name: 'VirtualmachineDetails',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ErrorModal,
+  },
   data() {
     return {
       columns: [
@@ -244,16 +232,17 @@ export default defineComponent({
       sortBy: 'start',
       sortingOrder: 'desc',
       selectedTab: 'info',
-      storageList: [],
-      loadingStorage: false,
       loadingBackups: false,
       selectedBackup: null,
-      storageErrorToShow: null,
-      isStorageErrorModalShown: false,
       showDeleteModal: false,
       showDiskRestoreModal: false,
       backupInfo: { archives: [] },
+
       backingUp: false,
+
+      storageList: [],
+      loadingStorage: false,
+      storageErrorToShow: null,
     }
   },
   watch: {
@@ -342,10 +331,6 @@ export default defineComponent({
     this.requestBackupList()
   },
   methods: {
-    showStorageErrorModal(error) {
-      this.storageErrorToShow = error;
-      this.isStorageErrorModalShown = true;
-    },
     restoreDiskFile: function () {
       const json = {
         "virtual_machine_id": this.virtualMachine.uuid,
