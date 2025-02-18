@@ -64,7 +64,8 @@
           <va-data-table v-else class="mb-4" :items="storageList" :columns="[
             { key: 'device', sortable: true },
             { key: 'source', sortable: true },
-            { key: 'available', label: 'state', sortable: true }
+            { key: 'available', label: 'state', sortable: true },
+            { key: 'availabilityError', label: 'actions' }
           ]">
             <template #cell(device)="cell">
               <va-chip size="small" square color="info">
@@ -75,9 +76,13 @@
               {{ cell.source }}
             </template>
             <template #cell(available)="cell">
-              <va-chip size="small" :color="cell.source ? 'success' : 'danger'">
+              <va-chip v-bind="props" size="small" :color="cell.source ? 'success' : 'danger'">
                 {{ cell.source ? 'Available' : 'Unavailable' }}
               </va-chip>
+            </template>
+            <template #cell(availabilityError)="cell">
+              <va-button v-if="!storageList[cell.rowIndex].available" icon="bug_report"
+                @click="showStorageErrorModal(cell.source)"></va-button>
             </template>
           </va-data-table>
           <va-divider class="divider">
@@ -94,21 +99,25 @@
           </va-button>
         </div>
         <div v-else-if="selectedTab === 'save'" style="padding-top: 1%;">
-          <div v-if="!loadingBackups">
+          <div v-if="loadingBackups" class="flex-center ma-3">
+            <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
+          </div>
+          <div v-else>
             <div class="row">
               <div class="flex xs6">
                 <div class="item">
                   <va-input class="mb-4" v-model="mostRecentBackup" label="Most recent backup" readonly />
+                  <va-input class="mb-4" v-model="oldestBackup" label="Oldest backup" readonly />
                 </div>
               </div>
               <div class="flex xs6">
                 <div class="item">
-                  <va-input class="mb-4" v-model="oldestBackup" label="Oldest backup" readonly />
-                </div>
-              </div>
-              <div class="flex xs12">
-                <div class="item">
                   <va-input class="mb-4" v-model="nextRun" label="Next scheduled backup" readonly />
+                  <va-button class="mb-4"
+                    @click_="this.$router.push({ path: '/admin/tasks/kickstart', query: { task: 'backup', target: virtualMachine.uuid } })"
+                    @click="startBackup" :disabled="backingUp">
+                    Backup now
+                  </va-button>
                 </div>
               </div>
             </div>
@@ -153,15 +162,29 @@
               </template>
             </va-data-table>
           </div>
-          <div v-else class="flex-center ma-3">
-            <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
-          </div>
         </div>
       </va-card-content>
     </va-card>
     <div v-else class="flex-center ma-3">
       <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
     </div>
+    <va-modal v-model="isStorageErrorModalShown" size="large" :hide-default-actions="true">
+      <template #header>
+        <h2>
+          <va-icon name="bug_report" color="info" />
+          Storage error
+        </h2>
+      </template>
+      <hr />
+      <div class="consoleStyle">
+        {{ storageErrorToShow }}
+      </div>
+      <template #footer>
+        <va-button @click="isStorageErrorModalShown = false">
+          Close
+        </va-button>
+      </template>
+    </va-modal>
     <va-modal v-model="showDiskRestoreModal" @ok="restoreDiskFile()">
       <template #header>
         <h2>
@@ -223,9 +246,12 @@ export default defineComponent({
       loadingStorage: false,
       loadingBackups: false,
       selectedBackup: null,
+      storageErrorToShow: null,
+      isStorageErrorModalShown: false,
       showDeleteModal: false,
       showDiskRestoreModal: false,
-      backupInfo: { archives: [] }
+      backupInfo: { archives: [] },
+      backingUp: false,
     }
   },
   watch: {
@@ -314,6 +340,10 @@ export default defineComponent({
     this.requestBackupList()
   },
   methods: {
+    showStorageErrorModal(error) {
+      this.storageErrorToShow = error;
+      this.isStorageErrorModalShown = true;
+    },
     restoreDiskFile: function () {
       const json = {
         "virtual_machine_id": this.virtualMachine.uuid,
@@ -327,6 +357,40 @@ export default defineComponent({
         .catch(e => {
           this.errors.push(e)
           this.$vaToast.init(({ message: 'Unable to start the disk recovery task', color: 'danger' }))
+        })
+    },
+    startBackup() {
+      this.backingUp = true;
+      axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/singlebackup/${this.virtualMachine.uuid}`, {}, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        .then(response => {
+          this.$vaToast.init(({ message: 'Backup requested to backend', color: 'light' }))
+          this.trackBackupJob(response.data.Location)
+        })
+        .catch(e => {
+          this.backingUp = false;
+          this.errors.push(e)
+          this.$vaToast.init(({ message: 'Unable to backup VM', color: 'danger' }))
+        })
+    },
+    trackBackupJob(location) {
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        .then(response => {
+          if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
+            setTimeout(() => {
+              this.trackBackupJob(location)
+            }, 2000)
+          } else if (response.data.state === 'SUCCESS') {
+            this.backingUp = false;
+            this.$vaToast.init(({ message: 'Backup has been successfully done', color: 'success' }))
+            this.requestBackupList()
+          } else if (response.data.state === 'FAILURE') {
+            this.backingUp = false;
+            this.$vaToast.init(({ message: 'Unable to backup VM', color: 'danger' }))
+          }
+        })
+        .catch(e => {
+          this.backingUp = false;
+          console.log(e)
         })
     },
     deleteBackup: function () {

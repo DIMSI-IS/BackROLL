@@ -35,13 +35,14 @@
             <va-card stripe stripe-color="info" class="mb-0">
               <va-card-content>
                 <va-select v-if="jobSelection.mode === 'single'" label="Target" v-model="targetSelection"
-                  :options="selectData" :loading="!this.$store.state.isvmTableReady" searchable highlight-matched-text>
+                  :options="vmTargetOptions" :loading="!this.$store.state.isvmTableReady" searchable
+                  highlight-matched-text>
                   <template #prependInner>
                     <va-icon name="adjust" size="small" color="primary" />
                   </template>
                 </va-select>
-                <va-select v-else label="Target" v-model="targetSelection" :options="selectData2"
-                  :loading="!this.$store.state.ispoolTableReady">
+                <va-select v-else label="Target" v-model="targetSelection" :options="poolTargetOptions"
+                  :loading="!this.$store.state.ispoolTableReady" searchable highlight-matched-text>
                   <template #prependInner>
                     <va-icon name="work" size="small" color="primary" />
                   </template>
@@ -171,6 +172,9 @@ export default {
     // Does not work on direct URL access maybe because this.$store.state.jobList is not ready yet.
     const taskValue = taskFromQuery[this.$route.query.task];
     this.jobSelection = this.selectJob.find(x => x.value == taskValue);
+
+    const targetValue = this.$route.query.target;
+    this.targetSelection = this.vmTargetOptions.find(e => e.value == targetValue);
   },
   computed: {
     selectJob() {
@@ -181,13 +185,13 @@ export default {
         type: x.type
       }))
     },
-    selectData() {
+    vmTargetOptions() {
       return this.$store.state.resources.vmList.map(x => ({
         text: x.name,
         value: x.uuid
       }))
     },
-    selectData2() {
+    poolTargetOptions() {
       return this.$store.state.resources.poolList.map(x => ({
         text: x.name,
         value: x.id
