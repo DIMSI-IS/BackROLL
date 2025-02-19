@@ -30,8 +30,9 @@ def os_popen(command):
         print(f"[os_popen] {exit_code=}")
         raise ShellException(f"[os_popen]", exit_code)
 
-    print(f"[os_popen] {result=}")
+    print(f"[os_popen] {result}")
     return result
+
 
 def subprocess_run(command):
     print(f"[subprocess_run] {command}")
