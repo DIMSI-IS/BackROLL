@@ -115,9 +115,7 @@
               <div class="flex xs6">
                 <div class="item">
                   <va-input class="mb-4" v-model="nextRun" label="Next scheduled backup" readonly />
-                  <va-button class="mb-4"
-                    @click_="this.$router.push({ path: '/admin/tasks/kickstart', query: { task: 'backup', target: virtualMachine.uuid } })"
-                    @click="startBackup" :disabled="backingUp">
+                  <va-button class="mb-4" @click="startBackup" :disabled="backingUp">
                     {{ backingUp ? "Backing up…" : "Backup now" }}
                   </va-button>
                 </div>

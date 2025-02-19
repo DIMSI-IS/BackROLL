@@ -140,6 +140,7 @@ import StorageSelector from '@/components/virtualmachines/StorageSelector.vue'
 import axios from 'axios'
 import * as spinners from 'epic-spinners'
 
+// TODO Better use simple keys than fullnames.
 const taskFromQuery = {
   backup: 'Backup (VM)',
   restore: 'Disk Restore & Replace (VM)'
@@ -172,9 +173,6 @@ export default {
     // Does not work on direct URL access maybe because this.$store.state.jobList is not ready yet.
     const taskValue = taskFromQuery[this.$route.query.task];
     this.jobSelection = this.selectJob.find(x => x.value == taskValue);
-
-    const targetValue = this.$route.query.target;
-    this.targetSelection = this.vmTargetOptions.find(e => e.value == targetValue);
   },
   computed: {
     selectJob() {
