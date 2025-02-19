@@ -113,6 +113,7 @@ export default {
   methods: {
     showTaskError(task) {
       this.selectedTask = task;
+      this.taskErrorToShow = "Retrieving logs…";
       axios
         .get(`${this.$store.state.endpoint.api}/api/v1/logs/${task.uuid}`, {
           headers: {
@@ -121,9 +122,10 @@ export default {
           },
         })
         .then((response) => {
-          this.taskErrorToShow = response.data && JSON.parse(response.data).traceback || "Unable to retrieve logs for this task.";
+          this.taskErrorToShow = JSON.parse(response.data).traceback;
         })
         .catch((e) => {
+          this.taskErrorToShow = "Unable to retrieve logs for this task.";
           console.log(e);
         });
     },
