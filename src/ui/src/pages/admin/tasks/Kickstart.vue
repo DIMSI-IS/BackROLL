@@ -35,13 +35,14 @@
             <va-card stripe stripe-color="info" class="mb-0">
               <va-card-content>
                 <va-select v-if="jobSelection.mode === 'single'" label="Target" v-model="targetSelection"
-                  :options="selectData" :loading="!this.$store.state.isvmTableReady" searchable highlight-matched-text>
+                  :options="vmTargetOptions" :loading="!this.$store.state.isvmTableReady" searchable
+                  highlight-matched-text>
                   <template #prependInner>
                     <va-icon name="adjust" size="small" color="primary" />
                   </template>
                 </va-select>
-                <va-select v-else label="Target" v-model="targetSelection" :options="selectData2"
-                  :loading="!this.$store.state.ispoolTableReady">
+                <va-select v-else label="Target" v-model="targetSelection" :options="poolTargetOptions"
+                  :loading="!this.$store.state.ispoolTableReady" searchable highlight-matched-text>
                   <template #prependInner>
                     <va-icon name="work" size="small" color="primary" />
                   </template>
@@ -139,6 +140,7 @@ import StorageSelector from '@/components/virtualmachines/StorageSelector.vue'
 import axios from 'axios'
 import * as spinners from 'epic-spinners'
 
+// TODO Better use simple keys than fullnames.
 const taskFromQuery = {
   backup: 'Backup (VM)',
   restore: 'Disk Restore & Replace (VM)'
@@ -181,13 +183,13 @@ export default {
         type: x.type
       }))
     },
-    selectData() {
+    vmTargetOptions() {
       return this.$store.state.resources.vmList.map(x => ({
         text: x.name,
         value: x.uuid
       }))
     },
-    selectData2() {
+    poolTargetOptions() {
       return this.$store.state.resources.poolList.map(x => ({
         text: x.name,
         value: x.id

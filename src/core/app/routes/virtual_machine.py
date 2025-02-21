@@ -228,14 +228,17 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
 
         for disk in virtual_machine["storage"]:
             available = False
+            error = None
             try:
                 shell.subprocess_run(
                     f"qemu-img info --output=json {disk["source"]}")
                 available = True
-            except:
-                pass
+            except shell.ShellException as exception:
+                error = exception.stderr
 
             disk["available"] = available
+            if error is not None:
+                disk["availabilityError"] = error
 
         return virtual_machine
     except Exception as e:
