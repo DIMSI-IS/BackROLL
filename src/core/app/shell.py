@@ -3,7 +3,7 @@ import subprocess
 from subprocess import CalledProcessError
 
 
-class ShellException(BaseException):
+class ShellException(Exception):
     def __init__(self, message, exit_code, stderr=None):
         super().__init__(f"{message} {exit_code=} {stderr}")
         self.exit_code = exit_code
