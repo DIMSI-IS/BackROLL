@@ -54,14 +54,16 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
     print("DEBUG $$$ vm uuid: " + info["uuid"])
     for x in info:
         print(x)
+
+    redis_client = Redis(host='redis', port=6379)
     try:
-        redis_instance = Redis(host='redis', port=6379)
-        unique_task_key = f'''vmlock-{info}'''
-        if not redis_instance.exists(unique_task_key):
+        vm_lock_key = f'vmlock-{info}'
+        if not redis_client.exists(vm_lock_key):
             # No duplicated key found in redis - target IS NOT locked right now
-            redis_instance.set(unique_task_key, "")
-            redis_instance.expire(unique_task_key, 5400)
+            redis_client.set(vm_lock_key, "")
             try:
+                redis_client.expire(vm_lock_key, 5400)
+
                 if "host" in info:
                     # Retrieve VM host info
                     host_info = jsonable_encoder(
@@ -89,17 +91,13 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
                     except Exception:
                         raise
                         # self.retry(countdown=3**self.request.retries)
-            except:
-                raise
+            finally:
+                redis_client.delete(vm_lock_key)
         else:
             # Duplicated key found in redis - target IS locked right now
             raise ValueError("This task is already running / scheduled")
-        redis_instance.delete(unique_task_key)
-        print("Debug - restore_disk_vm - start")
-    except Exception as e:
-        redis_instance.delete(unique_task_key)
-        # potentially log error?
-        raise e
+    finally:
+        redis_client.quit()
 
 # def restore_task(self, info, hypervisor, disk_list, backup):
 
