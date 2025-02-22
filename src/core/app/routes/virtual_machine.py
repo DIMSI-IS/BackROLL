@@ -23,9 +23,8 @@ from pydantic import BaseModel, Json
 from celery.result import allow_join_result
 from celery import subtask, group, chain
 
-import logging
-
 import json
+import re
 
 from app import app
 from app import celery as celery_app
@@ -228,18 +227,19 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
 
         for disk in virtual_machine["storage"]:
             available = False
-            error = None
             try:
-                shell.subprocess_run(
-                    f"qemu-img info --output=json {disk["source"]}")
+                permissions = shell.subprocess_run(
+                    f"ls -l {disk["source"]}").split()[0]
+
+                if re.match("-rw.r..r..", permissions) is None:
+                    raise ValueError(
+                        f"Permissions must be like rw*r**r**. Actual permissions are {permissions}.")
+
                 available = True
-            except shell.ShellException as exception:
-                error = exception.stderr
+            except Exception as exception:
+                disk["availabilityError"] = str(exception)
 
             disk["available"] = available
-            if error is not None:
-                disk["availabilityError"] = error
-
         return virtual_machine
     except Exception as e:
         raise ValueError(e)
