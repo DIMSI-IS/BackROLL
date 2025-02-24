@@ -27,11 +27,12 @@ def check_disks_access(virtual_machine):
     add_disk_access_check(virtual_machine)
 
     unavailable_disks = list(filter(
-        lambda disk: not all(disk["status"]),
+        lambda disk: not all(disk["status"].values()),
         virtual_machine["storage"]))
 
     if len(unavailable_disks) > 0:
         report = "\n".join(map(
-            lambda disk: f"- {disk["device"]} at {disk["source"]}: {", ".join(map(lambda key, value: f"{key}={value}", disk["status"]))}",
+            lambda disk: f"- {disk["device"]} at {disk["source"]}: {
+                ", ".join(map(lambda keyValue: f"{keyValue[0]}={keyValue[1]}", disk["status"].items()))}",
             unavailable_disks))
         raise ValueError(f"Some disks are unavailable:\n{report}")
