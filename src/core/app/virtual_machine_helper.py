@@ -12,7 +12,6 @@ from app import shell
 def add_disk_access_check(virtual_machine):
     for disk in virtual_machine["storage"]:
         path = disk["source"]
-        # TODO Deal with the .snap case ?
 
         status = {}
         for key, mode in [
