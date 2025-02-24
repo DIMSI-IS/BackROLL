@@ -64,9 +64,7 @@
           <va-data-table v-else class="mb-4" :items="storageList" :columns="[
             { key: 'device', sortable: true },
             { key: 'source', sortable: true },
-            { key: 'available', label: 'state', sortable: true },
-            { key: 'availabilityError', label: 'actions' }
-          ]">
+            { key: 'formattedStatus', label: 'status', sortable: true }]">
             <template #cell(device)="cell">
               <va-chip size="small" square color="info">
                 {{ cell.source.toUpperCase() }}
@@ -75,16 +73,10 @@
             <template #cell(source)="cell">
               {{ cell.source }}
             </template>
-            <template #cell(available)="cell">
-              <va-chip size="small" :color="cell.source ? 'success' : 'danger'">
-                {{ cell.source ? 'Available' : 'Unavailable' }}
+            <template #cell(formattedStatus)="cell">
+              <va-chip size="small" :color="cell.source.ok ? 'success' : 'danger'">
+                {{ cell.source.label }}
               </va-chip>
-            </template>
-            <template #cell(availabilityError)="cell">
-              <va-button-group gradient :rounded="false">
-                <va-button v-if="!storageList[cell.rowIndex].available" icon="bug_report"
-                  @click="storageErrorToShow = cell.source"></va-button>
-              </va-button-group>
             </template>
           </va-data-table>
           <va-divider class="divider">
@@ -168,8 +160,6 @@
     <div v-else class="flex-center ma-3">
       <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
     </div>
-    <error-modal v-model="storageErrorToShow" title="Storage error">
-    </error-modal>
     <va-modal v-model="showDiskRestoreModal" @ok="restoreDiskFile()">
       <template #header>
         <h2>
@@ -212,13 +202,10 @@ import * as spinners from 'epic-spinners'
 import axios from 'axios'
 import parser from 'cron-parser'
 
-import ErrorModal from "@/components/modals/ErrorModal.vue"
-
 export default defineComponent({
   name: 'VirtualmachineDetails',
   components: {
     ...spinners,
-    ErrorModal,
   },
   data() {
     return {
@@ -497,7 +484,16 @@ export default defineComponent({
               this.getVmDetails(location)
             }, 2000)
           } else if (response.data.state === 'SUCCESS') {
-            this.storageList = response.data.info.storage
+            const storageList = response.data.info.storage;
+            for (const disk of storageList) {
+              const { status } = disk;
+              disk.formattedStatus = {
+                label: !status.exists ? "Not found" : !status.readable ? "No read access" : "Available",
+                ok: Object.values(status).every(e => e)
+              }
+            }
+            this.storageList = storageList;
+
             this.loadingStorage = false
           } else if (response.data.state === 'FAILURE') {
             this.loadingStorage = false

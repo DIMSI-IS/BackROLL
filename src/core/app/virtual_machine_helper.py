@@ -1,3 +1,4 @@
+import os
 import re
 
 from app import shell
@@ -10,33 +11,27 @@ from app import shell
 
 def add_disk_access_check(virtual_machine):
     for disk in virtual_machine["storage"]:
-        available = False
-        error = None
+        path = disk["source"]
+        # TODO Deal with the .snap case ?
 
-        try:
-            permissions = shell.subprocess_run(
-                f"ls -l {disk["source"]}").split()[0]
-
-            if re.match("-rw.r..r..", permissions) is None:
-                raise ValueError(
-                    f"Permissions must be like rw*r**r**. Actual permissions are {permissions}.")
-
-            available = True
-        except Exception as exception:
-            error = str(exception)
-
-        disk["available"] = available
-        disk["availabilityError"] = error
+        status = {}
+        for key, mode in [
+            ("exists", os.F_OK),
+            ("readable", os.R_OK),
+        ]:
+            status[key] = os.access(path, mode)
+        disk["status"] = status
 
 
 def check_disks_access(virtual_machine):
     add_disk_access_check(virtual_machine)
 
-    unavailable_disks = list(
-        filter(lambda disk: disk["availabilityError"] is not None,
-               virtual_machine["storage"]))
+    unavailable_disks = list(filter(
+        lambda disk: not all(disk["status"]),
+        virtual_machine["storage"]))
 
     if len(unavailable_disks) > 0:
-        report = "\n".join(
-            map(lambda disk: f"- {disk["device"]} at {disk["source"]}: {disk["availabilityError"]}", unavailable_disks))
+        report = "\n".join(map(
+            lambda disk: f"- {disk["device"]} at {disk["source"]}: {", ".join(map(lambda key, value: f"{key}={value}", disk["status"]))}",
+            unavailable_disks))
         raise ValueError(f"Some disks are unavailable:\n{report}")
