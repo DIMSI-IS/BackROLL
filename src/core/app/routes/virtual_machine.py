@@ -42,6 +42,7 @@ from app.routes import storage
 from app.backup_tasks import manage_backup
 
 from app.patch import make_path
+from app.virtual_machine_helper import add_disk_access_check
 from app import shell
 
 # CS Imports
@@ -225,21 +226,8 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
                 disk["source"] = make_path(
                     "/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk["source"])
 
-        for disk in virtual_machine["storage"]:
-            available = False
-            try:
-                permissions = shell.subprocess_run(
-                    f"ls -l {disk["source"]}").split()[0]
+        add_disk_access_check(virtual_machine)
 
-                if re.match("-rw.r..r..", permissions) is None:
-                    raise ValueError(
-                        f"Permissions must be like rw*r**r**. Actual permissions are {permissions}.")
-
-                available = True
-            except Exception as exception:
-                disk["availabilityError"] = str(exception)
-
-            disk["available"] = available
         return virtual_machine
     except Exception as e:
         raise ValueError(e)

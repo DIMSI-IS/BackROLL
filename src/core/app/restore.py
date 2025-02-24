@@ -190,7 +190,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
                 shell.os_system(
                     f"cp {virtual_machine_diskName} {kvm_storage_disk_path_tmp}")
 
-                # Fix chmod ownership of new qcow2 filedisk
+                # Fix permissions of new qcow2 filedisk
                 # subprocess.run(['chmod', '644', kvm_storage_disk_path_tmp], check = True)
                 shell.os_system(f"chmod 644 {kvm_storage_disk_path_tmp}")
 

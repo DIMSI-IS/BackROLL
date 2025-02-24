@@ -24,6 +24,7 @@ from app.routes import host
 from app.routes import storage
 from app.borg import borg_core
 from app.kvm import kvm_list_disk
+from app.virtual_machine_helper import check_disks_access
 
 from app.routes import connectors
 from app.routes import pool
@@ -37,22 +38,24 @@ def backup_creation(info):
     def backup_sequence(info, host_info=None):
         # Initializing object
         backup_job = borg_core.borg_backup(info, host_info)
-        try:
-            # Retrieve VM info (name, id, disks, etc.)
-            storage_repository = storage.retrieveStoragePathFromHostBackupPolicy(
-                info)
-            virtual_machine = info
-            if host_info:
-                virtual_machine['storage'] = kvm_list_disk.getDisk(
-                    info, host_info)
-            else:
-                connector = connectors.filter_connector_by_id(
-                    pool.filter_pool_by_id(virtual_machine["pool_id"]).connector_id)
-                virtual_machine['storage'] = cs_manage_vm.getDisk(
-                    connector, virtual_machine)
-            backup_job.init(virtual_machine, storage_repository)
-        except:
-            raise
+
+        # Retrieve VM info (name, id, disks, etc.)
+        storage_repository = storage.retrieveStoragePathFromHostBackupPolicy(
+            info)
+        virtual_machine = info
+        if host_info:
+            virtual_machine['storage'] = kvm_list_disk.getDisk(
+                info, host_info)
+        else:
+            connector = connectors.filter_connector_by_id(
+                pool.filter_pool_by_id(virtual_machine["pool_id"]).connector_id)
+            virtual_machine['storage'] = cs_manage_vm.getDisk(
+                connector, virtual_machine)
+
+        backup_job.init(virtual_machine, storage_repository)
+
+        check_disks_access(virtual_machine)
+
         if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
             print(f"[{info['name']}] Pre-Flight checks incoming.")
             if backup_job.check_if_snapshot():
