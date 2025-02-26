@@ -273,6 +273,8 @@ if source backroll/@dev.env 2>/dev/null; then
          -f compose.dev.yaml
          --profile database
          --profile sso"
+else
+    echo "Run “source source-me.sh setup-dev” to setup dev."
 fi
 
 # $staging
@@ -285,6 +287,8 @@ if source backroll/@staging.env 2>/dev/null; then
              -f compose.staging.yaml
              ${BACKROLL_DB:+ --profile database}
              ${BACKROLL_SSO:+ --profile sso}"
+else
+    echo "Run “source source-me.sh setup-staging” to setup staging."
 fi
 
 # $prod
@@ -300,19 +304,13 @@ if source backroll/@prod.env 2>/dev/null; then
     else
         prod="ERROR_VERSION_MISMATCH"
     fi
+else
+    echo "Run “source source-me.sh setup-prod” to setup prod."
 fi
 
 echo "
-Docker Compose argument variables:
-
-  - dev=${dev:-    # Run “source source-me.sh setup-dev” to setup dev.}
-
-  - staging=${staging:-    # Run “source source-me.sh setup-staging” to setup staging.}
-
-  - prod=${prod:-    # Run “source source-me.sh setup-prod” to setup prod.}
-
-Usage:
-  - docker compose \$dev …
-  - docker compose \$staging …
-  - docker compose \$prod …
-"
+Docker Compose argument variables usage:
+${dev:+  - docker compose \$dev …
+}${staging:+  - docker compose \$staging …
+}${prod:+  - docker compose \$prod …
+}"
