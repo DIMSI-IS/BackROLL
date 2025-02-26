@@ -70,10 +70,10 @@ def handle_task_success(task_id, msg):
     if "host" in task_arg:
         host = host_route.filter_host_by_id(task_arg['host'])
         pool = pool_route.filter_pool_by_id(host.pool_id)
-        policy = policy_route.filter_policy_by_id(pool.policy_id)
+        policy = policy_route.get_policy_by_id(pool.policy_id)
     else:
         pool = pool_route.filter_pool_by_id(task_arg["pool_id"])
-        policy = policy_route.filter_policy_by_id(pool.policy_id)
+        policy = policy_route.get_policy_by_id(pool.policy_id)
 
     if policy.externalhook:
         hook = hook_route.filter_external_hook_by_id(policy.externalhook)
@@ -144,7 +144,7 @@ def handle_task_failure(task_id, msg):
 
     host = host_route.filter_host_by_id(task_arg['host'])
     pool = pool_route.filter_pool_by_id(host.pool_id)
-    policy = policy_route.filter_policy_by_id(pool.policy_id)
+    policy = policy_route.get_policy_by_id(pool.policy_id)
 
     if policy.externalhook:
         hook = hook_route.filter_external_hook_by_id(policy.externalhook)
@@ -236,7 +236,7 @@ def pool_backup_notification(result, pool_id):
 
     # Retrieve pool's policy info
     pool = pool_route.filter_pool_by_id(pool_id)
-    policy = policy_route.filter_policy_by_id(pool.policy_id)
+    policy = policy_route.get_policy_by_id(pool.policy_id)
 
     # No defined webhook - stopping here...
     if not policy.externalhook:

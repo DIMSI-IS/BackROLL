@@ -232,17 +232,17 @@ class borg_backup:
 
     def borg_prune(self, disk, backup_policy):
         disk_name = disk['device']
-        
+
         vm_repository_path = make_path(
             self.info['borg_repository'], self.vm_name)
-        if backup_policy.retention_day > 0 or backup_policy.retention_week > 0 or backup_policy.retention_month > 0 or backup_policy.retention_year > 0 :
-            command = f'borg prune' \
-                f'{f" --keep-daily {backup_policy.retention_day}" if backup_policy.retention_day > 0 else ""}' \
-                f'{f" --keep-weekly {backup_policy.retention_week}" if backup_policy.retention_week > 0 else ""}' \
-                f'{f" --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
-                f'{f" --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
-                f' --glob-archives {disk_name}* {vm_repository_path}'
-          
+        if backup_policy.retention_day > 0 or backup_policy.retention_week > 0 or backup_policy.retention_month > 0 or backup_policy.retention_year > 0:
+            command = f"""borg prune
+                {f"--keep-daily {backup_policy.retention_day}" if backup_policy.retention_day > 0 else ""}
+                --keep-weekly {backup_policy.retention_week}" if backup_policy.retention_week > 0 else ""}' \
+                --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
+                --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
+                --glob-archives {disk_name}* {vm_repository_path}"""
+
             shell.subprocess_run(command)
 
         for disk in self.virtual_machine['storage']:
@@ -282,65 +282,50 @@ class borg_backup:
 
 def borg_list_backup(virtual_machine, repository):
     try:
-        # Starting ssh access
-        try:
-            result = shell.subprocess_run(
-                f"borg list --json {make_path(repository, virtual_machine)}")
-        except shell.ShellException as exception:
-            if exception.exit_code == 2:
-                if 'lock' in exception.stderr:
-                    result = '{"archives": [], "state": "locked"}'
-                else:
-                    result = '{"archives": [], "state": "unlocked"}'
+        result = shell.subprocess_run(
+            f"borg list --json {make_path(repository, virtual_machine)}")
+    except shell.ShellException as exception:
+        if exception.exit_code == 2:
+            if 'lock' in exception.stderr:
+                result = '{"archives": [], "state": "locked"}'
             else:
-                raise
-        return result
-    except ValueError as err:
-        print(err.args[0])
-        raise
+                result = '{"archives": [], "state": "unlocked"}'
+        else:
+            raise ValueError("Unknown exit code.", exception)
+    return result
 
 
 def borg_backup_info(virtual_machine, repository, backup_name):
     try:
-        # Starting ssh access
-        try:
-            result = shell.subprocess_run(
-                f"borg info --json {make_path(repository, virtual_machine)}::{backup_name}")
-        except shell.ShellException as exception:
-            if exception.exit_code == 2:
-                if 'lock' in exception.stderr:
-                    result = '{"archive": [], "state": "locked"}'
-                else:
-                    # TODO Not consistent with borg info duplicated code.
-                    result = f'{"archive": [], "error": "{exception.stderr}"}'
+        result = shell.subprocess_run(
+            f"borg info --json {make_path(repository, virtual_machine)}::{backup_name}")
+    except shell.ShellException as exception:
+        if exception.exit_code == 2:
+            if 'lock' in exception.stderr:
+                result = '{"archive": [], "state": "locked"}'
             else:
-                raise
-        result = json.loads(result)
-        return result['archives'][0]['stats']
-    except ValueError as err:
-        print(err.args[0])
-        raise
+                # TODO Not consistent with borg info duplicated code.
+                result = f'{"archive": [], "error": "{exception.stderr}"}'
+        else:
+            raise ValueError("Unknown exit code.", exception)
+    result = json.loads(result)
+    return result['archives'][0]['stats']
 
 
 def borg_list_repository(virtual_machine, repository):
     try:
-        # Starting ssh access
-        try:
-            result = shell.subprocess_run(
-                f"borg info --json {make_path(repository, virtual_machine)}")
-        except shell.ShellException as exception:
-            if exception.exit_code == 2:
-                if 'lock' in exception.stderr:
-                    result = '{"archives": [], "state": "locked"}'
-                else:
-                    result = '{"archives": [], "state": "unlocked"}'
+        result = shell.subprocess_run(
+            f"borg info --json {make_path(repository, virtual_machine)}")
+    except shell.ShellException as exception:
+        if exception.exit_code == 2:
+            if 'lock' in exception.stderr:
+                result = '{"archives": [], "state": "locked"}'
             else:
-                # TODO everywhere raise or raise exception ?
-                raise
-        return result
-    except ValueError as err:
-        print(err.args[0])
-        raise
+                result = '{"archives": [], "state": "unlocked"}'
+        else:
+            raise ValueError("Unknown exit code.", exception)
+    return result
+
 
 # def borg_list_backedup_vm():
 #   try:

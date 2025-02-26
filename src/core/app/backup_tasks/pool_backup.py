@@ -142,7 +142,7 @@ def backup_subtask(info):
                 host_obj = host.filter_host_by_id(virtual_machine['host'])
                 pool_obj = pool.filter_pool_by_id(host_obj.pool_id)
                 backup_job.borg_prune(
-                    disk, backup_policy.filter_policy_by_id(pool_obj.policy_id))
+                    disk, backup_policy.get_policy_by_id(pool_obj.policy_id))
                 # Remove VM snapshot
                 backup_job.delete_snapshot()
                 # Return backup name

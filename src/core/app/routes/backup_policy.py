@@ -94,22 +94,16 @@ class backup_policy_update(BaseModel):
         }
 
 
-def filter_policy_by_id(policy_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
-    try:
-        with Session(engine) as session:
-            statement = select(Policies).where(
-                Policies.id == ensure_uuid(policy_id))
-            results = session.exec(statement)
-            policy = results.one()
-            if not policy:
-                raise ValueError(f'Policy with id {policy_id} not found')
-        return policy
-    except Exception as e:
-        raise ValueError(e)
+def get_policy_by_id(policy_id) -> Policies:
+    engine = database.init_db_connection()
+    with Session(engine) as session:
+        statement = select(Policies).where(
+            Policies.id == ensure_uuid(policy_id))
+        results = session.exec(statement)
+        policy = results.one()
+        if not policy:
+            raise ValueError(f'Policy with id {policy_id} not found')
+    return policy
 
 
 @celery.task(name='create_backup_policy')
