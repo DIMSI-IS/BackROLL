@@ -74,7 +74,7 @@ export default defineComponent({
           this.$store.dispatch("requestConnector", { token: this.$keycloak.token })
           this.$vaToast.init(({ title: response.data.state, message: 'connector has been successfully removed', color: 'success' }))
         })
-        .catch(function (error) {
+        .catch(error => {
           console.error(error)
           self.$vaToast.init(({
             title: 'Unable to remove connector',

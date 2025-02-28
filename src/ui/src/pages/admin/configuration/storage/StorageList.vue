@@ -93,7 +93,8 @@ export default defineComponent({
           this.$store.dispatch("requestStorage", { token: this.$keycloak.token })
           this.$vaToast.init({ title: response.data.state, message: 'Storage has been successfully removed', color: 'success' })
         })
-        .catch(function (error) {
+        .catch(error => {
+          console.error(error)
           self.$vaToast.init({
             title: 'Unable to remove storage',
             message: error?.response?.data?.detail ?? error,

@@ -126,7 +126,8 @@ export default {
             color: "success",
           });
         })
-        .catch(function (error) {
+        .catch(error => {
+          console.error(error)
           self.$vaToast.init({
             title: "Unable to add hypervisor",
             message: error?.response?.data?.detail ?? error,

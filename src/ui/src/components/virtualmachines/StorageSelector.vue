@@ -71,8 +71,13 @@ export default defineComponent({
           this.loadingStorages = true
           this.getStorageList(response.data.Location)
         })
-        .catch(e => {
-          console.log(e)
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
   }

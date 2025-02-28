@@ -13,7 +13,7 @@
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">
           <template #header(enabled)>auto-start</template>
           <template #cell(schedule)="{ value }"><va-chip size="small" outline square>{{ humanCron(value)
-              }}</va-chip></template>
+          }}</va-chip></template>
           <template #cell(externalhook)="{ value }"><va-chip
               @click="this.$router.push('/admin/configuration/externalhooks')" size="small" outline square>{{ value
               }}</va-chip></template>
@@ -118,7 +118,7 @@ export default defineComponent({
           this.$store.dispatch("requestPolicy", { token: this.$keycloak.token })
           this.$vaToast.init(({ title: response.data.state, message: 'Policy has been successfully removed', color: 'success' }))
         })
-        .catch(function (error) {
+        .catch(error => {
           console.error(error)
           self.$vaToast.init({
             title: 'Unable to remove policy',

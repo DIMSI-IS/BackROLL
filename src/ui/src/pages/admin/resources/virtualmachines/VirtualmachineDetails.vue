@@ -397,7 +397,8 @@ export default defineComponent({
             this.$vaToast.init({ title: response.data.state, message: 'Backup repository has been successfully unlocked', color: 'success' })
           }
         })
-        .catch(function (error) {
+        .catch(error => {
+          console.error(error)
           self.$vaToast.init({
             title: 'Unable to unlock backup repository',
             message: error?.data?.status ?? error,
@@ -451,8 +452,13 @@ export default defineComponent({
             this.loadingBackups = true
             this.getBackupList(response.data.Location)
           })
-          .catch(e => {
-            console.log(e)
+          .catch(error => {
+            console.error(error)
+            this.$vaToast.init({
+              title: "Unexpected error",
+              message: error,
+              color: "danger"
+            })
           })
       }
     },
@@ -487,8 +493,13 @@ export default defineComponent({
             this.loadingStorage = true
             this.getVmDetails(response.data.Location)
           })
-          .catch(e => {
-            console.log(e)
+          .catch(error => {
+            console.error(error)
+            this.$vaToast.init({
+              title: "Unexpected error",
+              message: error,
+              color: "danger"
+            })
           })
       }
     },

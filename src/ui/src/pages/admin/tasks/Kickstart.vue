@@ -248,7 +248,8 @@ export default {
           }
           this.$vaToast.init({ title: response.data.state, message: `Task has been successfully triggered`, color: 'success' })
         })
-        .catch(function (error) {
+        .catch(error => {
+          console.error(error)
           this.$vaToast.init({
             title: 'Error',
             message: 'Task triggering has failed',

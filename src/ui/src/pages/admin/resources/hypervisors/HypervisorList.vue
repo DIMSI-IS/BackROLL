@@ -194,7 +194,8 @@ export default defineComponent({
             this.$vaToast.init(({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' }))
             this.showConnectModal = false
           })
-          .catch(function (error) {
+          .catch(error => {
+            console.error(error)
             self.$vaToast.init({
               title: 'Error',
               message: error?.response?.data?.detail ?? error,
@@ -209,7 +210,7 @@ export default defineComponent({
         .then(response => {
           self.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
         })
-        .catch(function (error) {
+        .catch(error => {
           self.$vaToast.init({
             title: 'Unable to retrieve BackROLL SSH keys',
             message: error?.response?.data?.detail ?? error,
@@ -224,7 +225,7 @@ export default defineComponent({
           this.$store.dispatch("requestHost", { token: this.$keycloak.token })
           this.$vaToast.init(({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' }))
         })
-        .catch(function (error) {
+        .catch(error => {
           self.$vaToast.init({
             title: 'Unable to delete Hypervisor',
             message: error?.response?.data?.detail ?? error,

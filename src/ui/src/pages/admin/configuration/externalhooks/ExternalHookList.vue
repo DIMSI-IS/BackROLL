@@ -71,8 +71,8 @@ export default defineComponent({
           this.$store.dispatch("requestExternalHook", { token: this.$keycloak.token })
           this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully removed', color: 'success' })
         })
-        .catch(function (error) {
-          console.log(error)
+        .catch(error => {
+          console.error(error)
           self.$vaToast.init({
             title: 'Unable to remove external hook',
             message: error?.response?.data?.detail ?? error,

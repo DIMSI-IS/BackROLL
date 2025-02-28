@@ -91,7 +91,8 @@ export default defineComponent({
           this.$store.dispatch("requestPool", { token: this.$keycloak.token })
           this.$vaToast.init(({ title: response.data.state, message: 'Pool has been successfully deleted', color: 'success' }))
         })
-        .catch(function (error) {
+        .catch(error => {
+          console.error(error)
           self.$vaToast.init({
             title: 'Unable to delete pool',
             message: error?.response?.data?.detail ?? error,

@@ -110,7 +110,7 @@ export default createStore({
             });
           }
         })
-        .catch(function (error) {
+        .catch(error =>  {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -186,7 +186,7 @@ export default createStore({
             });
           }
         })
-        .catch(function (error) {
+        .catch(error =>  {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -251,7 +251,7 @@ export default createStore({
             });
           }
         })
-        .catch(function (error) {
+        .catch(error =>  {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -362,7 +362,7 @@ export default createStore({
             });
           }
         })
-        .catch(function (error) {
+        .catch(error =>  {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -507,7 +507,7 @@ export default createStore({
             });
           }
         })
-        .catch(function (error) {
+        .catch(error =>  {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -584,7 +584,7 @@ export default createStore({
             });
           }
         })
-        .catch(function (error) {
+        .catch(error =>  {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",

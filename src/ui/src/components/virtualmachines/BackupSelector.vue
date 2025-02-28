@@ -88,7 +88,7 @@ export default defineComponent({
             this.getBackupList(response.data.Location)
           })
           .catch(error => {
-            console.log(error)
+            console.error(error)
             this.$vaToast.init({
               title: "Unexpected error",
               message: error,
@@ -104,7 +104,7 @@ export default defineComponent({
             this.getBackupList(response.data.Location)
           })
           .catch(error => {
-            console.log(error)
+            console.error(error)
             this.$vaToast.init({
               title: "Unexpected error",
               message: error,
