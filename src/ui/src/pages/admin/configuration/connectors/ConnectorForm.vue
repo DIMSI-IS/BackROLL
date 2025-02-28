@@ -111,7 +111,7 @@ export default {
           });
         })
         .catch(error => {
-          console.error(error);
+          console.error(error)
           self.$vaToast.init({
             title: "Unable to add connector",
             message: error?.response?.data?.detail ?? error,

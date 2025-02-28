@@ -141,14 +141,14 @@ export default {
             };
           }
         })
-        .catch((error) => {
-          console.error(error);
+        .catch(error => {
+          console.error(error)
           this.$vaToast.init({
             title: "Unexpected error",
             message: error,
             color: "danger"
           })
-        });
+        })
     },
   },
 };
