@@ -87,8 +87,13 @@ export default defineComponent({
             // this.getVirtualMachineBackupsFromPath(response.data.backups.archives)
             this.getBackupList(response.data.Location)
           })
-          .catch(e => {
-            console.log(e)
+          .catch(error => {
+            console.log(error)
+            this.$vaToast.init({
+              title: "Unexpected error",
+              message: error,
+              color: "danger"
+            })
           })
       }
       else {
@@ -98,8 +103,13 @@ export default defineComponent({
             this.loadingBackups = true
             this.getBackupList(response.data.Location)
           })
-          .catch(e => {
-            console.log(e)
+          .catch(error => {
+            console.log(error)
+            this.$vaToast.init({
+              title: "Unexpected error",
+              message: error,
+              color: "danger"
+            })
           })
       }
     },
