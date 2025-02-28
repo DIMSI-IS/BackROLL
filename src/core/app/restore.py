@@ -54,14 +54,16 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
     print("DEBUG $$$ vm uuid: " + info["uuid"])
     for x in info:
         print(x)
+
+    redis_client = Redis(host='redis', port=6379)
     try:
-        redis_instance = Redis(host='redis', port=6379)
-        unique_task_key = f'''vmlock-{info}'''
-        if not redis_instance.exists(unique_task_key):
+        vm_lock_key = f'vmlock-{info}'
+        if not redis_client.exists(vm_lock_key):
             # No duplicated key found in redis - target IS NOT locked right now
-            redis_instance.set(unique_task_key, "")
-            redis_instance.expire(unique_task_key, 5400)
+            redis_client.set(vm_lock_key, "")
             try:
+                redis_client.expire(vm_lock_key, 5400)
+
                 if "host" in info:
                     # Retrieve VM host info
                     host_info = jsonable_encoder(
@@ -89,17 +91,13 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
                     except Exception:
                         raise
                         # self.retry(countdown=3**self.request.retries)
-            except:
-                raise
+            finally:
+                redis_client.delete(vm_lock_key)
         else:
             # Duplicated key found in redis - target IS locked right now
             raise ValueError("This task is already running / scheduled")
-        redis_instance.delete(unique_task_key)
-        print("Debug - restore_disk_vm - start")
-    except Exception as e:
-        redis_instance.delete(unique_task_key)
-        # potentially log error?
-        raise e
+    finally:
+        redis_client.quit()
 
 # def restore_task(self, info, hypervisor, disk_list, backup):
 
@@ -143,8 +141,8 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         try:
             # Extract selected borg archive
-            shell.subprocess_popen(f"""borg extract --sparse {make_path(
-                borg_repository, virtual_machine_info['name'])}::{backup_name}""")
+            shell.subprocess_popen(
+                f"""borg extract --sparse {make_path(borg_repository, virtual_machine_info['name'])}::{backup_name}""")
 
             # Skip directories
             shell.os_system('mv $(find -type f) ./')
@@ -192,7 +190,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
                 shell.os_system(
                     f"cp {virtual_machine_diskName} {kvm_storage_disk_path_tmp}")
 
-                # Fix chmod ownership of new qcow2 filedisk
+                # Fix permissions of new qcow2 filedisk
                 # subprocess.run(['chmod', '644', kvm_storage_disk_path_tmp], check = True)
                 shell.os_system(f"chmod 644 {kvm_storage_disk_path_tmp}")
 
@@ -269,8 +267,9 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
         storageList = storage.retrieve_storage()
         repository = storageList[1]["path"]
         print("repo : " + repository)
-        request = shell.subprocess_run(f"qemu-img info --output=json {disk}")
-        qemu_img_info = json.loads(request.stdout)
+        json_output = shell.subprocess_run(
+            f"qemu-img info --output=json {disk}")
+        qemu_img_info = json.loads(json_output)
         if qemu_img_info.get('full-backing-filename'):
             print(
                 f'[{virtual_machine_name}] Checking that {virtual_machine_name}\'s backing file has already been backed up')
@@ -298,9 +297,9 @@ def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, 
             print("end rebase")
 
             # qemu info to check the rebase
-            request = shell.subprocess_run(
+            json_output = shell.subprocess_run(
                 f"qemu-img info --output=json {disk}")
-            qemu_img_info = json.loads(request.stdout)
+            qemu_img_info = json.loads(json_output)
             # check if ok
             print("end info")
 

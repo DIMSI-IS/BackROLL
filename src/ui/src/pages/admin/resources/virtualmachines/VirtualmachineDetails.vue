@@ -20,7 +20,6 @@
           </template>
         </va-tabs>
         <div v-if="selectedTab === 'info'" style="padding-top: 1%;">
-
           <div class="row">
             <div class="flex xs6">
               <div class="item">
@@ -59,23 +58,27 @@
               STORAGE
             </span>
           </va-divider>
-          <va-list v-if="!loadingStorage">
-            <va-list-item v-for="(storage, index) in storageList" :key="index">
-              <va-list-item-section>
-                <va-list-item-label>
-                  <va-chip size="small" square color="info">
-                    {{ storage.device.toUpperCase() }}
-                  </va-chip>
-                </va-list-item-label>
-                <va-list-item-label caption>
-                  <b>{{ storage.source }}</b>
-                </va-list-item-label>
-              </va-list-item-section>
-            </va-list-item>
-          </va-list>
-          <div v-else class="flex-center ma-3">
+          <div v-if="loadingStorage" class="flex-center ma-3">
             <looping-rhombuses-spinner :animation-duration="1500" :size="50" color="#2c82e0" />
           </div>
+          <va-data-table v-else class="mb-4" :items="storageList" :columns="[
+            { key: 'device', sortable: true },
+            { key: 'source', sortable: true },
+            { key: 'formattedStatus', label: 'status', sortable: true }]">
+            <template #cell(device)="cell">
+              <va-chip size="small" square color="info">
+                {{ cell.source.toUpperCase() }}
+              </va-chip>
+            </template>
+            <template #cell(source)="cell">
+              {{ cell.source }}
+            </template>
+            <template #cell(formattedStatus)="cell">
+              <va-chip size="small" :color="cell.source.ok ? 'success' : 'danger'">
+                {{ cell.source.label }}
+              </va-chip>
+            </template>
+          </va-data-table>
           <va-divider class="divider">
             <span class="px-2">
               MISCELLANEOUS
@@ -90,21 +93,23 @@
           </va-button>
         </div>
         <div v-else-if="selectedTab === 'save'" style="padding-top: 1%;">
-          <div v-if="!loadingBackups">
+          <div v-if="loadingBackups" class="flex-center ma-3">
+            <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
+          </div>
+          <div v-else>
             <div class="row">
               <div class="flex xs6">
                 <div class="item">
                   <va-input class="mb-4" v-model="mostRecentBackup" label="Most recent backup" readonly />
+                  <va-input class="mb-4" v-model="oldestBackup" label="Oldest backup" readonly />
                 </div>
               </div>
               <div class="flex xs6">
                 <div class="item">
-                  <va-input class="mb-4" v-model="oldestBackup" label="Oldest backup" readonly />
-                </div>
-              </div>
-              <div class="flex xs12">
-                <div class="item">
                   <va-input class="mb-4" v-model="nextRun" label="Next scheduled backup" readonly />
+                  <va-button class="mb-4" @click="startBackup" :disabled="backingUp">
+                    {{ backingUp ? "Backing up…" : "Backup now" }}
+                  </va-button>
                 </div>
               </div>
             </div>
@@ -148,9 +153,6 @@
                 </tr>
               </template>
             </va-data-table>
-          </div>
-          <div v-else class="flex-center ma-3">
-            <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
           </div>
         </div>
       </va-card-content>
@@ -215,13 +217,17 @@ export default defineComponent({
       sortBy: 'start',
       sortingOrder: 'desc',
       selectedTab: 'info',
-      storageList: [],
-      loadingStorage: false,
       loadingBackups: false,
       selectedBackup: null,
       showDeleteModal: false,
       showDiskRestoreModal: false,
-      backupInfo: { archives: [] }
+      backupInfo: { archives: [] },
+
+      backingUp: false,
+
+      storageList: [],
+      loadingStorage: false,
+      storageErrorToShow: null,
     }
   },
   watch: {
@@ -323,6 +329,40 @@ export default defineComponent({
         .catch(e => {
           this.errors.push(e)
           this.$vaToast.init({ message: 'Unable to start the disk recovery task', color: 'danger' })
+        })
+    },
+    startBackup() {
+      this.backingUp = true;
+      axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/singlebackup/${this.virtualMachine.uuid}`, {}, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        .then(response => {
+          this.$vaToast.init({ message: 'Backup requested to backend', color: 'light' })
+          this.trackBackupJob(response.data.Location)
+        })
+        .catch(e => {
+          this.backingUp = false;
+          this.errors.push(e)
+          this.$vaToast.init({ message: 'Unable to backup VM', color: 'danger' })
+        })
+    },
+    trackBackupJob(location) {
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        .then(response => {
+          if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
+            setTimeout(() => {
+              this.trackBackupJob(location)
+            }, 2000)
+          } else if (response.data.state === 'SUCCESS') {
+            this.backingUp = false;
+            this.$vaToast.init({ message: 'Backup has been successfully done', color: 'success' })
+            this.requestBackupList()
+          } else if (response.data.state === 'FAILURE') {
+            this.backingUp = false;
+            this.$vaToast.init({ message: 'Unable to backup VM', color: 'danger' })
+          }
+        })
+        .catch(e => {
+          this.backingUp = false;
+          console.log(e)
         })
     },
     deleteBackup: function () {
@@ -470,7 +510,16 @@ export default defineComponent({
               this.getVmDetails(location)
             }, 2000)
           } else if (response.data.state === 'SUCCESS') {
-            this.storageList = response.data.info.storage
+            const storageList = response.data.info.storage;
+            for (const disk of storageList) {
+              const { status } = disk;
+              disk.formattedStatus = {
+                label: !status.exists ? "Not found" : !status.readable ? "No read access" : "Available",
+                ok: Object.values(status).every(e => e)
+              }
+            }
+            this.storageList = storageList;
+
             this.loadingStorage = false
           } else if (response.data.state === 'FAILURE') {
             this.loadingStorage = false

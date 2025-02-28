@@ -23,9 +23,8 @@ from pydantic import BaseModel, Json
 from celery.result import allow_join_result
 from celery import subtask, group, chain
 
-import logging
-
 import json
+import re
 
 from app import app
 from app import celery as celery_app
@@ -43,6 +42,8 @@ from app.routes import storage
 from app.backup_tasks import manage_backup
 
 from app.patch import make_path
+from app.virtual_machine_helper import add_disk_access_check
+from app import shell
 
 # CS Imports
 from app.cloudstack import virtual_machine as cs_manage_vm
@@ -224,6 +225,9 @@ def retrieve_virtual_machine_disk(self, virtual_machine_list, virtual_machine_id
             for disk in virtual_machine['storage']:
                 disk["source"] = make_path(
                     "/mnt", cs_manage_vm.listStorage(connector, disk)["id"], disk["source"])
+
+        add_disk_access_check(virtual_machine)
+
         return virtual_machine
     except Exception as e:
         raise ValueError(e)

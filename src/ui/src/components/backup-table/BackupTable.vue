@@ -60,10 +60,8 @@
               `/resources/${data[rowIndex].targetPage}/${data[rowIndex].targetUuid}`
             )
             " :disabled="!data[rowIndex].targetUuid" />
-          <va-button v-if="data[rowIndex].state == 'FAILURE'" icon="bug_report" @click="
-            (selectedTask = data[rowIndex]);
-          retrieveTasksLogs(data[rowIndex].uuid)
-            " />
+          <va-button v-if="data[rowIndex].state == 'FAILURE'" icon="bug_report"
+            @click="showTaskError(data[rowIndex])" />
         </va-button-group>
       </template>
 
@@ -75,28 +73,17 @@
         </tr>
       </template>
     </va-data-table>
-    <va-modal v-model="logModal" size="large" :hide-default-actions="true">
-      <template #header>
-        <h2>
-          <va-icon name="bug_report" color="info" />
-          Task logs ({{ selectedTask.target }})
-        </h2>
-      </template>
-      <hr />
-      <div class="consoleStyle">
-        {{ taskInfo.traceback }}
-      </div>
-      <template #footer>
-        <va-button @click="logModal = !logModal"> Close </va-button>
-      </template>
-    </va-modal>
+    <error-modal v-model="taskErrorToShow" :title="`Task logs (${selectedTask?.target})`"></error-modal>
   </div>
 </template>
 <script>
 import axios from "axios";
 
+import ErrorModal from "../modals/ErrorModal.vue";
+
 export default {
   name: "backup-table",
+  components: { ErrorModal },
   props: {
     pagination: { type: Boolean, default: false },
     perPage: { type: Number, default: 500 },
@@ -106,9 +93,8 @@ export default {
   data() {
     return {
       currentPage: 1,
-      logModal: false,
       selectedTask: null,
-      taskInfo: { traceback: null },
+      taskErrorToShow: null,
     };
   },
   computed: {
@@ -123,23 +109,18 @@ export default {
     },
   },
   methods: {
-    retrieveTasksLogs(taskId) {
-      this.logModal = !this.logModal;
+    showTaskError(task) {
+      this.selectedTask = task;
+      this.taskErrorToShow = "Retrieving logs…";
       axios
-        .get(`${this.$store.state.endpoint.api}/api/v1/logs/${taskId}`, {
+        .get(`${this.$store.state.endpoint.api}/api/v1/logs/${task.uuid}`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${this.$keycloak.token}`,
           },
         })
         .then((response) => {
-          if (response.data) {
-            this.taskInfo.traceback = JSON.parse(response.data).traceback;
-          } else {
-            this.taskInfo = {
-              traceback: "Unable to retrieve logs for this task.",
-            };
-          }
+          this.taskErrorToShow = JSON.parse(response.data).traceback;
         })
         .catch(error => {
           console.error(error)
