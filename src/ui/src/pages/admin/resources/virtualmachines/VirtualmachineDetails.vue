@@ -326,8 +326,9 @@ export default defineComponent({
           this.$vaToast.init({ message: 'Restore task has been sent to backend', color: 'light' })
           this.trackRestoreJob(response.data.Location)
         })
-        .catch(e => {
-          this.errors.push(e)
+        .catch(error => {
+          this.errors.push(error)
+          console.error(error)
           this.$vaToast.init({ message: 'Unable to start the disk recovery task', color: 'danger' })
         })
     },
@@ -338,9 +339,10 @@ export default defineComponent({
           this.$vaToast.init({ message: 'Backup requested to backend', color: 'light' })
           this.trackBackupJob(response.data.Location)
         })
-        .catch(e => {
+        .catch(error => {
           this.backingUp = false;
-          this.errors.push(e)
+          this.errors.push(error)
+          console.error(error)
           this.$vaToast.init({ message: 'Unable to backup VM', color: 'danger' })
         })
     },
@@ -360,9 +362,14 @@ export default defineComponent({
             this.$vaToast.init({ message: 'Unable to backup VM', color: 'danger' })
           }
         })
-        .catch(e => {
+        .catch(error => {
           this.backingUp = false;
-          console.log(e)
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
     deleteBackup: function () {
@@ -375,8 +382,9 @@ export default defineComponent({
           this.$vaToast.init({ message: 'Delete backup requested to backend', color: 'light' })
           this.trackDeleteBackupJob(response.data.Location)
         })
-        .catch(e => {
-          this.errors.push(e)
+        .catch(error => {
+          this.errors.push(error)
+          console.error(error)
           this.$vaToast.init({ message: 'Unable to delete backup', color: 'danger' })
         })
     },

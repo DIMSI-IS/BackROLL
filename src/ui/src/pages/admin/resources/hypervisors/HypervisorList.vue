@@ -209,6 +209,7 @@ export default defineComponent({
           this.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
         })
         .catch(error => {
+          console.error(error)
           this.$vaToast.init({
             title: 'Unable to retrieve BackROLL SSH keys',
             message: error?.response?.data?.detail ?? error,
@@ -223,6 +224,7 @@ export default defineComponent({
           this.$vaToast.init({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' })
         })
         .catch(error => {
+          console.error(error)
           this.$vaToast.init({
             title: 'Unable to delete Hypervisor',
             message: error?.response?.data?.detail ?? error,
