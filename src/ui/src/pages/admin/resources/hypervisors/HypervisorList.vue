@@ -190,7 +190,7 @@ export default defineComponent({
         axios.post(`${this.$store.state.endpoint.api}/api/v1/connect/${this.selectedHost.id}`, { ip_address: this.selectedHost.ipaddress, username: this.user }, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
           .then(response => {
             this.$store.dispatch("requestHost", { token: this.$keycloak.token })
-            this.$vaToast.init(({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' }))
+            this.$vaToast.init({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' })
             this.showConnectModal = false
           })
           .catch(error => {
@@ -220,7 +220,7 @@ export default defineComponent({
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           this.$store.dispatch("requestHost", { token: this.$keycloak.token })
-          this.$vaToast.init(({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' }))
+          this.$vaToast.init({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' })
         })
         .catch(error => {
           this.$vaToast.init({

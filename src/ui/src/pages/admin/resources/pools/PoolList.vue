@@ -88,7 +88,7 @@ export default defineComponent({
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/pools/${this.selectedPool.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           this.$store.dispatch("requestPool", { token: this.$keycloak.token })
-          this.$vaToast.init(({ title: response.data.state, message: 'Pool has been successfully deleted', color: 'success' }))
+          this.$vaToast.init({ title: response.data.state, message: 'Pool has been successfully deleted', color: 'success' })
         })
         .catch(error => {
           console.error(error)

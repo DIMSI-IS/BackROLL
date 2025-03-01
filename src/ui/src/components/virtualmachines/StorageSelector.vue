@@ -52,7 +52,7 @@ export default defineComponent({
             this.loadingStorages = false
           } else if (response.data.state === 'FAILURE') {
             this.loadingStorages = false
-            this.$vaToast.init(({ message: response.data.status, color: 'danger' }))
+            this.$vaToast.init({ message: response.data.status, color: 'danger' })
           }
         })
         .catch(error => {
