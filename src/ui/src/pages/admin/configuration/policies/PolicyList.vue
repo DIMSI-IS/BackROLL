@@ -12,14 +12,20 @@
       <va-card-content>
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">
           <template #header(enabled)>auto-start</template>
-          <template #cell(schedule)="{ value }"><va-chip size="small" outline square>{{ humanCron(value)
-          }}</va-chip></template>
-          <template #cell(externalhook)="{ value }"><va-chip
-              @click="this.$router.push('/admin/configuration/externalhooks')" size="small" outline square>{{ value
-              }}</va-chip></template>
-          <template #cell(enabled)="{ value }"><va-chip size="small"
-              :color="JSON.parse(value) ? 'success' : 'danger'">{{ JSON.parse(value) ? 'Enabled' : 'Disabled'
-              }}</va-chip></template>
+          <template #cell(schedule)="{ value }">
+            <va-chip size="small" outline square>
+              {{ humanCron(value) }}
+            </va-chip>
+          </template>
+          <template #cell(externalhook)="{ value }">
+            <va-chip @click="this.$router.push('/admin/configuration/externalhooks')" size="small" outline square>
+              {{ value }}
+            </va-chip>
+          </template>
+          <template #cell(enabled)="{ value }"><va-chip size="small" :color="JSON.parse(value) ? 'success' : 'danger'">
+              {{ JSON.parse(value) ? 'Enabled' : 'Disabled' }}
+            </va-chip>
+          </template>
           <template #cell(storage)="{ value }">
             <va-chip size="small" square @click="this.$router.push('/admin/configuration/storage')">
               {{ getStorage(value) }}
@@ -111,7 +117,6 @@ export default defineComponent({
       }
     },
     deletePolicy() {
-      const self = this
       const policy = { ...this.selectedPolicy }
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/backup_policies/${policy.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
@@ -120,7 +125,7 @@ export default defineComponent({
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: 'Unable to remove policy',
             message: error?.response?.data?.detail ?? error,
             color: 'danger'

@@ -205,7 +205,6 @@ export default {
       }
     },
     startJob() {
-      //const self  = this
       let route = null
       let args = {}
       let url = null

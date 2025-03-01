@@ -426,7 +426,6 @@ export default defineComponent({
         })
     },
     getBorgBreakLock: function (location) {
-      const self = this
       axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
@@ -439,7 +438,7 @@ export default defineComponent({
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: 'Unable to unlock backup repository',
             message: error?.data?.status ?? error,
             color: 'danger'

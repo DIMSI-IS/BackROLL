@@ -87,7 +87,6 @@ export default defineComponent({
   },
   methods: {
     deleteStorage() {
-      const self = this
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/storage/${JSON.parse(JSON.stringify(this.selectedStorage)).id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           this.$store.dispatch("requestStorage", { token: this.$keycloak.token })
@@ -95,7 +94,7 @@ export default defineComponent({
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: 'Unable to remove storage',
             message: error?.response?.data?.detail ?? error,
             color: 'danger'

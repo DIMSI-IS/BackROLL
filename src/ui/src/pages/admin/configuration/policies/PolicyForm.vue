@@ -209,7 +209,6 @@ export default {
       });
     },
     addPolicy() {
-      const self = this;
       axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/backup_policies`,
@@ -234,7 +233,7 @@ export default {
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: "Unable to add backup policy",
             message: error?.response?.data?.detail ?? error,
             color: "danger",

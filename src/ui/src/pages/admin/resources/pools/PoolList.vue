@@ -85,7 +85,6 @@ export default defineComponent({
       }
     },
     deletePool() {
-      const self = this
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/pools/${this.selectedPool.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           this.$store.dispatch("requestPool", { token: this.$keycloak.token })
@@ -93,7 +92,7 @@ export default defineComponent({
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: 'Unable to delete pool',
             message: error?.response?.data?.detail ?? error,
             color: 'danger'

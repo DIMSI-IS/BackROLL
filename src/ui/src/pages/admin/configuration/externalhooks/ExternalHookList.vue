@@ -64,7 +64,6 @@ export default defineComponent({
   },
   methods: {
     deleteHook() {
-      const self = this
       const hook = { ...this.selectedHook }
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${hook.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
@@ -73,7 +72,7 @@ export default defineComponent({
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: 'Unable to remove external hook',
             message: error?.response?.data?.detail ?? error,
             color: 'danger'

@@ -113,7 +113,6 @@ export default {
       });
     },
     addPool() {
-      self = this;
       axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/pools`,
@@ -136,7 +135,7 @@ export default {
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: "Unable to add pool",
             message: error?.response?.data?.detail ?? error,
             color: "danger",

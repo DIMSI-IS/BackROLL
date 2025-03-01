@@ -123,7 +123,6 @@ export default {
       });
     },
     addStorage() {
-      const self = this;
       const { name, path } = this.formStorage;
       axios
         .post(
@@ -149,7 +148,7 @@ export default {
         })
         .catch(error => {
           console.error(error)
-          self.$vaToast.init({
+          this.$vaToast.init({
             title: "Unable to add storage",
             message: error?.response?.data?.detail ?? error,
             color: "danger",
