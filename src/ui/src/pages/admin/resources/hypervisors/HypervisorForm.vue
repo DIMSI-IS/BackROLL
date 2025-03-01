@@ -7,32 +7,18 @@
       <h1 v-else>Adding new hypervisor</h1>
     </va-card-title>
     <va-card-content v-if="!hypervisorId || stateHypervisor">
-      <va-form
-        ref="form"
-        @validation="hypersivorId ? updateHypervisor() : addHypervisor()"
-      >
-        <va-input
-          label="Hostname"
-          v-model="formHypervisor.hostname"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+      <va-form ref="form" @validation="hypersivorId ? updateHypervisor() : addHypervisor()">
+        <va-input label="Hostname" v-model="formHypervisor.hostname"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          label="IP Address or Domain Name"
-          v-model="formHypervisor.ipAddress"
-          :rules="[
-            (value) =>
-              value?.match(/^[0-9a-zA-Z.-]+$/) ||
-              'Field is required and must be a valid IP address or domain name.',
-          ]"
-        />
+        <va-input label="IP Address or Domain Name" v-model="formHypervisor.ipAddress" :rules="[
+          (value) =>
+            value?.match(/^[0-9a-zA-Z.-]+$/) ||
+            'Field is required and must be a valid IP address or domain name.',
+        ]" />
         <br />
-        <va-select
-          label="Select Pool"
-          v-model="selectedPool"
-          :options="poolOptions"
-          :rules="[(value) => value || 'Field is required']"
-        />
+        <va-select label="Select Pool" v-model="selectedPool" :options="poolOptions"
+          :rules="[(value) => value || 'Field is required']" />
         <br />
         <va-input label="Tag (optional)" v-model="formHypervisor.tags" />
       </va-form>
@@ -140,16 +126,13 @@ export default {
             color: "success",
           });
         })
-        .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init({
-              title: "Unable to add hypervisor",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unable to add hypervisor",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
   },

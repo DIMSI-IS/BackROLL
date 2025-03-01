@@ -11,41 +11,21 @@
         For now, the only supported connector is Cloudstack
       </va-alert>
       <br />
-      <va-form
-        ref="form"
-        @validation="connectorId ? updateConnector() : addConnector()"
-      >
-        <va-input
-          label="Name"
-          v-model="formConnector.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+      <va-form ref="form" @validation="connectorId ? updateConnector() : addConnector()">
+        <va-input label="Name" v-model="formConnector.name"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          label="Endpoint URL"
-          v-model="formConnector.url"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+        <va-input label="Endpoint URL" v-model="formConnector.url"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          label="Login"
-          v-model="formConnector.login"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+        <va-input label="Login" v-model="formConnector.login"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          v-model="formConnector.password"
-          :type="isPasswordVisible ? 'text' : 'password'"
-          label="Password"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        >
+        <va-input v-model="formConnector.password" :type="isPasswordVisible ? 'text' : 'password'" label="Password"
+          :rules="[(value) => value?.length > 0 || 'Field is required']">
           <template #appendInner>
-            <va-icon
-              :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
-              size="small"
-              color="--va-primary"
-              @click="isPasswordVisible = !isPasswordVisible"
-            />
+            <va-icon :name="isPasswordVisible ? 'visibility_off' : 'visibility'" size="small" color="--va-primary"
+              @click="isPasswordVisible = !isPasswordVisible" />
           </template>
         </va-input>
       </va-form>
@@ -107,7 +87,6 @@ export default {
       });
     },
     addConnector() {
-      const self = this;
       axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/connectors`,
@@ -130,17 +109,13 @@ export default {
             color: "success",
           });
         })
-        .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            // TODO error.message ?
-            self.$vaToast.init({
-              title: "Unable to add connector",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unable to add connector",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
   },

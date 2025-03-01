@@ -204,9 +204,7 @@ import parser from 'cron-parser'
 
 export default defineComponent({
   name: 'VirtualmachineDetails',
-  components: {
-    ...spinners,
-  },
+  components: { ...spinners },
   data() {
     return {
       columns: [
@@ -325,25 +323,27 @@ export default defineComponent({
       }
       axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/restore/${this.virtualMachine.uuid}`, json, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
-          this.$vaToast.init(({ message: 'Restore task has been sent to backend', color: 'light' }))
+          this.$vaToast.init({ message: 'Restore task has been sent to backend', color: 'light' })
           this.trackRestoreJob(response.data.Location)
         })
-        .catch(e => {
-          this.errors.push(e)
-          this.$vaToast.init(({ message: 'Unable to start the disk recovery task', color: 'danger' }))
+        .catch(error => {
+          this.errors.push(error)
+          console.error(error)
+          this.$vaToast.init({ message: 'Unable to start the disk recovery task', color: 'danger' })
         })
     },
     startBackup() {
       this.backingUp = true;
       axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/singlebackup/${this.virtualMachine.uuid}`, {}, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
-          this.$vaToast.init(({ message: 'Backup requested to backend', color: 'light' }))
+          this.$vaToast.init({ message: 'Backup requested to backend', color: 'light' })
           this.trackBackupJob(response.data.Location)
         })
-        .catch(e => {
+        .catch(error => {
           this.backingUp = false;
-          this.errors.push(e)
-          this.$vaToast.init(({ message: 'Unable to backup VM', color: 'danger' }))
+          this.errors.push(error)
+          console.error(error)
+          this.$vaToast.init({ message: 'Unable to backup VM', color: 'danger' })
         })
     },
     trackBackupJob(location) {
@@ -355,16 +355,21 @@ export default defineComponent({
             }, 2000)
           } else if (response.data.state === 'SUCCESS') {
             this.backingUp = false;
-            this.$vaToast.init(({ message: 'Backup has been successfully done', color: 'success' }))
+            this.$vaToast.init({ message: 'Backup has been successfully done', color: 'success' })
             this.requestBackupList()
           } else if (response.data.state === 'FAILURE') {
             this.backingUp = false;
-            this.$vaToast.init(({ message: 'Unable to backup VM', color: 'danger' }))
+            this.$vaToast.init({ message: 'Unable to backup VM', color: 'danger' })
           }
         })
-        .catch(e => {
+        .catch(error => {
           this.backingUp = false;
-          console.log(e)
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
     deleteBackup: function () {
@@ -374,12 +379,13 @@ export default defineComponent({
       }
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/backups/${JSON.parse(JSON.stringify(this.selectedBackup)).name}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
-          this.$vaToast.init(({ message: 'Delete backup requested to backend', color: 'light' }))
+          this.$vaToast.init({ message: 'Delete backup requested to backend', color: 'light' })
           this.trackDeleteBackupJob(response.data.Location)
         })
-        .catch(e => {
-          this.errors.push(e)
-          this.$vaToast.init(({ message: 'Unable to delete backup', color: 'danger' }))
+        .catch(error => {
+          this.errors.push(error)
+          console.error(error)
+          this.$vaToast.init({ message: 'Unable to delete backup', color: 'danger' })
         })
     },
     trackDeleteBackupJob(location) {
@@ -390,14 +396,19 @@ export default defineComponent({
               this.trackDeleteBackupJob(location)
             }, 2000)
           } else if (response.data.state === 'SUCCESS') {
-            this.$vaToast.init(({ message: 'Backup has been successfully deleted', color: 'success' }))
+            this.$vaToast.init({ message: 'Backup has been successfully deleted', color: 'success' })
             this.requestBackupList()
           } else if (response.data.state === 'FAILURE') {
-            this.$vaToast.init(({ message: 'Unable to delete backup', color: 'danger' }))
+            this.$vaToast.init({ message: 'Unable to delete backup', color: 'danger' })
           }
         })
-        .catch(e => {
-          console.log(e)
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
     trackRestoreJob(location) {
@@ -408,17 +419,21 @@ export default defineComponent({
               this.getBackupList(location)
             }, 2000)
           } else if (response.data.state === 'SUCCESS') {
-            this.$vaToast.init(({ message: 'VM successfully restored', color: 'success' }))
+            this.$vaToast.init({ message: 'VM successfully restored', color: 'success' })
           } else if (response.data.state === 'FAILURE') {
-            this.$vaToast.init(({ message: 'Unable to restore VM', color: 'danger' }))
+            this.$vaToast.init({ message: 'Unable to restore VM', color: 'danger' })
           }
         })
-        .catch(e => {
-          console.log(e)
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
     getBorgBreakLock: function (location) {
-      const self = this
       axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
@@ -426,23 +441,31 @@ export default defineComponent({
               this.getBorgBreakLock(location)
             }, 2000)
           } else if (response.data.state === 'SUCCESS') {
-            this.$vaToast.init(({ title: response.data.state, message: 'Backup repository has been successfully unlocked', color: 'success' }))
+            this.$vaToast.init({ title: response.data.state, message: 'Backup repository has been successfully unlocked', color: 'success' })
           }
         })
-        .catch(function (response) {
-          if (response.data.status) {
-            self.$vaToast.init(({ message: response.data.status, title: 'Unable to unlock backup repository', color: 'danger' }))
-          }
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: 'Unable to unlock backup repository',
+            message: error?.data?.status ?? error,
+            color: 'danger'
+          })
         })
     },
     requestBorgBreakLock() {
       axios.get(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/breaklock`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
-          this.$vaToast.init(({ title: response.data.state, message: 'Asking to break backup repository lock...', color: 'light' }))
+          this.$vaToast.init({ title: response.data.state, message: 'Asking to break backup repository lock...', color: 'light' })
           this.getBorgBreakLock(response.data.Location)
         })
-        .catch(e => {
-          console.error(e)
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
     getBackupList(location) {
@@ -457,11 +480,16 @@ export default defineComponent({
             this.loadingBackups = false
           } else if (response.data.state === 'FAILURE') {
             this.loadingBackups = false
-            this.$vaToast.init(({ message: response.data.status, color: 'danger' }))
+            this.$vaToast.init({ message: response.data.status, color: 'danger' })
           }
         })
-        .catch(e => {
-          console.log(e)
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
     requestBackupList() {
@@ -471,8 +499,13 @@ export default defineComponent({
             this.loadingBackups = true
             this.getBackupList(response.data.Location)
           })
-          .catch(e => {
-            console.log(e)
+          .catch(error => {
+            console.error(error)
+            this.$vaToast.init({
+              title: "Unexpected error",
+              message: error,
+              color: "danger"
+            })
           })
       }
     },
@@ -497,11 +530,16 @@ export default defineComponent({
             this.loadingStorage = false
           } else if (response.data.state === 'FAILURE') {
             this.loadingStorage = false
-            this.$vaToast.init(({ message: response.data.status, color: 'danger' }))
+            this.$vaToast.init({ message: response.data.status, color: 'danger' })
           }
         })
-        .catch(e => {
-          console.log(e)
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
         })
     },
     requestVmDetails() {
@@ -511,8 +549,13 @@ export default defineComponent({
             this.loadingStorage = true
             this.getVmDetails(response.data.Location)
           })
-          .catch(e => {
-            console.log(e)
+          .catch(error => {
+            console.error(error)
+            this.$vaToast.init({
+              title: "Unexpected error",
+              message: error,
+              color: "danger"
+            })
           })
       }
     },

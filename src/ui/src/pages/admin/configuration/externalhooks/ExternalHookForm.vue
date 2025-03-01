@@ -10,32 +10,16 @@
       </va-alert>
       <br />
       <va-form ref="form" @validation="hookId ? updateHook() : addHook()">
-        <va-input
-          label="Name"
-          v-model="formHook.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+        <va-input label="Name" v-model="formHook.name" :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          label="Provider"
-          v-model="formHook.provider"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-          readonly
-        />
+        <va-input label="Provider" v-model="formHook.provider"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" readonly />
         <br />
-        <va-input
-          v-model="formHook.value"
-          :type="isPasswordVisible ? 'text' : 'password'"
-          label="Value"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        >
+        <va-input v-model="formHook.value" :type="isPasswordVisible ? 'text' : 'password'" label="Value"
+          :rules="[(value) => value?.length > 0 || 'Field is required']">
           <template #appendInner>
-            <va-icon
-              :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
-              size="small"
-              color="--va-primary"
-              @click="isPasswordVisible = !isPasswordVisible"
-            />
+            <va-icon :name="isPasswordVisible ? 'visibility_off' : 'visibility'" size="small" color="--va-primary"
+              @click="isPasswordVisible = !isPasswordVisible" />
           </template>
         </va-input>
       </va-form>
@@ -98,7 +82,6 @@ export default {
       });
     },
     addHook() {
-      const self = this;
       axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/externalhooks`,
@@ -121,16 +104,13 @@ export default {
             color: "success",
           });
         })
-        .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init({
-              title: "Unable to add external hook",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unable to add external hook",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
   },

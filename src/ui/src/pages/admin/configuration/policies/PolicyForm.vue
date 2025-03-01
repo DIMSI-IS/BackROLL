@@ -5,50 +5,26 @@
       <h1 v-else>Adding new policy</h1>
     </va-card-title>
     <va-card-content v-if="!policyId || statePolicy">
-      <va-form
-        tag="form"
-        @submit.prevent="policyId ? updatePolicy() : addPolicy()"
-      >
-        <va-input
-          label="Name"
-          v-model="formPolicy.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
-        <va-input
-          class="mt-3"
-          label="Description"
-          v-model="formPolicy.description"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+      <va-form tag="form" @submit.prevent="policyId ? updatePolicy() : addPolicy()">
+        <va-input label="Name" v-model="formPolicy.name"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input class="mt-3" label="Description" v-model="formPolicy.description"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <va-divider class="divider">
           <span class="px-2"> SCHEDULING </span>
         </va-divider>
-        <va-select
-          class="mb-4"
-          label="Days on which the backup task must launch"
-          :options="dayOptions"
-          v-model="selectedDays"
-          multiple
-        >
+        <va-select class="mb-4" label="Days on which the backup task must launch" :options="dayOptions"
+          v-model="selectedDays" multiple>
           <template #prependInner>
             <va-icon name="event" size="small" color="primary" />
           </template>
         </va-select>
-        <va-time-input
-          v-model="timeToBackup"
-          label="At which time ?"
-          ampm
-          leftIcon
-        />
+        <va-time-input v-model="timeToBackup" label="At which time ?" ampm leftIcon />
         <va-divider class="divider">
           <span class="px-2"> STORAGE BACKEND </span>
         </va-divider>
-        <va-select
-          label="Select storage"
-          v-model="selectedStorage"
-          :options="storageOptions"
-          :rules="[(value) => value || 'Field is required']"
-        >
+        <va-select label="Select storage" v-model="selectedStorage" :options="storageOptions"
+          :rules="[(value) => value || 'Field is required']">
           <template #prependInner>
             <va-icon name="storage" size="small" color="primary" />
           </template>
@@ -79,12 +55,7 @@
         <va-divider class="divider">
           <span class="px-2"> NOTIFICATIONS </span>
         </va-divider>
-        <va-select
-          label="Select external hook"
-          v-model="selectedExternalHook"
-          :options="externalHookOptions"
-          clearable
-        >
+        <va-select label="Select external hook" v-model="selectedExternalHook" :options="externalHookOptions" clearable>
           <template #prependInner>
             <va-icon name="webhook" size="small" color="primary" />
           </template>
@@ -238,7 +209,6 @@ export default {
       });
     },
     addPolicy() {
-      const self = this;
       axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/backup_policies`,
@@ -261,16 +231,13 @@ export default {
             color: "success",
           });
         })
-        .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init({
-              title: "Unable to add backup policy",
-              message: error.response.data.detail,
-              color: "danger",
-            });
-          }
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unable to add backup policy",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
         });
     },
   },

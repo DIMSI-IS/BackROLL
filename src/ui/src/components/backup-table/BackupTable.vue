@@ -83,9 +83,7 @@ import ErrorModal from "../modals/ErrorModal.vue";
 
 export default {
   name: "backup-table",
-  components: {
-    ErrorModal
-  },
+  components: { ErrorModal },
   props: {
     pagination: { type: Boolean, default: false },
     perPage: { type: Number, default: 500 },
@@ -124,10 +122,14 @@ export default {
         .then((response) => {
           this.taskErrorToShow = JSON.parse(response.data).traceback;
         })
-        .catch((e) => {
-          this.taskErrorToShow = "Unable to retrieve logs for this task.";
-          console.log(e);
-        });
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: "Unexpected error",
+            message: error,
+            color: "danger"
+          })
+        })
     },
   },
 };

@@ -187,26 +187,30 @@ export default defineComponent({
     },
     connectHost() {
       if (this.validation) {
-        const self = this
         axios.post(`${this.$store.state.endpoint.api}/api/v1/connect/${this.selectedHost.id}`, { ip_address: this.selectedHost.ipaddress, username: this.user }, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
           .then(response => {
             this.$store.dispatch("requestHost", { token: this.$keycloak.token })
-            this.$vaToast.init(({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' }))
+            this.$vaToast.init({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' })
             this.showConnectModal = false
           })
-          .catch(function (error) {
-            self.$vaToast.init(({ message: error?.response?.data?.detail ?? error, title: 'Error', color: 'danger' }))
+          .catch(error => {
+            console.error(error)
+            this.$vaToast.init({
+              title: 'Error',
+              message: error?.response?.data?.detail ?? error,
+              color: 'danger'
+            })
           })
       }
     },
     requestKeys() {
-      const self = this
       axios.get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
-          self.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
+          this.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
         })
-        .catch(function (error) {
-          self.$vaToast.init({
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
             title: 'Unable to retrieve BackROLL SSH keys',
             message: error?.response?.data?.detail ?? error,
             color: 'danger'
@@ -214,18 +218,18 @@ export default defineComponent({
         })
     },
     deleteHost() {
-      const self = this
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           this.$store.dispatch("requestHost", { token: this.$keycloak.token })
-          this.$vaToast.init(({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' }))
+          this.$vaToast.init({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' })
         })
-        .catch(function (error) {
-          if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            self.$vaToast.init(({ title: 'Unable to delete Hypervisor', message: error.response.data.detail, color: 'danger' }))
-          }
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: 'Unable to delete Hypervisor',
+            message: error?.response?.data?.detail ?? error,
+            color: 'danger'
+          })
         })
     }
   }
