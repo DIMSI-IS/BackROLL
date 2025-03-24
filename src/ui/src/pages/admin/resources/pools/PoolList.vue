@@ -5,7 +5,7 @@
       <div class="mr-0 text-right">
         <va-button color="info" @click="this.$router.push('/admin/resources/pools/new')"
           :disabled="!areDependenciesResolved">
-          Create new Pool
+          Create new pool
         </va-button>
       </div>
     </va-card-title>
