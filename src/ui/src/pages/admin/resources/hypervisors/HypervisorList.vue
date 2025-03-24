@@ -4,15 +4,14 @@
       <va-card-title>
         <h1>Hypervisors</h1>
         <div class="mr-0 text-right">
-          <va-button color="info" @click="this.$router.push('/admin/resources/hypervisors/new')">
+          <va-button color="info" @click="this.$router.push('/admin/resources/hypervisors/new')"
+            :disabled="!areDependenciesResolved">
             Add new hypervisor
           </va-button>
         </div>
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.hostList" :columns="columns">
-          <template #header(ssh)>SSH Connection</template>
-          <template #header(pool_id)>Pool</template>
           <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
           <template #cell(pool_id)="{ value }">
             <va-chip v-if="getPool(value)" size="small" square @click="this.$router.push('/admin/resources/pools')">
@@ -121,9 +120,9 @@ export default defineComponent({
     return {
       columns: [
         { key: 'hostname' },
-        { key: 'pool_id', sortable: true },
+        { key: 'pool_id', label: "Pool", sortable: true },
         { key: 'ipaddress' },
-        { key: 'ssh' },
+        { key: 'ssh', label: "SSH Connection" },
         { key: 'tags', sortable: true },
         { key: 'state', sortable: true },
         { key: 'actions' }
@@ -142,6 +141,9 @@ export default defineComponent({
     this.requestKeys()
   },
   computed: {
+    areDependenciesResolved() {
+      return this.$store.state.resources.poolList.length > 0;
+    },
     currentSshKey() {
       return this.sshKeys.find(({ name }) => name == this.currentTabKey)?.fullLine;
     },
