@@ -4,14 +4,14 @@
       <va-card-title>
         <h1>Policies</h1>
         <div class="mr-0 text-right">
-          <va-button color="info" @click="this.$router.push('/admin/configuration/policies/new')">
+          <va-button color="info" @click="this.$router.push('/admin/configuration/policies/new')"
+            :disabled="!areDependenciesResolved">
             Create new policy
           </va-button>
         </div>
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">
-          <template #header(enabled)>auto-start</template>
           <template #cell(schedule)="{ value }">
             <va-chip size="small" outline square>
               {{ humanCron(value) }}
@@ -92,7 +92,7 @@ export default defineComponent({
         { key: 'name' },
         { key: 'schedule' },
         { key: 'storage' },
-        { key: 'enabled' },
+        { key: 'enabled', label: "auto-start" },
         { key: 'actions' }
       ],
       showDeleteModal: false,
@@ -101,6 +101,9 @@ export default defineComponent({
     }
   },
   computed: {
+    areDependenciesResolved() {
+      return this.$store.state.storageList.length > 0;
+    }
   },
   methods: {
     humanCron(value) {
