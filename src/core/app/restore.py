@@ -156,7 +156,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         try:
             # Extract selected borg archive
-            # Local backup storage does not support extended attributes nor ACL. NFS does.
+            # Local backup storage does not support extended attributes nor ACLs. NFS does.
             # TODO Consider extracting the backup next to the archive source so that it will be on the same filesystem
             # — not on the backup storage.
             shell.subprocess_popen(
