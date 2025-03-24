@@ -102,6 +102,21 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
 # def restore_task(self, info, hypervisor, disk_list, backup):
 
 
+def is_nfs(path):
+    result = shell.subprocess_run(f'df -T {path}')
+    lines = result.strip().split('\n')
+
+    if len(lines) < 2:
+        return False
+
+    cols = lines[1].split()
+    if len(cols) < 2:
+        return False
+
+    type_fs = cols[1].lower()
+    return type_fs in ('nfs', 'nfs4')
+
+
 def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_name):
     print("Debug - restore_task - start")
     vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(
@@ -141,8 +156,13 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         try:
             # Extract selected borg archive
+            # Local backup storage does not support extended attributes nor ACL. NFS does.
+            # TODO Consider extracting the backup next to the archive source so that it will be on the same filesystem
+            # — not on the backup storage.
             shell.subprocess_popen(
-                f"""borg extract --sparse {make_path(borg_repository, virtual_machine_info['name'])}::{backup_name}""")
+                f"""borg extract --sparse
+                    {"" if is_nfs(restore_path) else "--noxattrs --noacls"}
+                    {make_path(borg_repository, virtual_machine_info['name'])}::{backup_name}""")
 
             # Skip directories
             shell.os_system('mv $(find -type f) ./')
