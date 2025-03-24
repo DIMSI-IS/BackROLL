@@ -2,8 +2,7 @@
     <div id="main-container" class="br-container">
         <h1>{{ title }}</h1>
         <div id="right-container" class="br-container">
-            <va-alert v-if="!dependenciesResolved" color="danger" border="top" class="mr-8"
-                style="text-transform: none;">
+            <va-alert v-if="!dependenciesResolved" color="danger" border="top" style="text-transform: none;">
                 {{ dependenciesMessage }}
             </va-alert>
             <va-button color="info" :to="buttonRoute" :disabled="!dependenciesResolved">
