@@ -3,7 +3,8 @@
     <va-card>
       <va-card-title>
         <ListHeader title="hypervisors" button-title="Add new hypervisor"
-          button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
+          button-route="/admin/resources/hypervisors/new"
+          :dependencies-resolved="$store.state.resources.poolList.length > 0"
           dependencies-message="You need to create a new pool." />
       </va-card-title>
       <va-card-content>
@@ -142,9 +143,6 @@ export default defineComponent({
     this.requestKeys()
   },
   computed: {
-    areDependenciesResolved() {
-      return this.$store.state.resources.poolList.length > 0;
-    },
     currentSshKey() {
       return this.sshKeys.find(({ name }) => name == this.currentTabKey)?.fullLine;
     },

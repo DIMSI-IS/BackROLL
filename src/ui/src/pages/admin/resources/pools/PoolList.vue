@@ -2,7 +2,7 @@
   <va-card>
     <va-card-title>
       <ListHeader title="pools" button-title="Create new pool" button-route="/admin/resources/pools/new"
-        :dependencies-resolved="areDependenciesResolved"
+        :dependencies-resolved="$store.state.resources.policyList.length > 0"
         dependencies-message="You need to create a new backup policy." />
     </va-card-title>
     <va-card-content>
@@ -74,9 +74,6 @@ export default defineComponent({
     }
   },
   computed: {
-    areDependenciesResolved() {
-      return this.$store.state.resources.policyList.length > 0;
-    }
   },
   methods: {
     getConnector(id) {

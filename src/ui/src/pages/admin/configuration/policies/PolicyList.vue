@@ -3,7 +3,8 @@
     <va-card>
       <va-card-title>
         <ListHeader title="policies" button-title="Create new policy" button-route="/admin/configuration/policies/new"
-          :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to add a new storage." />
+          :dependencies-resolved="$store.state.storageList.length > 0"
+          dependencies-message="You need to add a new storage." />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">
@@ -101,9 +102,6 @@ export default defineComponent({
     }
   },
   computed: {
-    areDependenciesResolved() {
-      return this.$store.state.storageList.length > 0;
-    }
   },
   methods: {
     humanCron(value) {
