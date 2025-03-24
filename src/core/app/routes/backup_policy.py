@@ -375,6 +375,6 @@ def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.valid_tok
         for policy in results:
             records.append(policy)
         if len(records) > 0:
-            reason = f'One or more pools are linked to this policy'
-            raise HTTPException(status_code=500, detail=reason)
+            raise HTTPException(
+                status_code=409, detail='One or more pools are linked to this policy.')
     return api_delete_backup_policy(policy_id)

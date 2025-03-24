@@ -195,7 +195,8 @@ def api_delete_storage(storage_id):
             records.append(policy)
         print(records)
         if len(records) > 0:
-            raise ValueError('One or more policies are linked to this storage')
+            raise HTTPException(
+                status_code=409, detail='One or more policies are linked to this storage.')
     try:
         storage = filter_storage_by_id(storage_id)
         with Session(engine) as session:

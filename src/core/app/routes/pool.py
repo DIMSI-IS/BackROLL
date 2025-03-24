@@ -150,7 +150,8 @@ def api_delete_pool(pool_id):
         for host in results:
             records.append(host)
         if len(records) > 0:
-            raise ValueError('One or more hosts are attached to this pool')
+            raise HTTPException(
+                status_code=409, detail='One or more hypervisors are attached to this pool.')
     try:
         pool = filter_pool_by_id(pool_id)
         with Session(engine) as session:
