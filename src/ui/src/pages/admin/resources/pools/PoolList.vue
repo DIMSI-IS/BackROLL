@@ -1,13 +1,9 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1>Pools</h1>
-      <div class="mr-0 text-right">
-        <va-button color="info" @click="this.$router.push('/admin/resources/pools/new')"
-          :disabled="!areDependenciesResolved">
-          Create new pool
-        </va-button>
-      </div>
+      <ListHeader title="pools" button-title="Create new pool" button-route="/admin/resources/pools/new"
+        :dependencies-resolved="areDependenciesResolved"
+        dependencies-message="You need to create a new backup policy." />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.poolList" :columns="columns">
@@ -57,9 +53,14 @@ import axios from 'axios'
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from "@/components/lists/ListHeader.vue"
+
 export default defineComponent({
   name: 'PoolsTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader,
+  },
   data() {
     return {
       columns: [

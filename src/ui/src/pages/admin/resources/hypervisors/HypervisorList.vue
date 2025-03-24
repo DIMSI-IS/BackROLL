@@ -2,13 +2,9 @@
   <div>
     <va-card>
       <va-card-title>
-        <h1>Hypervisors</h1>
-        <div class="mr-0 text-right">
-          <va-button color="info" @click="this.$router.push('/admin/resources/hypervisors/new')"
-            :disabled="!areDependenciesResolved">
-            Add new hypervisor
-          </va-button>
-        </div>
+        <ListHeader title="hypervisors" button-title="Add new hypervisor"
+          button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
+          dependencies-message="You need to create a new pool." />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.hostList" :columns="columns">
@@ -113,9 +109,14 @@ import axios from 'axios'
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from "@/components/lists/ListHeader.vue"
+
 export default defineComponent({
   name: 'HypervisorsTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader,
+  },
   data() {
     return {
       columns: [

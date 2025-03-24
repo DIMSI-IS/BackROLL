@@ -2,13 +2,8 @@
   <div>
     <va-card>
       <va-card-title>
-        <h1>Policies</h1>
-        <div class="mr-0 text-right">
-          <va-button color="info" @click="this.$router.push('/admin/configuration/policies/new')"
-            :disabled="!areDependenciesResolved">
-            Create new policy
-          </va-button>
-        </div>
+        <ListHeader title="policies" button-title="Create new policy" button-route="/admin/configuration/policies/new"
+          :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to add a new storage." />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">
@@ -83,9 +78,14 @@ import { defineComponent } from 'vue'
 import cronstrue from 'cronstrue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from "@/components/lists/ListHeader.vue"
+
 export default defineComponent({
   name: 'PoliciesTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader,
+  },
   data() {
     return {
       columns: [
