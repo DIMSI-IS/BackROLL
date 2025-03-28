@@ -2,16 +2,11 @@
   <div>
     <va-card>
       <va-card-title>
-        <h1>Policies</h1>
-        <div class="mr-0 text-right">
-          <va-button color="info" @click="this.$router.push('/admin/configuration/policies/new')">
-            Create new policy
-          </va-button>
-        </div>
+        <ListHeader title="policies" button-title="Create new policy" button-route="/admin/configuration/policies/new"
+          :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to add a new storage." />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">
-          <template #header(enabled)>auto-start</template>
           <template #cell(schedule)="{ value }">
             <va-chip size="small" outline square>
               {{ humanCron(value) }}
@@ -83,16 +78,21 @@ import { defineComponent } from 'vue'
 import cronstrue from 'cronstrue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from "@/components/lists/ListHeader.vue"
+
 export default defineComponent({
   name: 'PoliciesTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader,
+  },
   data() {
     return {
       columns: [
         { key: 'name' },
         { key: 'schedule' },
         { key: 'storage' },
-        { key: 'enabled' },
+        { key: 'enabled', label: "auto-start" },
         { key: 'actions' }
       ],
       showDeleteModal: false,
@@ -101,6 +101,9 @@ export default defineComponent({
     }
   },
   computed: {
+    areDependenciesResolved() {
+      return this.$store.state.storageList.length > 0;
+    }
   },
   methods: {
     humanCron(value) {

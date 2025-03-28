@@ -1,17 +1,12 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1>Pools</h1>
-      <div class="mr-0 text-right">
-        <va-button color="info" @click="this.$router.push('/admin/resources/pools/new')">
-          Create new Pool
-        </va-button>
-      </div>
+      <ListHeader title="pools" button-title="Create new pool" button-route="/admin/resources/pools/new"
+        :dependencies-resolved="areDependenciesResolved"
+        dependencies-message="You need to create a new backup policy." />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.poolList" :columns="columns">
-        <template #header(policy_id)>Assigned policy</template>
-        <template #header(connector_id)>Connector</template>
         <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
         <template #cell(policy_id)="{ value }">
           <va-chip size="small" square @click="this.$router.push('/admin/configuration/policies')">
@@ -58,15 +53,20 @@ import axios from 'axios'
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from "@/components/lists/ListHeader.vue"
+
 export default defineComponent({
   name: 'PoolsTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader,
+  },
   data() {
     return {
       columns: [
         { key: 'name' },
-        { key: 'policy_id' },
-        { key: 'connector_id' },
+        { key: 'policy_id', label: "Assigned policy" },
+        { key: 'connector_id', label: "Connector" },
         { key: 'actions' }
       ],
       showDeleteModal: false,
@@ -74,6 +74,9 @@ export default defineComponent({
     }
   },
   computed: {
+    areDependenciesResolved() {
+      return this.$store.state.resources.policyList.length > 0;
+    }
   },
   methods: {
     getConnector(id) {

@@ -2,17 +2,12 @@
   <div>
     <va-card>
       <va-card-title>
-        <h1>Hypervisors</h1>
-        <div class="mr-0 text-right">
-          <va-button color="info" @click="this.$router.push('/admin/resources/hypervisors/new')">
-            Add new hypervisor
-          </va-button>
-        </div>
+        <ListHeader title="hypervisors" button-title="Add new hypervisor"
+          button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
+          dependencies-message="You need to create a new pool." />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.hostList" :columns="columns">
-          <template #header(ssh)>SSH Connection</template>
-          <template #header(pool_id)>Pool</template>
           <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
           <template #cell(pool_id)="{ value }">
             <va-chip v-if="getPool(value)" size="small" square @click="this.$router.push('/admin/resources/pools')">
@@ -114,16 +109,21 @@ import axios from 'axios'
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from "@/components/lists/ListHeader.vue"
+
 export default defineComponent({
   name: 'HypervisorsTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader,
+  },
   data() {
     return {
       columns: [
         { key: 'hostname' },
-        { key: 'pool_id', sortable: true },
+        { key: 'pool_id', label: "Pool", sortable: true },
         { key: 'ipaddress' },
-        { key: 'ssh' },
+        { key: 'ssh', label: "SSH Connection" },
         { key: 'tags', sortable: true },
         { key: 'state', sortable: true },
         { key: 'actions' }
@@ -142,6 +142,9 @@ export default defineComponent({
     this.requestKeys()
   },
   computed: {
+    areDependenciesResolved() {
+      return this.$store.state.resources.poolList.length > 0;
+    },
     currentSshKey() {
       return this.sshKeys.find(({ name }) => name == this.currentTabKey)?.fullLine;
     },
