@@ -2,8 +2,8 @@
   <va-card>
     <va-card-title>
       <ListHeader title="pools" plus-button-title="Create pool" plus-button-route="/admin/resources/pools/new"
-        :dependencies-resolved="areDependenciesResolved"
-        dependencies-message="You need to create a backup policy." go-button-title="Go to policies" go-button-route="/admin/configuration/policies" />
+        :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to create a backup policy."
+        go-button-title="Go to policies" go-button-route="/admin/configuration/policies" />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.poolList" :columns="columns">
@@ -28,7 +28,7 @@
           </va-button-group>
         </template>
       </va-data-table>
-      <div v-if="!$store.state.ispoolTableReady" class="flex-center ma-3">
+      <div v-if="!$store.state.isPoolTableReady" class="flex-center ma-3">
         <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
       </div>
     </va-card-content>
@@ -75,7 +75,8 @@ export default defineComponent({
   },
   computed: {
     areDependenciesResolved() {
-      return this.$store.state.resources.policyList.length > 0;
+      // Prevent showing irrelevant alert by checking if the table is ready.
+      return !this.$store.state.isPolicyTableReady || this.$store.state.resources.policyList.length > 0;
     }
   },
   methods: {

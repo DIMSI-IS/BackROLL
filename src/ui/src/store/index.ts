@@ -12,12 +12,12 @@ export default createStore({
     isSidebarMinimized: false,
     userName: null,
     // Table misc
-    ispolicyTableReady: false,
-    ispoolTableReady: false,
-    ishostTableReady: false,
+    isPolicyTableReady: false,
+    isPoolTableReady: false,
+    isHostTableReady: false,
     isvmTableReady: false,
     isjobTableReady: false,
-    isstorageTableReady: false,
+    isStorageTableReady: false,
     isbackupTaskTableReady: false,
     isrestoreTaskTableReady: false,
     areCeleryTasksReady: false,
@@ -110,7 +110,7 @@ export default createStore({
             });
           }
         })
-        .catch(error =>  {
+        .catch(error => {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -186,7 +186,7 @@ export default createStore({
             });
           }
         })
-        .catch(error =>  {
+        .catch(error => {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -251,7 +251,7 @@ export default createStore({
             });
           }
         })
-        .catch(error =>  {
+        .catch(error => {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -362,7 +362,7 @@ export default createStore({
             });
           }
         })
-        .catch(error =>  {
+        .catch(error => {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -507,7 +507,7 @@ export default createStore({
             });
           }
         })
-        .catch(error =>  {
+        .catch(error => {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -584,7 +584,7 @@ export default createStore({
             });
           }
         })
-        .catch(error =>  {
+        .catch(error => {
           console.error(error);
           vm.$vaToast.init({
             title: "Error !",
@@ -605,19 +605,19 @@ export default createStore({
       state.resources.poolList = poolsList;
     },
     loadingPool(state, loadingState) {
-      state.ispoolTableReady = loadingState;
+      state.isPoolTableReady = loadingState;
     },
     policyList(state, policiesList) {
       state.resources.policyList = policiesList;
     },
     loadingPolicy(state, loadingState) {
-      state.ispolicyTableReady = loadingState;
+      state.isPolicyTableReady = loadingState;
     },
     hostList(state, hostList) {
       state.resources.hostList = hostList;
     },
     loadingHost(state, loadingState) {
-      state.ishostTableReady = loadingState;
+      state.isHostTableReady = loadingState;
     },
     vmList(state, vmList) {
       state.resources.vmList = vmList;
@@ -635,7 +635,7 @@ export default createStore({
       state.storageList = storageList;
     },
     loadingStorage(state, loadingState) {
-      state.isstorageTableReady = loadingState;
+      state.isStorageTableReady = loadingState;
     },
     externalHookList(state, externalHookList) {
       state.resources.externalHookList = externalHookList;

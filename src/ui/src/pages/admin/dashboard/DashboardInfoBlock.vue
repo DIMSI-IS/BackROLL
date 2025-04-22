@@ -63,7 +63,7 @@
         <va-card-title>
           Storage
         </va-card-title>
-        <va-card-content v-if="!$store.state.isstorageTableReady" class="table-example--pagination">
+        <va-card-content v-if="!$store.state.isStorageTableReady" class="table-example--pagination">
           <component :animation-duration="1500" :is="loadingStorageType" color="#2c82e0" :size="120" />
         </va-card-content>
         <va-card-content v-else>

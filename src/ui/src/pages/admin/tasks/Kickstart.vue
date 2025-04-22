@@ -42,7 +42,7 @@
                   </template>
                 </va-select>
                 <va-select v-else label="Target" v-model="targetSelection" :options="poolTargetOptions"
-                  :loading="!this.$store.state.ispoolTableReady" searchable highlight-matched-text>
+                  :loading="!this.$store.state.isPoolTableReady" searchable highlight-matched-text>
                   <template #prependInner>
                     <va-icon name="work" size="small" color="primary" />
                   </template>

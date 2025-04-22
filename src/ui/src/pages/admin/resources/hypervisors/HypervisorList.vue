@@ -4,7 +4,8 @@
       <va-card-title>
         <ListHeader title="Hypervisors" plus-button-title="Add hypervisor"
           plus-button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
-          dependencies-message="You need to create a pool." go-button-title="Go to pools" go-button-route="/admin/resources/pools" />
+          dependencies-message="You need to create a pool." go-button-title="Go to pools"
+          go-button-route="/admin/resources/pools" />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.hostList" :columns="columns">
@@ -47,7 +48,7 @@
             </va-button-group>
           </template>
         </va-data-table>
-        <div v-if="!$store.state.ishostTableReady" class="flex-center ma-3">
+        <div v-if="!$store.state.isHostTableReady" class="flex-center ma-3">
           <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
         </div>
       </va-card-content>
@@ -143,7 +144,8 @@ export default defineComponent({
   },
   computed: {
     areDependenciesResolved() {
-      return this.$store.state.resources.poolList.length > 0;
+      // Prevent showing irrelevant alert by checking if the table is ready.
+      return !this.$store.state.isPoolTableReady || this.$store.state.resources.poolList.length > 0;
     },
     currentSshKey() {
       return this.sshKeys.find(({ name }) => name == this.currentTabKey)?.fullLine;

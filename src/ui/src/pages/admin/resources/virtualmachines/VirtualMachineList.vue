@@ -1,7 +1,9 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="Virtual machines" :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to add an hypervisor." go-button-title="Go to hypervisors" go-button-route="/admin/resources/hypervisors" />
+      <ListHeader title="Virtual machines" :dependencies-resolved="areDependenciesResolved"
+        dependencies-message="You need to add an hypervisor." go-button-title="Go to hypervisors"
+        go-button-route="/admin/resources/hypervisors" />
     </va-card-title>
     <va-card-content>
       <div class="row">
@@ -99,7 +101,8 @@ export default defineComponent({
   },
   computed: {
     areDependenciesResolved() {
-      return this.$store.state.resources.hostList.length > 0;
+      // Prevent showing irrelevant alert by checking if the table is ready.
+      return !this.$store.state.isHostTableReady || this.$store.state.resources.hostList.length > 0;
     },
     pages() {
       return (this.perPage && this.perPage !== 0)

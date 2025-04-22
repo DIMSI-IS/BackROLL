@@ -40,7 +40,7 @@
             </va-button-group>
           </template>
         </va-data-table>
-        <div v-if="!$store.state.ispolicyTableReady" class="flex-center ma-3">
+        <div v-if="!$store.state.isPolicyTableReady" class="flex-center ma-3">
           <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
         </div>
       </va-card-content>
@@ -104,7 +104,8 @@ export default defineComponent({
   },
   computed: {
     areDependenciesResolved() {
-      return this.$store.state.storageList.length > 0;
+      // Prevent showing irrelevant alert by checking if the table is ready.
+      return !this.$store.state.isStorageTableReady || this.$store.state.storageList.length > 0;
     }
   },
   methods: {
@@ -117,7 +118,7 @@ export default defineComponent({
       }
     },
     getStorage(id) {
-      if (this.$store.state.isstorageTableReady) {
+      if (this.$store.state.isStorageTableReady) {
         const result = this.$store.state.storageList.filter((item) => {
           return item.id == id
         })
