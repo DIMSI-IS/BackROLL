@@ -1,12 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1>Hooks</h1>
-      <div class="mr-0 text-right">
-        <va-button color="info" @click="this.$router.push('/admin/configuration/externalhooks/new')">
-          Add external hook
-        </va-button>
-      </div>
+      <ListHeader title="Hooks" button-title="Add external hook" button-route="/admin/configuration/externalhooks/new" />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.externalHookList" :columns="columns">
@@ -46,9 +41,14 @@ import axios from 'axios'
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from '@/components/lists/ListHeader.vue'
+
 export default defineComponent({
   name: 'PoliciesTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader
+  },
   data() {
     return {
       columns: [

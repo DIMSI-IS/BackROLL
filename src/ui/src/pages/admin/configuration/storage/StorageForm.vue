@@ -1,8 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="storageId">Updating storage {{ stateStorage?.name ?? "" }}</h1>
-      <h1 v-else>Adding new storage</h1>
+      <FormHeader :title="storageId ? `Updating storage ${stateStorage?.name ?? ''}` : 'Adding storage'" />
     </va-card-title>
     <va-card-content v-if="!storageId || stateStorage">
       <va-alert border="top" class="mb-4">
@@ -40,13 +39,18 @@
 import axios from "axios";
 import * as spinners from "epic-spinners";
 
+import FormHeader from "@/components/forms/FormHeader.vue";
+
 function removeTrailingSlash(path) {
   return path.replace(/\/$/, "");
 }
 
 export default {
   name: "updateStorage",
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    FormHeader
+  },
   data() {
     return {
       storageId: this.$route.params.id,

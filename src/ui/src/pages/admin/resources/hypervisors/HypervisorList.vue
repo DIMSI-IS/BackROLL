@@ -2,7 +2,7 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="hypervisors" button-title="Add new hypervisor"
+        <ListHeader title="Hypervisors" button-title="Add hypervisor"
           button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
           dependencies-message="You need to create a new pool." />
       </va-card-title>

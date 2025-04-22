@@ -1,12 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1>Connectors</h1>
-      <div class="mr-0 text-right">
-        <va-button color="info" @click="this.$router.push('/admin/configuration/connectors/new')">
-          Add connector
-        </va-button>
-      </div>
+      <ListHeader title="Connectors" button-title="Add connector" button-route="/admin/configuration/connectors/new" />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.connectorList" :columns="columns">
@@ -49,9 +44,14 @@ import axios from 'axios'
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from '@/components/lists/ListHeader.vue'
+
 export default defineComponent({
   name: 'PoliciesTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader
+  },
   data() {
     return {
       columns: [

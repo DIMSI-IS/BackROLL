@@ -1,8 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="poolId">Updating pool {{ statePool?.name ?? "" }}</h1>
-      <h1 v-else>Adding new pool</h1>
+      <FormHeader :title="poolId ? `Updating pool ${statePool?.name ?? ''}` : 'Adding pool'" />
     </va-card-title>
     <va-card-content v-if="!poolId || statePool">
       <va-form ref="form" @validation="poolId ? updatePool() : addPool()">
@@ -32,8 +31,13 @@
 import axios from "axios";
 import * as spinners from "epic-spinners";
 
+import FormHeader from "@/components/forms/FormHeader.vue";
+
 export default {
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    FormHeader
+  },
   data() {
     return {
       poolId: this.$route.params.id,

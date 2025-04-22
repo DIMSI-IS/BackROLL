@@ -1,8 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="hookId">Updating external hook {{ stateHook?.name ?? "" }}</h1>
-      <h1 v-else>Adding new external hook</h1>
+      <FormHeader :title="hookId ? `Updating hook ${stateHook?.name ?? ''}` : 'Adding external hook'" />
     </va-card-title>
     <va-card-content v-if="!hookId || stateHook">
       <va-alert color="info" icon="info" dense>
@@ -38,8 +37,13 @@
 import axios from "axios";
 import * as spinners from "epic-spinners";
 
+import FormHeader from "@/components/forms/FormHeader.vue";
+
 export default {
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    FormHeader
+  },
   data() {
     return {
       hookId: this.$route.params.id,

@@ -1,10 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="connectorId">
-        Updating connector {{ stateConnector?.name ?? "" }}
-      </h1>
-      <h1 v-else>Adding new connector</h1>
+      <FormHeader :title="connectorId ? `Updating connector ${stateConnector?.name ?? ''}` : 'Adding connector'" />
     </va-card-title>
     <va-card-content v-if="!connectorId || stateConnector">
       <va-alert color="info" icon="info" dense>
@@ -44,8 +41,13 @@
 import axios from "axios";
 import * as spinners from "epic-spinners";
 
+import FormHeader from "@/components/forms/FormHeader.vue";
+
 export default {
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    FormHeader
+  },
   data() {
     return {
       connectorId: this.$route.params.id,

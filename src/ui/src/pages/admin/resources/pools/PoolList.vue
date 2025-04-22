@@ -1,7 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="pools" button-title="Create new pool" button-route="/admin/resources/pools/new"
+      <ListHeader title="pools" button-title="Create pool" button-route="/admin/resources/pools/new"
         :dependencies-resolved="areDependenciesResolved"
         dependencies-message="You need to create a new backup policy." />
     </va-card-title>

@@ -1,8 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="policyId">Updating policy {{ statePolicy?.name ?? "" }}</h1>
-      <h1 v-else>Adding new policy</h1>
+      <FormHeader :title="policyId ? `Updating policy ${statePolicy?.name ?? ''}` : 'Adding policy'" />
     </va-card-title>
     <va-card-content v-if="!policyId || statePolicy">
       <va-form tag="form" @submit.prevent="policyId ? updatePolicy() : addPolicy()">
@@ -87,11 +86,16 @@
 import axios from "axios";
 import parser from "cron-parser";
 import * as spinners from "epic-spinners";
+
+import FormHeader from "@/components/forms/FormHeader.vue";
 import dayOfWeek from "./dayOfWeek";
 
 export default {
   name: "updatePolicy",
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    FormHeader
+  },
   data() {
     return {
       policyId: this.$route.params.id,

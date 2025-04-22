@@ -1,10 +1,8 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1 v-if="hypervisorId">
-        Update hypervisor {{ stateHypervisor?.hostname ?? "" }}
-      </h1>
-      <h1 v-else>Adding new hypervisor</h1>
+      <FormHeader
+        :title="hypersivorId ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}` : 'Adding new hypervisor'" />
     </va-card-title>
     <va-card-content v-if="!hypervisorId || stateHypervisor">
       <va-form ref="form" @validation="hypersivorId ? updateHypervisor() : addHypervisor()">
@@ -37,8 +35,13 @@
 import axios from "axios";
 import * as spinners from "epic-spinners";
 
+import FormHeader from "@/components/forms/FormHeader.vue";
+
 export default {
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    FormHeader
+  },
   data() {
     return {
       hypersivorId: this.$route.params.id,

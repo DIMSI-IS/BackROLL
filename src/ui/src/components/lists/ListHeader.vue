@@ -5,7 +5,7 @@
             <va-alert v-if="!dependenciesResolved" color="danger" border="top" style="text-transform: none;">
                 {{ dependenciesMessage }}
             </va-alert>
-            <va-button color="info" :to="buttonRoute" :disabled="!dependenciesResolved">
+            <va-button icon="add" color="info" :to="buttonRoute" :disabled="!dependenciesResolved">
                 {{ buttonTitle }}
             </va-button>
         </div>
@@ -20,8 +20,14 @@ export default defineComponent({
         title: String,
         buttonTitle: String,
         buttonRoute: String,
-        dependenciesResolved: Boolean,
-        dependenciesMessage: String,
+        dependenciesResolved: {
+            type: Boolean,
+            default: true
+        },
+        dependenciesMessage: {
+            type: String,
+            default: null
+        },
     }
 })
 </script>
@@ -29,7 +35,7 @@ export default defineComponent({
 .br-container {
     display: flex;
     flex-direction: row;
-    align-items: baseline;
+    align-items: center;
 }
 
 #main-container {
