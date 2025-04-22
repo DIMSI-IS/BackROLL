@@ -2,7 +2,7 @@
   <va-card>
     <va-card-title>
       <FormHeader
-        :title="hypersivorId ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}` : 'Adding new hypervisor'" />
+        :title="hypersivorId ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}` : 'Adding hypervisor'" />
     </va-card-title>
     <va-card-content v-if="!hypervisorId || stateHypervisor">
       <va-form ref="form" @validation="hypersivorId ? updateHypervisor() : addHypervisor()">
@@ -22,7 +22,7 @@
       </va-form>
       <br />
       <va-button class="mb-3" @click="$refs.form.validate()">
-        {{ hypervisorId ? "Update" : "Validate" }}
+        {{ hypervisorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
     <div v-else class="flex-center ma-3">

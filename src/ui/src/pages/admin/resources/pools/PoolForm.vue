@@ -1,7 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="poolId ? `Updating pool ${statePool?.name ?? ''}` : 'Adding pool'" />
+      <FormHeader :title="poolId ? `Updating pool ${statePool?.name ?? ''}` : 'Creating pool'" />
     </va-card-title>
     <va-card-content v-if="!poolId || statePool">
       <va-form ref="form" @validation="poolId ? updatePool() : addPool()">
@@ -18,7 +18,7 @@
       <va-select label="Select connector" v-model="selectedConnector" :options="connectorOptions" />
       <br />
       <va-button class="mb-3" @click="$refs.form.validate()">
-        {{ poolId ? "Update" : "Validate" }}
+        {{ poolId ? "Update" : "Create" }}
       </va-button>
     </va-card-content>
     <div v-else class="flex-center ma-3">

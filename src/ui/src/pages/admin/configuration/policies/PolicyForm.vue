@@ -1,7 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="policyId ? `Updating policy ${statePolicy?.name ?? ''}` : 'Adding policy'" />
+      <FormHeader :title="policyId ? `Updating policy ${statePolicy?.name ?? ''}` : 'Creating policy'" />
     </va-card-title>
     <va-card-content v-if="!policyId || statePolicy">
       <va-form tag="form" @submit.prevent="policyId ? updatePolicy() : addPolicy()">
@@ -73,7 +73,7 @@
         </va-input> -->
         <br />
         <va-button class="mb-3" type="submit">
-          {{ policyId ? "Update" : "Validate" }}
+          {{ policyId ? "Update" : "Create" }}
         </va-button>
       </va-form>
     </va-card-content>

@@ -25,7 +25,7 @@
           :rules="storagePathRules" />
         <br />
         <va-button class="mb-3" type="submit" :disabled="!isNameValid || !isPathValid">
-          {{ storageId ? "Update" : "Validate" }}
+          {{ storageId ? "Update" : "Add" }}
         </va-button>
       </va-form>
     </va-card-content>

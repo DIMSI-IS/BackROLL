@@ -24,7 +24,7 @@
       </va-form>
       <br />
       <va-button class="mb-3" @click="$refs.form.validate()">
-        {{ hookId ? "Update" : "Validate" }}
+        {{ hookId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
     <div v-else class="flex-center ma-3">
