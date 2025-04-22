@@ -4,7 +4,8 @@
       <va-card-title>
         <ListHeader title="policies" plus-button-title="Create policy"
           plus-button-route="/admin/configuration/policies/new" :dependencies-resolved="areDependenciesResolved"
-          dependencies-message="You need to add a storage." go-button-title="Go to storage" go-button-route="/admin/configuration/storage" />
+          dependencies-message="You need to add a storage." go-button-title="Go to storage"
+          go-button-route="/admin/configuration/storage" />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">
@@ -108,7 +109,12 @@ export default defineComponent({
   },
   methods: {
     humanCron(value) {
-      return cronstrue.toString(value)
+      // Let the other rows render by catching the error.
+      try {
+        return cronstrue.toString(value)
+      } catch {
+        return "Invalid – Please update the schedule."
+      }
     },
     getStorage(id) {
       if (this.$store.state.isstorageTableReady) {

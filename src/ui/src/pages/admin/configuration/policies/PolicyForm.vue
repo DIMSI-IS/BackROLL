@@ -73,7 +73,7 @@
 </template>
 <script>
 import axios from "axios";
-import parser from "cron-parser";
+import cronParser from "cron-parser";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
@@ -149,13 +149,16 @@ export default {
     propagateStatePolicy() {
       this.formPolicy = { ...this.statePolicy };
 
-      const parsedCron = JSON.parse(
-        JSON.stringify(parser.parseExpression(this.statePolicy.schedule).fields)
-      );
-      this.timeToBackup = new Date(
-        new Date().setHours(parsedCron.hour, parsedCron.minute, 0)
-      );
-      this.selectedDays = dayOfWeek.toNames(parsedCron.dayOfWeek);
+      // If the cron expression is corrupted, let the user fix it by catching the error.
+      try {
+        const parsedCron = JSON.parse(
+          JSON.stringify(cronParser.parseExpression(this.statePolicy.schedule).fields)
+        );
+        this.timeToBackup = new Date(
+          new Date().setHours(parsedCron.hour, parsedCron.minute, 0)
+        );
+        this.selectedDays = dayOfWeek.toNames(parsedCron.dayOfWeek);
+      } catch { }
 
       this.updateSelectedStorage(this.statePolicy.storage);
 
@@ -182,9 +185,7 @@ export default {
     exportPolicy() {
       const policy = JSON.parse(JSON.stringify(this.formPolicy));
 
-      policy.schedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${dayOfWeek.toSymbols(
-        this.selectedDays
-      )}`;
+      policy.schedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${dayOfWeek.toSymbols(this.selectedDays).join(",")}`;
       if (this.selectedStorage) {
         policy.storage = this.selectedStorage.value;
       }

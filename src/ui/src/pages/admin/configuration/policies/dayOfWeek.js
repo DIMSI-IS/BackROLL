@@ -21,7 +21,7 @@ function toSymbols(names) {
     symbols.push(7);
   }
   symbols = [...new Set(symbols)].sort();
-  return symbols.length == mapping.length ? ["*"] : symbols;
+  return (symbols.length == 0 || symbols.length == mapping.length) ? ["*"] : symbols;
 }
 
 function toNames(symbols) {
