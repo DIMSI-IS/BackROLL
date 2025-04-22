@@ -4,7 +4,7 @@
       <FormHeader :title="poolId ? `Updating pool ${statePool?.name ?? ''}` : 'Creating pool'" />
     </va-card-title>
     <va-card-content v-if="!poolId || statePool">
-      <va-form ref="form" @validation="poolId ? updatePool() : addPool()">
+      <va-form ref="form">
         <va-input label="Name" v-model="formPool.name" :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
         <va-select label="Select policy" v-model="selectedPolicy" :options="policyOptions"
@@ -15,9 +15,9 @@
         </va-select>
       </va-form>
       <br />
-      <va-select label="Select connector" v-model="selectedConnector" :options="connectorOptions" />
+      <va-select label="Select connector (optional)" v-model="selectedConnector" :options="connectorOptions" />
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate()">
+      <va-button class="mb-3" @click="$refs.form.validate() && (poolId ? updatePool() : addPool())">
         {{ poolId ? "Update" : "Create" }}
       </va-button>
     </va-card-content>
@@ -101,12 +101,14 @@ export default {
     },
     exportPool() {
       const pool = JSON.parse(JSON.stringify(this.formPool));
+      
       if (this.selectedPolicy) {
         pool.policy_id = this.selectedPolicy.value;
       }
       if (this.selectedConnector) {
         pool.connector_id = this.selectedConnector.value;
       }
+
       return pool;
     },
     updatePool() {

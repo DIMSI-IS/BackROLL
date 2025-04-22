@@ -4,7 +4,7 @@
       <FormHeader :title="policyId ? `Updating policy ${statePolicy?.name ?? ''}` : 'Creating policy'" />
     </va-card-title>
     <va-card-content v-if="!policyId || statePolicy">
-      <va-form tag="form" @submit.prevent="policyId ? updatePolicy() : addPolicy()">
+      <va-form ref="form">
         <va-input label="Name" v-model="formPolicy.name"
           :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <va-input class="mt-3" label="Description" v-model="formPolicy.description"
@@ -54,25 +54,14 @@
         <va-divider class="divider">
           <span class="px-2"> NOTIFICATIONS </span>
         </va-divider>
-        <va-select label="Select external hook" v-model="selectedExternalHook" :options="externalHookOptions" clearable>
+        <va-select label="Select external hook (optional)" v-model="selectedExternalHook" :options="externalHookOptions"
+          clearable>
           <template #prependInner>
             <va-icon name="webhook" size="small" color="primary" />
           </template>
         </va-select>
-        <!-- <va-input
-          label="External hook"
-          v-model="formPolicy.externalhook"
-        >
-          <template #prependInner>
-            <va-icon
-              name="webhook"
-              size="small"
-              color="primary"
-            />
-          </template>
-        </va-input> -->
         <br />
-        <va-button class="mb-3" type="submit">
+        <va-button class="mb-3" @click="$refs.form.validate() && (policyId ? updatePolicy() : addPolicy())">
           {{ policyId ? "Update" : "Create" }}
         </va-button>
       </va-form>
@@ -196,12 +185,13 @@ export default {
       policy.schedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${dayOfWeek.toSymbols(
         this.selectedDays
       )}`;
-
-      policy.storage = this.selectedStorage?.value;
-
+      if (this.selectedStorage) {
+        policy.storage = this.selectedStorage.value;
+      }
       policy.retention = this.retention;
-
-      policy.externalhook = this.selectedExternalHook?.value;
+      if (this.selectedExternalHook) {
+        policy.externalhook = this.selectedExternalHook.value;
+      }
 
       return policy;
     },

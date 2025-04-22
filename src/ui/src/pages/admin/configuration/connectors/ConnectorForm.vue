@@ -8,7 +8,7 @@
         For now, the only supported connector is Cloudstack
       </va-alert>
       <br />
-      <va-form ref="form" @validation="connectorId ? updateConnector() : addConnector()">
+      <va-form ref="form">
         <va-input label="Name" v-model="formConnector.name"
           :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
@@ -27,7 +27,7 @@
         </va-input>
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate()">
+      <va-button class="mb-3" @click="$refs.form.validate() && (connectorId ? updateConnector() : addConnector())">
         {{ connectorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>

@@ -8,7 +8,7 @@
         For now, the only external hook provider supported is Slack
       </va-alert>
       <br />
-      <va-form ref="form" @validation="hookId ? updateHook() : addHook()">
+      <va-form ref="form">
         <va-input label="Name" v-model="formHook.name" :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
         <va-input label="Provider" v-model="formHook.provider"
@@ -23,7 +23,7 @@
         </va-input>
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate()">
+      <va-button class="mb-3" @click="$refs.form.validate() && (hookId ? updateHook() : addHook())">
         {{ hookId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>

@@ -5,7 +5,7 @@
         :title="hypersivorId ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}` : 'Adding hypervisor'" />
     </va-card-title>
     <va-card-content v-if="!hypervisorId || stateHypervisor">
-      <va-form ref="form" @validation="hypersivorId ? updateHypervisor() : addHypervisor()">
+      <va-form ref="form">
         <va-input label="Hostname" v-model="formHypervisor.hostname"
           :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
@@ -21,7 +21,7 @@
         <va-input label="Tag (optional)" v-model="formHypervisor.tags" />
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate()">
+      <va-button class="mb-3" @click="$refs.form.validate() && (hypersivorId ? updateHypervisor() : addHypervisor())">
         {{ hypervisorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -96,8 +96,9 @@ export default {
       const hypervisor = JSON.parse(JSON.stringify(this.formHypervisor));
 
       hypervisor.ip_address = this.formHypervisor.ipAddress;
-
-      hypervisor.pool_id = this.selectedPool.value;
+      if (this.selectedPool) {
+        hypervisor.pool_id = this.selectedPool.value;
+      }
 
       return hypervisor;
     },

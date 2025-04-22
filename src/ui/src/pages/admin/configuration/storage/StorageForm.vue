@@ -18,13 +18,13 @@
         This example gives access to the /mnt directory where NFS shares
         dedicated to backup storage can be mounted.
       </va-alert>
-      <va-form tag="form" @submit.prevent="storageId ? updateStorage() : addStorage()">
+      <va-form ref="form">
         <va-input label="Name" v-model="formStorage.name" :rules="storageNameRules" />
         <br />
         <va-input label="Path" placeholder="eg. /mnt/myNFSbackend" v-model="formStorage.path"
           :rules="storagePathRules" />
         <br />
-        <va-button class="mb-3" type="submit" :disabled="!isNameValid || !isPathValid">
+        <va-button class="mb-3" @click="$refs.form.validate() && (storageId ? updateStorage() : addStorage())">
           {{ storageId ? "Update" : "Add" }}
         </va-button>
       </va-form>
