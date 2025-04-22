@@ -51,6 +51,11 @@ def list_public_keys() -> list[SshPublicKey]:
         shell.os_popen('find /root/.ssh/*.pub').splitlines()))
 
 
+class ConnectionException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 def init_ssh_connection(host_id, ip_address, username):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -61,8 +66,12 @@ def init_ssh_connection(host_id, ip_address, username):
             username=username,
         )
         client.close()
-    except Exception as e:
-        raise ValueError("Connection to hypervisor has failed")
+    except OSError:
+        raise ConnectionException(
+            "The hypervisor is unreachable.")
+    except paramiko.ssh_exception.AuthenticationException:
+        raise ConnectionException(
+            "Authentication to the hypervisor has failed.")
 
     host.filter_host_by_id(host_id)
     try:
@@ -79,7 +88,6 @@ def init_ssh_connection(host_id, ip_address, username):
         session.add(data_host)
         session.commit()
         session.refresh(data_host)
-    return {'state': 'SUCCESS'}
 
 
 def remove_key(ip_address, username):

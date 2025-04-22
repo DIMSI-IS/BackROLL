@@ -259,9 +259,11 @@ def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
 
 @app.post('/api/v1/connect/{host_id}', status_code=200)
 def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.valid_token)):
-    ip_address = item.ip_address
-    username = item.username
-    return ssh.init_ssh_connection(host_id, ip_address, username)
+    try:
+        ssh.init_ssh_connection(host_id, item.ip_address, item.username)
+        return {'state': 'SUCCESS'}
+    except ssh.ConnectionException as exception:
+        raise HTTPException(status_code=400, detail=f"{exception}")
 
 
 @app.get("/api/v1/publickeys", status_code=200)
