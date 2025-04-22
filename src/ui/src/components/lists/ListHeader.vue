@@ -2,11 +2,17 @@
     <div id="main-container" class="br-container">
         <h1>{{ title }}</h1>
         <div id="right-container" class="br-container">
-            <va-alert v-if="!dependenciesResolved" color="danger" border="top" style="text-transform: none;">
+            <va-alert v-if="!dependenciesResolved && dependenciesMessage" color="danger" border="top"
+                style="text-transform: none;">
                 {{ dependenciesMessage }}
             </va-alert>
-            <va-button icon="add" color="info" :to="buttonRoute" :disabled="!dependenciesResolved">
-                {{ buttonTitle }}
+            <va-button v-if="!dependenciesResolved && goButtonTitle && goButtonRoute" icon="chevron_right"
+                color="danger" :to="goButtonRoute">
+                {{ goButtonTitle }}
+            </va-button>
+            <va-button v-if="plusButtonTitle && plusButtonRoute" icon="add" color="info" :to="plusButtonRoute"
+                :disabled="!dependenciesResolved">
+                {{ plusButtonTitle }}
             </va-button>
         </div>
     </div>
@@ -18,16 +24,15 @@ export default defineComponent({
     name: "ListHeader",
     props: {
         title: String,
-        buttonTitle: String,
-        buttonRoute: String,
+        plusButtonTitle: String,
+        plusButtonRoute: String,
         dependenciesResolved: {
             type: Boolean,
             default: true
         },
-        dependenciesMessage: {
-            type: String,
-            default: null
-        },
+        dependenciesMessage: String,
+        goButtonTitle: String,
+        goButtonRoute: String
     }
 })
 </script>

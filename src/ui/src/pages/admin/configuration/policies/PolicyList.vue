@@ -2,8 +2,9 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="policies" button-title="Create policy" button-route="/admin/configuration/policies/new"
-          :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to add a new storage." />
+        <ListHeader title="policies" plus-button-title="Create policy"
+          plus-button-route="/admin/configuration/policies/new" :dependencies-resolved="areDependenciesResolved"
+          dependencies-message="You need to add a storage." go-button-title="Go to storage" go-button-route="/admin/configuration/storage" />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.policyList" :columns="columns">

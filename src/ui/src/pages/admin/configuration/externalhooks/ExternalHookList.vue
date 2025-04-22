@@ -1,7 +1,8 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="Hooks" button-title="Add external hook" button-route="/admin/configuration/externalhooks/new" />
+      <ListHeader title="Hooks" plus-button-title="Add external hook"
+        plus-button-route="/admin/configuration/externalhooks/new" />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.externalHookList" :columns="columns">

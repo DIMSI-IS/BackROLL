@@ -1,7 +1,8 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="Connectors" button-title="Add connector" button-route="/admin/configuration/connectors/new" />
+      <ListHeader title="Connectors" plus-button-title="Add connector"
+        plus-button-route="/admin/configuration/connectors/new" />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.connectorList" :columns="columns">

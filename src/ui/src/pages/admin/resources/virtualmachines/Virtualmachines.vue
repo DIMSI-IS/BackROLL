@@ -1,7 +1,7 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1>Virtual Machines</h1>
+      <ListHeader title="Virtual machines" :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to add an hypervisor." go-button-title="Go to hypervisors" go-button-route="/admin/resources/hypervisors" />
     </va-card-title>
     <va-card-content>
       <div class="row">
@@ -70,9 +70,14 @@
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import ListHeader from '@/components/lists/ListHeader.vue'
+
 export default defineComponent({
   name: 'VMsTable',
-  components: { ...spinners },
+  components: {
+    ...spinners,
+    ListHeader
+  },
   data() {
     return {
       columns: [
@@ -93,6 +98,9 @@ export default defineComponent({
     }
   },
   computed: {
+    areDependenciesResolved() {
+      return this.$store.state.resources.hostList.length > 0;
+    },
     pages() {
       return (this.perPage && this.perPage !== 0)
         ? Math.ceil(this.$store.state.resources.vmList.length / this.perPage)

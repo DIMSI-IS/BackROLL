@@ -2,9 +2,9 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="Hypervisors" button-title="Add hypervisor"
-          button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
-          dependencies-message="You need to create a new pool." />
+        <ListHeader title="Hypervisors" plus-button-title="Add hypervisor"
+          plus-button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
+          dependencies-message="You need to create a pool." go-button-title="Go to pools" go-button-route="/admin/resources/pools" />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.resources.hostList" :columns="columns">

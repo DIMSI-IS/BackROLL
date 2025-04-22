@@ -2,7 +2,8 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="Storages" button-title="Add storage" button-route="/admin/configuration/storage/new" />
+        <ListHeader title="Storage" plus-button-title="Add storage"
+          plus-button-route="/admin/configuration/storage/new" />
       </va-card-title>
       <va-card-content>
         <va-data-table :items="$store.state.storageList" :columns="columns">

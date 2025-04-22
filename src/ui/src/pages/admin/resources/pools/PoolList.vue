@@ -1,9 +1,9 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="pools" button-title="Create pool" button-route="/admin/resources/pools/new"
+      <ListHeader title="pools" plus-button-title="Create pool" plus-button-route="/admin/resources/pools/new"
         :dependencies-resolved="areDependenciesResolved"
-        dependencies-message="You need to create a new backup policy." />
+        dependencies-message="You need to create a backup policy." go-button-title="Go to policies" go-button-route="/admin/configuration/policies" />
     </va-card-title>
     <va-card-content>
       <va-data-table :items="$store.state.resources.poolList" :columns="columns">
