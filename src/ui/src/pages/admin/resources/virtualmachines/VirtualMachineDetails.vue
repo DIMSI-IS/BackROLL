@@ -203,7 +203,7 @@ import axios from 'axios'
 import parser from 'cron-parser'
 
 export default defineComponent({
-  name: 'VirtualmachineDetails',
+  name: 'VirtualMachineDetails',
   components: { ...spinners },
   data() {
     return {

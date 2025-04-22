@@ -85,12 +85,12 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'virtualmachines',
             path: 'virtualmachines',
-            component: () => import('@/pages/admin/resources/virtualmachines/Virtualmachines.vue')
+            component: () => import('@/pages/admin/resources/virtualmachines/VirtualMachineList.vue')
           },
           {
             path: '/resources/virtualmachines/:id',
             name: 'virtualmachinesDetails',
-            component: () => import('@/pages/admin/resources/virtualmachines/VirtualmachineDetails.vue')
+            component: () => import('@/pages/admin/resources/virtualmachines/VirtualMachineDetails.vue')
           },
         ],
       },
