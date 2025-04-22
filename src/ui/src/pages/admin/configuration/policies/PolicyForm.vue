@@ -163,7 +163,7 @@ export default {
       this.updateSelectedStorage(this.statePolicy.storage);
 
       // TODO Change retention to an object EVERYWHERE in Backroll ?
-      // Then retention will be included in fromPolicy.
+      // Then retention will be included in formPolicy.
       this.retention = Object.fromEntries(
         Object.entries(this.statePolicy)
           .filter(([key]) => key.startsWith("retention_"))
