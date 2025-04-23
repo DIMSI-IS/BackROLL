@@ -5,16 +5,15 @@
         plus-button-route="/admin/configuration/externalhooks/new" />
     </va-card-title>
     <va-card-content>
-      <va-data-table :items="$store.state.resources.externalHookList" :columns="columns">
+      <va-data-table :items="hookList" :columns="columns">
         <template #cell(value)="{ value }">
           {{ value ? '***MASKED***' : '' }}
         </template>
-        <template #cell(actions)="{ rowIndex }">
+        <template #cell(id)="{ value }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings"
-              @click="this.$router.push(`/admin/configuration/externalhooks/${$store.state.resources.externalHookList[rowIndex].id}`)" />
-            <va-button icon="delete"
-              @click="selectedHook = $store.state.resources.externalHookList[rowIndex], showDeleteModal = !showDeleteModal" />
+            <va-button icon="settings" :to="`/admin/configuration/externalhooks/${value}`" />
+            <va-button icon="play_arrow" @click="testHook(value)" />
+            <va-button icon="delete" @click="selectedHookId = value, showDeleteModal = true" />
           </va-button-group>
         </template>
       </va-data-table>
@@ -32,7 +31,7 @@
     </template>
     <hr>
     <div>
-      You are about to remove external hook <b>{{ JSON.parse(JSON.stringify(this.selectedHook)).name }}</b>.
+      You are about to remove external hook <b>{{ selectedHook.name }}</b>.
       <br>Please confirm action.
     </div>
   </va-modal>
@@ -55,18 +54,35 @@ export default defineComponent({
       columns: [
         { key: 'name' },
         { key: 'value' },
-        { key: 'actions' }
+        { key: "id", label: "actions" }
       ],
+      selectedHookId: null,
       showDeleteModal: false,
-      selectedHook: null
     }
   },
   computed: {
+    hookList() {
+      return this.$store.state.resources.externalHookList
+    },
+    selectedHook() {
+      return this.hookList.find(({ id }) => id == this.selectedHookId)
+    },
   },
   methods: {
+    async testHook(id) {
+      try {
+        await axios.get(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${id}/test`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      } catch (error) {
+        console.error(error)
+        this.$vaToast.init({
+          title: 'Unable to test external hook',
+          message: error?.response?.data?.detail ?? error,
+          color: 'danger'
+        })
+      }
+    },
     deleteHook() {
-      const hook = { ...this.selectedHook }
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${hook.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${this.selectedHookId}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
         .then(response => {
           this.$store.dispatch("requestExternalHook", { token: this.$keycloak.token })
           this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully removed', color: 'success' })
