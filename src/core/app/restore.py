@@ -160,8 +160,8 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
             # TODO Consider extracting the backup next to the archive source so that it will be on the same filesystem
             # — not on the backup storage.
             shell.subprocess_popen(
-                f"""borg extract --sparse
-                    {"" if is_nfs(restore_path) else "--noxattrs --noacls"}
+                f"""borg extract --sparse \
+                    {"" if is_nfs(restore_path) else "--noxattrs --noacls"} \
                     {make_path(borg_repository, virtual_machine_info['name'])}::{backup_name}""")
 
             # Skip directories
