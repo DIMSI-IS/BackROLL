@@ -297,7 +297,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
         if storage:
             data_backup_policy.storage = storage
         if externalhook is not None:
-            external_hooks.filter_external_hook_by_id(externalhook)
+            external_hooks.get_hook_by_id(externalhook)
             data_backup_policy.externalhook = externalhook
         else:
             data_backup_policy.externalhook = None

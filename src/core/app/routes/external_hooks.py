@@ -24,6 +24,7 @@ from typing import Optional
 from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
+from slack_sdk.webhook import WebhookClient
 
 from app import app
 from app import celery
@@ -48,7 +49,7 @@ class items_create_external_hook(BaseModel):
 
 
 @celery.task(name="Filter external hook by id")
-def filter_external_hook_by_id(hook_id):
+def get_hook_by_id(hook_id):
     try:
         engine = database.init_db_connection()
     except Exception as exc:
@@ -144,7 +145,7 @@ def api_delete_external_hook(hook_id):
             raise ValueError(
                 "One or more policies are attached to this external_hook")
     try:
-        external_hook = filter_external_hook_by_id(hook_id)
+        external_hook = get_hook_by_id(hook_id)
         with Session(engine) as session:
             session.delete(external_hook)
             session.commit()
@@ -185,9 +186,15 @@ def update_external_hook(
 
 
 @app.get("/api/v1/externalhooks/{hook_id}/test", status_code=200)
-def test_external_hook(_: Json = Depends(auth.valid_token)):
-    raise HTTPException(
-        status_code=500, detail=f"External hook testing is not yet implemented.")
+def test_external_hook(hook_id, _: Json = Depends(auth.valid_token)):
+    hook = get_hook_by_id(hook_id)
+    slack_client = WebhookClient(hook.value)
+    try:
+        slack_client.send(text="External hook test from Backroll !")
+        return {"state": "SUCCESS"}
+    except Exception:
+        raise HTTPException(
+            status_code=400, detail=f"Hook test failed.")
 
 
 @app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)

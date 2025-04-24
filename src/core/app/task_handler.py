@@ -76,7 +76,7 @@ def handle_task_success(task_id, msg):
         policy = policy_route.filter_policy_by_id(pool.policy_id)
 
     if policy.externalhook:
-        hook = hook_route.filter_external_hook_by_id(policy.externalhook)
+        hook = hook_route.get_hook_by_id(policy.externalhook)
 
         # Future feature : support multiple external hook providers.
         # if hook.provider.lower() == "slack" and hook.value:
@@ -147,7 +147,7 @@ def handle_task_failure(task_id, msg):
     policy = policy_route.filter_policy_by_id(pool.policy_id)
 
     if policy.externalhook:
-        hook = hook_route.filter_external_hook_by_id(policy.externalhook)
+        hook = hook_route.get_hook_by_id(policy.externalhook)
 
         # Future feature : support multiple external hook providers.
         # if hook.provider.lower() == "slack" and hook.value:
@@ -242,7 +242,7 @@ def pool_backup_notification(result, pool_id):
     if not policy.externalhook:
         return
     else:
-        externalhook = hook_route.filter_external_hook_by_id(
+        externalhook = hook_route.get_hook_by_id(
             policy.externalhook)
 
         # Build success and failure lists based on chord tasks results

@@ -11,8 +11,8 @@
         </template>
         <template #cell(id)="{ value }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings" :to="`/admin/configuration/externalhooks/${value}`" />
             <va-button icon="play_arrow" @click="testHook(value)" />
+            <va-button icon="settings" :to="`/admin/configuration/externalhooks/${value}`" />
             <va-button icon="delete" @click="selectedHookId = value, showDeleteModal = true" />
           </va-button-group>
         </template>
@@ -71,7 +71,8 @@ export default defineComponent({
   methods: {
     async testHook(id) {
       try {
-        await axios.get(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${id}/test`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        const response = await axios.get(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${id}/test`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully tested.', color: 'success' })
       } catch (error) {
         console.error(error)
         this.$vaToast.init({
