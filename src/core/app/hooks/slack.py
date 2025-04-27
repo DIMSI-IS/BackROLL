@@ -48,8 +48,8 @@ class SlackClient(HookClient):
             {
                 "type": "section",
                 "text": {
-                        "type": "mrkdwn",
-                        "text": f"{alerting}*{message}*"
+                    "type": "mrkdwn",
+                    "text": f"{alerting}*{message}*"
                 }
             },
             {
@@ -58,22 +58,22 @@ class SlackClient(HookClient):
             {
                 "type": "section",
                 "fields": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Target*\n{task_arg['name']}"
-                        },
                     {
-                            "type": "mrkdwn",
-                            "text": f"*State*\n{task['state']} :{context_smiley}:"
-                            },
+                        "type": "mrkdwn",
+                        "text": f"*Target*\n{task_arg['name']}"
+                    },
                     {
-                            "type": "mrkdwn",
-                            "text": f"*Created on*\n{datetime.fromtimestamp(task['started'])}"
-                            },
+                        "type": "mrkdwn",
+                        "text": f"*State*\n{task['state']} :{context_smiley}:"
+                    },
                     {
-                            "type": "mrkdwn",
-                            "text": f"*Duration*\n{duration_time}"
-                            }
+                        "type": "mrkdwn",
+                        "text": f"*Created on*\n{datetime.fromtimestamp(task['started'])}"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Duration*\n{duration_time}"
+                    }
                 ]
             },
             {
@@ -82,10 +82,10 @@ class SlackClient(HookClient):
             {
                 "type": "context",
                 "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*TYPE*: {task['name']}"
-                        }
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*TYPE*: {task['name']}"
+                    }
                 ]
             }
         ]
@@ -148,52 +148,51 @@ class SlackClient(HookClient):
         self.__send(blocks)
 
     def on_pool(self, pool, success_list, failure_list):
-        # Build slack block message
-        alert = ''
+        alerting = ''
         if len(failure_list) > 0:
-            alert = '<!channel> '
+            alerting = '<!channel> '
 
         blocks = [
             {
                 "type": "header",
                 "text": {
-                        "type": "plain_text",
-                        "text": "Summary of your pool backup job"
+                    "type": "plain_text",
+                    "text": "Summary of your pool backup job"
                 }
             },
             {
                 "type": "context",
                 "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"{alert}*{pool.name}*"
-                        }
+                    {
+                        "type": "mrkdwn",
+                        "text": f"{alerting}*{pool.name}*"
+                    }
                 ]
             },
             {
                 "type": "context",
                 "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": ":white_check_mark:"
-                        },
                     {
-                            "type": "mrkdwn",
-                            "text": f"*{len(success_list)}* Successful backup(s)"
-                            }
+                        "type": "mrkdwn",
+                        "text": ":white_check_mark:"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*{len(success_list)}* Successful backup(s)"
+                    }
                 ]
             },
             {
                 "type": "context",
                 "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": ":x:"
-                        },
                     {
-                            "type": "mrkdwn",
-                            "text": f"*{len(failure_list)}* Failed backup(s)"
-                            }
+                        "type": "mrkdwn",
+                        "text": ":x:"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*{len(failure_list)}* Failed backup(s)"
+                    }
                 ]
             },
             {
@@ -202,17 +201,17 @@ class SlackClient(HookClient):
             {
                 "type": "section",
                 "text": {
-                        "type": "mrkdwn",
-                        "text": "Review all backup tasks :arrow_right:"
+                    "type": "mrkdwn",
+                    "text": "Review all backup tasks :arrow_right:"
                 },
                 "accessory": {
                     "type": "button",
                     "text": {
-                            "type": "plain_text",
-                            "text": "By clicking here",
+                        "type": "plain_text",
+                        "text": "By clicking here",
                     },
                     "value": "click_me_123",
-                    "url": make_path(os.getenv('BASE_URL'), "admin/tasks/backup"),
+                    "url": make_path(os.getenv('FRONT_URL'), "admin/tasks/backup"),
                     "action_id": "button-action"
                 }
             }

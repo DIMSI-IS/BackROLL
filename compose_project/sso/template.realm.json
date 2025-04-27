@@ -13,8 +13,8 @@
       "clientId": "backroll-front",
       "enabled": true,
       "publicClient": true,
-      "baseUrl": "http://_front_url/admin/dashboard",
-      "redirectUris": ["http://_front_url/*"],
+      "baseUrl": "_front_url/admin/dashboard",
+      "redirectUris": ["_front_url/*"],
       "webOrigins": ["*"]
     },
     {

@@ -29,7 +29,7 @@ backroll_setup() {
                     local sso_user_name=developer
                     local sso_user_password=developer
                     local api_address=api
-                    local front_url=front:8080
+                    local front_url=http://front:8080
                     ;;
                 staging|prod)
                     case $backroll_mode in
@@ -187,12 +187,11 @@ backroll_setup() {
                     
                     case $backroll_mode in
                         staging)
-                            local front_url=$front_address:8080
-                            ;;
-                        prod)
-                            local front_url=$front_address
+                            front_address=$front_address:8080
                             ;;
                     esac
+
+                    local front_url=http://$front_address
                     ;;
             esac
 
