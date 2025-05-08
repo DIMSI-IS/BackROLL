@@ -67,6 +67,24 @@ backroll_setup() {
                     local api_address=$host_ip
                     local front_address=$host_ip
 
+                    local front_port=
+                    case $backroll_mode in
+                        staging)
+                            # front_port=8080
+                            ;;
+                    esac
+
+                    echo "#### Backroll front configuration ####"
+                    echo "Which protocol the Backroll front will be reached by ?"
+                    select protocol in http https; do
+                        case $protocol in
+                            http|https)
+                                local front_url=$protocol://$front_address${front_port:+:$front_port}
+                                break
+                                ;;
+                        esac
+                    done
+
                     echo "#### Flower configuration (preview) ####"
                     read -r -p "Define new flower username : " flower_user
                     while true;
@@ -184,14 +202,6 @@ backroll_setup() {
                                 echo "Passwords do not match. Try again."
                             done
                     fi
-                    
-                    case $backroll_mode in
-                        staging)
-                            front_address=$front_address:8080
-                            ;;
-                    esac
-
-                    local front_url=http://$front_address
                     ;;
             esac
 
