@@ -211,6 +211,7 @@ class SlackClient(HookClient):
                         "text": "By clicking here",
                     },
                     "value": "click_me_123",
+                    # The notification may not be displayed in Slack if the URL is invalid.
                     "url": make_path(os.getenv('FRONT_URL'), "admin/tasks/backup"),
                     "action_id": "button-action"
                 }
