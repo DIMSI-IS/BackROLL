@@ -74,3 +74,27 @@ def on_pool(result, pool_id):
                 failure_list.append(item)
 
         client.on_pool(pool, success_list, failure_list)
+
+
+class __StubPool:
+    name = "Notification test pool"
+
+
+def test(hook_id):
+    client = __from_hook_id(hook_id)
+
+    task = {
+        "runtime": 4 * 60 + 20,
+        "state": "TEST",
+        "started": 1746709361,
+        "name": "Notification test task",
+        'args': [{
+            'name': "Notification test VM"
+        }]
+    }
+    message = "Notification test message"
+    client.on_task_success(task, message)
+    client.on_task_failure(task, message)
+
+    client.on_pool(__StubPool(), ["item"], [])
+    client.on_pool(__StubPool(), [], ["item"])
