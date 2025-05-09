@@ -155,6 +155,11 @@ export default defineComponent({
     sshKeys(newValue) {
       this.currentTabKey = newValue[0]?.name
     },
+    showConnectModal(newValue, oldValue) {
+      if (newValue && !oldValue) {
+        this.isKeyCopied = false
+      }
+    },
     currentTabKey() {
       this.isKeyCopied = false
     }
