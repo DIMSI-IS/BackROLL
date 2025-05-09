@@ -70,7 +70,7 @@ backroll_setup() {
                     local front_port=
                     case $backroll_mode in
                         staging)
-                            # front_port=8080
+                            front_port=8080
                             ;;
                     esac
 
