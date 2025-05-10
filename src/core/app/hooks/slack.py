@@ -18,11 +18,13 @@
 from datetime import datetime
 import os
 import time
-from app.hooks.hook_client import HookClient, convert
+
 from slack_sdk.webhook import WebhookClient
 from slack_sdk.errors import SlackApiError
 
 from app.patch import make_path
+from app.hooks.hook_client import HookClient, convert
+from app.logging import logged
 
 
 class SlackClient(HookClient):
@@ -37,6 +39,7 @@ class SlackClient(HookClient):
             assert e.response["error"]
             print(f"Got an error: {e.response}")
 
+    @logged()
     def on_task_success(self, task, message):
         task_arg = task['args'][0]
 
@@ -92,6 +95,7 @@ class SlackClient(HookClient):
 
         self.__send(blocks)
 
+    @logged()
     def on_task_failure(self, task, message):
         task_arg = task['args'][0]
 
@@ -147,6 +151,7 @@ class SlackClient(HookClient):
 
         self.__send(blocks)
 
+    @logged()
     def on_pool(self, pool, success_list, failure_list):
         alerting = ''
         if len(failure_list) > 0:
