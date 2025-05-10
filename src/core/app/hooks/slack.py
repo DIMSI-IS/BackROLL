@@ -35,6 +35,8 @@ class SlackClient(HookClient):
         try:
             self.__inner.send(blocks=blocks)
         except SlackApiError as e:
+            # TODO Analyse error to send a bad request if the hook is invalid
+            # but not here.
             assert e.response["ok"] is False
             assert e.response["error"]
             print(f"Got an error: {e.response}")

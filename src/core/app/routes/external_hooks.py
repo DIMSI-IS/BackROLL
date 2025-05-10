@@ -20,7 +20,7 @@
 import traceback
 
 from uuid import UUID
-from app.patch import ensure_uuid
+
 from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 from sqlmodel import Session, select
@@ -34,6 +34,8 @@ from app import database
 from app.database import ExternalHooks
 from app.database import Policies
 from app.hooks import notification_sender
+from app.patch import ensure_uuid
+from app.exceptions import internal_server_error
 
 
 class items_create_external_hook(BaseModel):
@@ -191,10 +193,8 @@ def test_external_hook(hook_id, _: Json = Depends(auth.valid_token)):
     try:
         notification_sender.test(hook_id)
         return {"state": "SUCCESS"}
-    except Exception as exception:
-        traceback.print_exc()
-        raise HTTPException(
-            status_code=400, detail=f"Hook test failed.")
+    except:
+        internal_server_error()
 
 
 @app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
