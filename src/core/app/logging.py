@@ -1,11 +1,17 @@
 import logging
+from celery.app.log import TaskFormatter
+
 
 logging.basicConfig(level=logging.INFO)
 
+root_logger = logging.getLogger()
+root_handler = root_logger.handlers[0]
+root_handler.setFormatter(TaskFormatter(
+    '%(asctime)s %(task_name)s(%(task_id)s) [%(levelname)s] [%(name)s] %(message)s'))
 
 def __getLogger(f):
     # Note that getLogger() is cached.
-    return logging.getLogger(f.__qualname__)
+    return logging.getLogger(f"{__name__}.{f.__qualname__}")
 
 
 def __bounded(first, current):
@@ -28,13 +34,16 @@ def __injected(first, current):
 
 
 def logged(bounds=True, logger=True):
+    bounded = bounds
+    injected = logger
+
     def decorator(first):
         current = first
 
-        if bounds:
+        if bounded:
             current = __bounded(first, current)
 
-        if logger:
+        if injected:
             current = __injected(first, current)
 
         return current

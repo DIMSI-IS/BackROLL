@@ -22,7 +22,7 @@ from pydantic_settings import BaseSettings
 from fastapi.middleware.cors import CORSMiddleware
 
 import celery
-from celery import Celery, states
+from celery import Celery, states, signals
 from celery.backends.redis import RedisBackend
 
 from kombu import Queue
@@ -100,6 +100,16 @@ celery.conf.update(settings)
 celery.conf.update(
   result_expires=604800
 )
+
+# Removing default logging…
+@signals.setup_logging.connect
+def prevent_celery_logging(**kwargs):
+    pass
+celery.log.setup()
+# …done.
+
+
+# Warning: formatting may move these imports and break app starting.
 
 from app.scheduler import retrieve_tasks
 
