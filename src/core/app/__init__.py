@@ -101,13 +101,6 @@ celery.conf.update(
   result_expires=604800
 )
 
-# Removing default logging…
-@signals.setup_logging.connect
-def prevent_celery_logging(**kwargs):
-    pass
-celery.log.setup()
-# …done.
-
 
 # Warning: formatting may move these imports and break app starting.
 
