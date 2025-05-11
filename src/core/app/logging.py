@@ -1,3 +1,4 @@
+from functools import wraps
 from logging import INFO, getLogger, Formatter, StreamHandler
 
 
@@ -50,7 +51,8 @@ def __configure_logger(f):
     return logger
 
 
-def __bounded(_, current, logger):
+def __bounded(first, current, logger):
+    @wraps(first)
     def last(*args, **kwargs):
         logger.info("before")
         value = current(*args, **kwargs)
@@ -60,9 +62,14 @@ def __bounded(_, current, logger):
 
 
 def __injected(first, current, logger):
-    if "logger" in first.__code__.co_varnames:
+    logger_arg_name = "logger"
+
+    if logger_arg_name in first.__code__.co_varnames:
+        @wraps(first)
         def last(*args, **kwargs):
-            return current(*args, logger=logger, **kwargs)
+            # Overrides the existing keyword argument if any.
+            kwargs[logger_arg_name] = logger
+            return current(*args, **kwargs)
         return last
     return current
 
