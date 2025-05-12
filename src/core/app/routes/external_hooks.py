@@ -17,8 +17,6 @@
 
 #!/usr/bin/env python
 
-import traceback
-
 from uuid import UUID
 
 from fastapi import HTTPException, Depends
@@ -35,7 +33,6 @@ from app.database import ExternalHooks
 from app.database import Policies
 from app.hooks import notification_sender
 from app.patch import ensure_uuid
-from app.exceptions import internal_server_error
 
 
 class items_create_external_hook(BaseModel):
@@ -190,11 +187,8 @@ def update_external_hook(
 
 @app.get("/api/v1/externalhooks/{hook_id}/test", status_code=200)
 def test_external_hook(hook_id, _: Json = Depends(auth.valid_token)):
-    try:
-        notification_sender.test(hook_id)
-        return {"state": "SUCCESS"}
-    except:
-        internal_server_error()
+    notification_sender.test(hook_id)
+    return {"state": "SUCCESS"}
 
 
 @app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
