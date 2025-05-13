@@ -8,6 +8,7 @@ from app import task_helper
 from app.database import Pools
 from app.hooks.hook_client import HookClient
 from app.hooks.slack import SlackClient
+from app.logging import logged
 
 
 def __from_hook_id(hook_id) -> HookClient:
@@ -47,18 +48,21 @@ def __from_task_id(task_id) -> tuple[dict, None | HookClient]:
     return task, __from_pool_id(pool_id)[1]
 
 
+@logged()
 def on_task_success(task_id, message):
     task, client = __from_task_id(task_id)
     if client is not None:
         client.on_task_success(task, message)
 
 
+@logged()
 def on_task_failure(task_id, message):
     task, client = __from_task_id(task_id)
     if client is not None:
         client.on_task_failure(task, message)
 
 
+@logged()
 def on_pool(result, pool_id):
     pool, client = __from_pool_id(pool_id)
     if client is not None:
@@ -80,6 +84,7 @@ class __StubPool:
     name = "Notification test pool"
 
 
+@logged()
 def test(hook_id):
     client = __from_hook_id(hook_id)
 
