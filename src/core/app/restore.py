@@ -23,7 +23,7 @@ import subprocess
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
-from app import celery
+from app.initialized import celery
 
 from app.routes import host
 from app.routes import storage

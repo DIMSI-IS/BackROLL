@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from app import celery
+from app.initialized import celery
 from celery.signals import task_failure, task_success
 
 from app.backup_tasks import single_backup

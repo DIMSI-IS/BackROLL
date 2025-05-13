@@ -26,8 +26,8 @@ from celery import subtask, group, chain
 import json
 import re
 
-from app import app
-from app import celery as celery_app
+from app.initialized import app
+from app.initialized import celery as celery_app
 
 from app import auth
 

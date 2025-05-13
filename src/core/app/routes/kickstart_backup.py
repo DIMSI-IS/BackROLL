@@ -28,8 +28,8 @@ from sqlmodel import Session, select
 from app.kvm import kvm_manage_vm
 from celery import chord
 
-from app import app
-from app import celery
+from app.initialized import app
+from app.initialized import celery
 from app import auth
 from app import database
 from app import task_handler

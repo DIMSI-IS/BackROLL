@@ -29,8 +29,8 @@ import json
 
 from typing import Optional
 
-from app import app
-from app import celery
+from app.initialized import app
+from app.initialized import celery
 from celery import chain
 
 from app.backup_tasks import single_backup
@@ -41,6 +41,7 @@ from app.routes import virtual_machine
 from app import auth
 from app import restore
 from app import task_helper
+
 
 class restorebackup_start(BaseModel):
     virtual_machine_id: str
@@ -168,7 +169,7 @@ def retrieve_restore_task_jobs():
     single_vm_response = requests.get(
         'http://flower:5555/api/tasks', params=single_vm_payload)
     single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
-    
+
     vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
     vm_retore_path_response = requests.get(
         'http://flower:5555/api/tasks', params=vm_retore_path_payload)
@@ -178,7 +179,7 @@ def retrieve_restore_task_jobs():
     single_vm_task.update(vm_retore_path_task)
 
     task_helper.manage_task_dict_args(single_vm_task)
-    
+
     return single_vm_task
 
 

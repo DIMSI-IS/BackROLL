@@ -25,9 +25,9 @@ from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 
-from app import app
+from app.initialized import app
 
-from app import celery
+from app.initialized import celery
 
 from app import auth
 from app import database

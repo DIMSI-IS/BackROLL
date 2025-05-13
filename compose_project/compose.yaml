@@ -71,7 +71,7 @@ services:
   flower:
     depends_on:
       - worker_primary
-    command: celery -A app.celery flower --conf=flowerconfig.py --loglevel=info
+    command: bash flower.command.sh
     env_file:
       - core/@$BACKROLL_MODE.env
     volumes:
@@ -80,7 +80,7 @@ services:
   beat:
     depends_on:
       - worker_secondary
-    command: celery -A app.celery beat -S redbeat.RedBeatScheduler --loglevel=info
+    command: bash beat.command.sh
     env_file:
       - core/@$BACKROLL_MODE.env
 

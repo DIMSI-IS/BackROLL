@@ -30,7 +30,7 @@ from celery.result import AsyncResult
 from celery.schedules import crontab
 from redbeat import RedBeatSchedulerEntry
 
-from app import app
+from app.initialized import app
 from app import auth
 from app import database
 from app.database import Policies
@@ -40,8 +40,8 @@ from app.database import Hosts
 
 from app.routes import external_hooks
 
-from app import celery as celeryWorker
-from app import celery
+from app.initialized import celery as celeryWorker
+from app.initialized import celery
 
 
 class backup_policy_create(BaseModel):

@@ -18,8 +18,8 @@ from os import path
 
 import subprocess
 
-from app import app
-from app import celery
+from app.initialized import app
+from app.initialized import celery
 from app.routes import storage
 from app.patch import make_path
 from app import shell

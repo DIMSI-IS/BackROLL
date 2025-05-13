@@ -29,7 +29,7 @@ from jwt import PyJWKClient
 from pydantic import Json, BaseModel
 from authlib.integrations.starlette_client import OAuth
 
-from app import app
+from app.initialized import app
 from app.patch import make_path
 
 app.add_middleware(SessionMiddleware,

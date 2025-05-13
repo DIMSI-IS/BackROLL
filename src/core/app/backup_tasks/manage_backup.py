@@ -19,7 +19,7 @@
 import json
 import subprocess
 from celery_once import QueueOnce
-from app import celery as celery_app
+from app.initialized import celery as celery_app
 from app.routes import storage
 from app.routes import storage
 from fastapi.encoders import jsonable_encoder

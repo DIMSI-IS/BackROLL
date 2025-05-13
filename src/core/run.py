@@ -22,5 +22,4 @@ import uvicorn
 # eventlet.monkey_patch()
 
 if __name__ == '__main__':
-    # TODO app.applications.finalized:starlette
-    uvicorn.run('app.register:outer_app', host='0.0.0.0', port=5050)
+    uvicorn.run('app.finalized:starlette_app', host='0.0.0.0', port=5050)

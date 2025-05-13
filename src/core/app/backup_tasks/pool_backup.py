@@ -18,7 +18,7 @@
 #!/usr/bin/env python
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
-from app import celery
+from app.initialized import celery
 
 import time
 from app.routes import host
