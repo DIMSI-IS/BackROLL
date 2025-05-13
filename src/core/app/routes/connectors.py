@@ -25,8 +25,8 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Json
 from pathlib import Path
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 
 from app import auth
 from app import database
@@ -70,7 +70,7 @@ def filter_connector_by_id(connector_id):
         raise ValueError(e)
 
 
-@celery.task(name='Update connector')
+@celery_app.task(name='Update connector')
 def api_update_connector(connector_id, name, url, login, password):
     try:
         engine = database.init_db_connection()
@@ -102,7 +102,7 @@ def api_update_connector(connector_id, name, url, login, password):
         raise ValueError(e)
 
 
-@celery.task(name='create connector')
+@celery_app.task(name='create connector')
 def api_create_connector(name, url, login, password):
     try:
         engine = database.init_db_connection()
@@ -120,7 +120,7 @@ def api_create_connector(name, url, login, password):
         raise ValueError(e)
 
 
-@celery.task(name='list connectors')
+@celery_app.task(name='list connectors')
 def api_retrieve_connectors():
     try:
         engine = database.init_db_connection()
@@ -138,7 +138,7 @@ def api_retrieve_connectors():
         raise ValueError(e)
 
 
-@celery.task(name='Delete connector')
+@celery_app.task(name='Delete connector')
 def api_delete_connector(connector_id):
     try:
         engine = database.init_db_connection()
@@ -163,7 +163,7 @@ def api_delete_connector(connector_id):
         raise ValueError(e)
 
 
-@app.post('/api/v1/connectors', status_code=201)
+@fastapi_app.post('/api/v1/connectors', status_code=201)
 def create_connector(item: items_create_connector, identity: Json = Depends(auth.valid_token)):
     name = item.name
     url = item.url
@@ -172,13 +172,13 @@ def create_connector(item: items_create_connector, identity: Json = Depends(auth
     return api_create_connector(name, url, login, password)
 
 
-@app.get('/api/v1/connectors', status_code=202)
+@fastapi_app.get('/api/v1/connectors', status_code=202)
 def retrieve_connectors(identity: Json = Depends(auth.valid_token)):
     task = api_retrieve_connectors.delay()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
-@app.patch('/api/v1/connectors/{connector_id}', status_code=200)
+@fastapi_app.patch('/api/v1/connectors/{connector_id}', status_code=200)
 def update_connector(connector_id, item: items_create_connector, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(connector_id)
@@ -191,7 +191,7 @@ def update_connector(connector_id, item: items_create_connector, identity: Json 
     return api_update_connector(connector_id, name, url, login, password)
 
 
-@app.delete('/api/v1/connectors/{connector_id}', status_code=200)
+@fastapi_app.delete('/api/v1/connectors/{connector_id}', status_code=200)
 def delete_connector(connector_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(connector_id)

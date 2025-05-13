@@ -24,8 +24,8 @@ from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 
 from app import auth
 from app import database
@@ -48,7 +48,7 @@ class items_create_external_hook(BaseModel):
         }
 
 
-@celery.task(name="Filter external hook by id")
+@celery_app.task(name="Filter external hook by id")
 def get_hook_by_id(hook_id):
     try:
         engine = database.init_db_connection()
@@ -67,7 +67,7 @@ def get_hook_by_id(hook_id):
         raise ValueError(exc) from exc
 
 
-@celery.task(name="Create external_hook")
+@celery_app.task(name="Create external_hook")
 def api_create_external_hook(name, value):
     try:
         engine = database.init_db_connection()
@@ -84,7 +84,7 @@ def api_create_external_hook(name, value):
         raise ValueError(exc) from exc
 
 
-@celery.task(name="Read external_hook")
+@celery_app.task(name="Read external_hook")
 def api_read_external_hook():
     try:
         engine = database.init_db_connection()
@@ -99,7 +99,7 @@ def api_read_external_hook():
     return jsonable_encoder(records)
 
 
-@celery.task(name="Update external_hook")
+@celery_app.task(name="Update external_hook")
 def api_update_external_hook(hook_id, name, value):
     try:
         engine = database.init_db_connection()
@@ -127,7 +127,7 @@ def api_update_external_hook(hook_id, name, value):
         raise ValueError(exc) from exc
 
 
-@celery.task(name="Delete external_hook")
+@celery_app.task(name="Delete external_hook")
 def api_delete_external_hook(hook_id):
     try:
         engine = database.init_db_connection()
@@ -154,7 +154,7 @@ def api_delete_external_hook(hook_id):
         raise ValueError(exc) from exc
 
 
-@app.post("/api/v1/externalhooks", status_code=201)
+@fastapi_app.post("/api/v1/externalhooks", status_code=201)
 def create_external_hook(
     item: items_create_external_hook, identity: Json = Depends(auth.valid_token)
 ):
@@ -163,13 +163,13 @@ def create_external_hook(
     return api_create_external_hook(name, value)
 
 
-@app.get("/api/v1/externalhooks", status_code=202)
+@fastapi_app.get("/api/v1/externalhooks", status_code=202)
 def read_external_hook(_: Json = Depends(auth.valid_token)):
     task = api_read_external_hook.delay()
-    return {"Location": app.url_path_for("retrieve_task_status", task_id=task.id)}
+    return {"Location": fastapi_app.url_path_for("retrieve_task_status", task_id=task.id)}
 
 
-@app.patch("/api/v1/externalhooks/{hook_id}", status_code=200)
+@fastapi_app.patch("/api/v1/externalhooks/{hook_id}", status_code=200)
 def update_external_hook(
     hook_id,
     item: items_create_external_hook,
@@ -185,13 +185,13 @@ def update_external_hook(
     return api_update_external_hook(hook_id, name, value)
 
 
-@app.get("/api/v1/externalhooks/{hook_id}/test", status_code=200)
+@fastapi_app.get("/api/v1/externalhooks/{hook_id}/test", status_code=200)
 def test_external_hook(hook_id, _: Json = Depends(auth.valid_token)):
     notification_sender.test(hook_id)
     return {"state": "SUCCESS"}
 
 
-@app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
+@fastapi_app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
 def delete_external_hook(hook_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(hook_id)

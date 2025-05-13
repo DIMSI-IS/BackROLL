@@ -20,12 +20,12 @@ from redbeat import schedulers
 
 
 # Celery Imports
-from app.initialized import celery
+from app.initialized import celery_app
 from redbeat import RedBeatSchedulerEntry as Entry
 
-redis = schedulers.get_redis(celery)
-conf = schedulers.RedBeatConfig(celery)
+redis = schedulers.get_redis(celery_app)
+conf = schedulers.RedBeatConfig(celery_app)
 keys = redis.zrange(conf.schedule_key, 0, -1)
 entries = [schedulers.RedBeatSchedulerEntry.from_key(
-    key, app=celery) for key in keys]
+    key, app=celery_app) for key in keys]
 pprint(entries)

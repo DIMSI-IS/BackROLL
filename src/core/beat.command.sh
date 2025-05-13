@@ -1,1 +1,1 @@
-celery -A app.finalized.celery beat -S redbeat.RedBeatScheduler --loglevel=info
+celery -A app.finalized.celery_app beat -S redbeat.RedBeatScheduler --loglevel=info

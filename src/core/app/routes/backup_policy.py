@@ -30,7 +30,7 @@ from celery.result import AsyncResult
 from celery.schedules import crontab
 from redbeat import RedBeatSchedulerEntry
 
-from app.initialized import app
+from app.initialized import fastapi_app
 from app import auth
 from app import database
 from app.database import Policies
@@ -40,8 +40,8 @@ from app.database import Hosts
 
 from app.routes import external_hooks
 
-from app.initialized import celery as celeryWorker
-from app.initialized import celery
+from app.initialized import celery_app as celeryWorker
+from app.initialized import celery_app
 
 
 class backup_policy_create(BaseModel):
@@ -112,7 +112,7 @@ def filter_policy_by_id(policy_id):
         raise ValueError(e)
 
 
-@celery.task(name='create_backup_policy')
+@celery_app.task(name='create_backup_policy')
 def api_create_backup_policy(name, description, schedule, retention, storage, externalhook):
     try:
         engine = database.init_db_connection()
@@ -130,7 +130,7 @@ def api_create_backup_policy(name, description, schedule, retention, storage, ex
         raise ValueError(e)
 
 
-@celery.task(name='delete_backup_policy')
+@celery_app.task(name='delete_backup_policy')
 def api_delete_backup_policy(backup_policy_id):
     try:
         engine = database.init_db_connection()
@@ -152,7 +152,7 @@ def api_delete_backup_policy(backup_policy_id):
         raise ValueError(e)
 
 
-@celery.task(name='List backup policies')
+@celery_app.task(name='List backup policies')
 def retrieve_backup_policies():
     try:
         engine = database.init_db_connection()
@@ -226,7 +226,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
             try:
                 unique_task_name = f"{task}-{data_backup_policy.name}-{data_backup_policy.id}-{currentPool['name']}"
                 key = f"redbeat:{unique_task_name}"
-                e = RedBeatSchedulerEntry.from_key(key, app=celery)
+                e = RedBeatSchedulerEntry.from_key(key, app=celery_app)
                 try:
                     e.delete()
                 except Exception as e:
@@ -274,7 +274,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
                 cron = crontab(minute=split_cron[0], hour=split_cron[1], day_of_month=split_cron[2],
                                month_of_year=split_cron[3], day_of_week=day_of_week)
                 entry = RedBeatSchedulerEntry(
-                    unique_task_name, task, cron, args=(currentPool['id'],), app=celery)
+                    unique_task_name, task, cron, args=(currentPool['id'],), app=celery_app)
                 entry.save()
             except Exception as e:
                 raise ValueError(e)
@@ -310,7 +310,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
         raise ValueError(e)
 
 
-@app.post("/api/v1/backup_policies", status_code=201)
+@fastapi_app.post("/api/v1/backup_policies", status_code=201)
 def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.valid_token)):
     try:
         engine = database.init_db_connection()
@@ -335,13 +335,13 @@ def create_backup_policy(item: backup_policy_create, identity: Json = Depends(au
     return api_create_backup_policy(name, description, schedule, retention, storage, externalhook)
 
 
-@app.get("/api/v1/backup_policies", status_code=202)
+@fastapi_app.get("/api/v1/backup_policies", status_code=202)
 def list_backup_policies(identity: Json = Depends(auth.valid_token)):
     task = retrieve_backup_policies.delay()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
-@app.patch("/api/v1/backup_policies/{policy_id}", status_code=200)
+@fastapi_app.patch("/api/v1/backup_policies/{policy_id}", status_code=200)
 def update_backup_policy(policy_id, item: backup_policy_update, identity: Json = Depends(auth.valid_token)):
     name = item.name
     description = item.description
@@ -361,7 +361,7 @@ def update_backup_policy(policy_id, item: backup_policy_update, identity: Json =
     return api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled)
 
 
-@app.delete("/api/v1/backup_policies/{policy_id}", status_code=200)
+@fastapi_app.delete("/api/v1/backup_policies/{policy_id}", status_code=200)
 def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.valid_token)):
     try:
         engine = database.init_db_connection()

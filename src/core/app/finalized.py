@@ -24,6 +24,6 @@ from app.routes import kickstart_backup
 from app.routes import connectors
 
 # Re-export
-from app.initialized import starlette_app, celery
+from app.initialized import starlette_app, celery_app
 starlette_app = starlette_app
-celery_app = celery
+celery_app = celery_app

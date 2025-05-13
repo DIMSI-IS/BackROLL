@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-app = FastAPI()
+fastapi_app = FastAPI()
 
 origins = [
     "*"
@@ -43,7 +43,7 @@ origins = [
 # Using an outer CORS middleware (from starlette)
 # to properly add CORS header
 # to auto-generated status-code-500 responses.
-starlette_app = CORSMiddleware(app=app,
+starlette_app = CORSMiddleware(app=fastapi_app,
                                allow_origins=origins,
                                allow_credentials=True,
                                allow_methods=["*"],
@@ -75,22 +75,22 @@ def patch_celery():
 
 
 # Initialize Celery
-celery = patch_celery().Celery('BackupAPI', broker='redis://redis:6379/0')
+celery_app = patch_celery().Celery('BackupAPI', broker='redis://redis:6379/0')
 
-celery.conf.ONCE = {
+celery_app.conf.ONCE = {
     'backend': 'celery_once.backends.Redis',
     'settings': {
         'url': 'redis://redis:6379/0',
         'default_timeout': 60 * 60 * 12
     }
 }
-celery.conf.update(settings)
+celery_app.conf.update(settings)
 
-celery.conf.update(
+celery_app.conf.update(
     result_expires=604800
 )
 
-# celery.conf.beat_schedule = {
+# celery_app.conf.beat_schedule = {
 #    'daily_routine_cleaning_backups': {
 #        'task': 'garbageCollector',
 #        'schedule': crontab(hour=1, minute=0, day_of_week='*', day_of_month='*', month_of_year='*'),

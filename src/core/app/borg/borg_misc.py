@@ -18,8 +18,8 @@ from os import path
 
 import subprocess
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 from app.routes import storage
 from app.patch import make_path
 from app import shell
@@ -29,7 +29,7 @@ def borglock(payload):
     borgbreaklock.delay(payload)
 
 
-@celery.task(name='Break BORG repository lock')
+@celery_app.task(name='Break BORG repository lock')
 def borgbreaklock(virtual_machine_list, virtual_machine_id):
     virtual_machine = {}
     for x in virtual_machine_list:

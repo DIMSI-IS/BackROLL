@@ -24,8 +24,8 @@ from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 
 from app import auth
 from app import database
@@ -64,7 +64,7 @@ class update_items_pool(BaseModel):
         }
 
 
-@celery.task(name='filter_pool_by_id')
+@celery_app.task(name='filter_pool_by_id')
 def filter_pool_by_id(pool_id):
     try:
         engine = database.init_db_connection()
@@ -106,7 +106,7 @@ def api_create_pool(item):
         raise ValueError(e)
 
 
-@celery.task(name='Update pool')
+@celery_app.task(name='Update pool')
 def api_update_pool(pool_id, item):
     try:
         engine = database.init_db_connection()
@@ -162,7 +162,7 @@ def api_delete_pool(pool_id):
         raise ValueError(e)
 
 
-@celery.task(name='List registered pools')
+@celery_app.task(name='List registered pools')
 def retrieve_pool():
     try:
         engine = database.init_db_connection()
@@ -177,18 +177,18 @@ def retrieve_pool():
     return jsonable_encoder(records)
 
 
-@app.post('/api/v1/pools', status_code=201)
+@fastapi_app.post('/api/v1/pools', status_code=201)
 def create_pool(item: create_items_pool, identity: Json = Depends(auth.valid_token)):
     return api_create_pool(item)
 
 
-@app.get('/api/v1/pools', status_code=202)
+@fastapi_app.get('/api/v1/pools', status_code=202)
 def list_pools(identity: Json = Depends(auth.valid_token)):
     task = retrieve_pool.delay()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
-@app.patch('/api/v1/pools/{pool_id}', status_code=200)
+@fastapi_app.patch('/api/v1/pools/{pool_id}', status_code=200)
 def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(pool_id)
@@ -198,7 +198,7 @@ def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.
     return api_update_pool(pool_id, item)
 
 
-@app.delete('/api/v1/pools/{pool_id}', status_code=200)
+@fastapi_app.delete('/api/v1/pools/{pool_id}', status_code=200)
 def delete_pool(pool_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(pool_id)

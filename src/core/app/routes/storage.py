@@ -25,9 +25,9 @@ from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 
-from app.initialized import app
+from app.initialized import fastapi_app
 
-from app.initialized import celery
+from app.initialized import celery_app
 
 from app import auth
 from app import database
@@ -135,7 +135,7 @@ def filter_storage_by_id(storage_id):
         raise ValueError(e)
 
 
-@celery.task(name='create storage')
+@celery_app.task(name='create storage')
 def api_create_storage(name, path):
     try:
         engine = database.init_db_connection()
@@ -152,7 +152,7 @@ def api_create_storage(name, path):
         raise ValueError(e)
 
 
-@celery.task(name='Update storage')
+@celery_app.task(name='Update storage')
 def api_update_storage(storage_id, name, path):
     try:
         engine = database.init_db_connection()
@@ -180,7 +180,7 @@ def api_update_storage(storage_id, name, path):
         raise ValueError(e)
 
 
-@celery.task(name='Delete storage')
+@celery_app.task(name='Delete storage')
 def api_delete_storage(storage_id):
     try:
         engine = database.init_db_connection()
@@ -207,7 +207,7 @@ def api_delete_storage(storage_id):
         raise ValueError(e)
 
 
-@celery.task(name='List registered storage')
+@celery_app.task(name='List registered storage')
 def retrieve_storage():
     try:
         engine = database.init_db_connection()
@@ -231,20 +231,20 @@ def retrieve_storage():
     return jsonable_encoder(result)
 
 
-@app.get('/api/v1/storage', status_code=202)
+@fastapi_app.get('/api/v1/storage', status_code=202)
 def list_storage(identity: Json = Depends(auth.valid_token)):
     task = retrieve_storage.delay()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
-@app.post('/api/v1/storage', status_code=201)
+@fastapi_app.post('/api/v1/storage', status_code=201)
 def create_storage(item: items_storage, identity: Json = Depends(auth.valid_token)):
     name = item.name
     path = item.path
     return api_create_storage(name, path)
 
 
-@app.patch("/api/v1/storage/{storage_id}", status_code=200)
+@fastapi_app.patch("/api/v1/storage/{storage_id}", status_code=200)
 def update_storage(storage_id, item: items_storage, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(storage_id)
@@ -255,7 +255,7 @@ def update_storage(storage_id, item: items_storage, identity: Json = Depends(aut
     return api_update_storage(storage_id, name, path)
 
 
-@app.delete('/api/v1/storage/{storage_id}', status_code=200)
+@fastapi_app.delete('/api/v1/storage/{storage_id}', status_code=200)
 def delete_storage(storage_id: str, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(storage_id)

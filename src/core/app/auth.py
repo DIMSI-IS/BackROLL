@@ -29,11 +29,11 @@ from jwt import PyJWKClient
 from pydantic import Json, BaseModel
 from authlib.integrations.starlette_client import OAuth
 
-from app.initialized import app
+from app.initialized import fastapi_app
 from app.patch import make_path
 
-app.add_middleware(SessionMiddleware,
-                   secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xWTKGM""")
+fastapi_app.add_middleware(SessionMiddleware,
+                           secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xWTKGM""")
 
 config = Config(".env")
 oauth = OAuth(config)
@@ -95,7 +95,7 @@ def valid_token(token: str = Security(oauth2_scheme)) -> Json:
         ) from exc
 
 
-@app.post("/api/v1/login", status_code=200)
+@fastapi_app.post("/api/v1/login", status_code=200)
 def login(item: items_login):
     app_id = item.app_id
     app_secret = item.app_secret
@@ -109,12 +109,12 @@ def login(item: items_login):
     return token
 
 
-@app.post("/api/v1/auth", status_code=200)
+@fastapi_app.post("/api/v1/auth", status_code=200)
 def auth(identity: Json = Depends(valid_token)):
     return {"state": "authenticated", "jwt": identity}
 
 
-@app.get("/api/v1/logout")
+@fastapi_app.get("/api/v1/logout")
 def logout(request: Request):
     request.session.pop("user", None)
     return RedirectResponse(url="/")

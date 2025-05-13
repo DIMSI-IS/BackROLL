@@ -28,8 +28,8 @@ from sqlmodel import Session, select
 from app.kvm import kvm_manage_vm
 from celery import chord
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 from app import auth
 from app import database
 from app import task_handler
@@ -104,7 +104,7 @@ def getVMtobackup(pool_id):
     return ready_to_backup_list
 
 
-@celery.task(name='Kickstart_Pool_Backup', base=QueueOnce)
+@celery_app.task(name='Kickstart_Pool_Backup', base=QueueOnce)
 def kickstart_pool_backup(pool_id):
     try:
         ready_to_backup_list = getVMtobackup(pool_id)
@@ -116,7 +116,7 @@ def kickstart_pool_backup(pool_id):
         raise
 
 
-@app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
+@fastapi_app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
 def start_pool_backup(pool_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(pool_id)
@@ -125,4 +125,4 @@ def start_pool_backup(pool_id, identity: Json = Depends(auth.valid_token)):
 
     task_id = kickstart_pool_backup.delay(pool_id)
 
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=task_id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task_id)}

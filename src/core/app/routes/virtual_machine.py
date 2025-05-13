@@ -26,8 +26,8 @@ from celery import subtask, group, chain
 import json
 import re
 
-from app.initialized import app
-from app.initialized import celery as celery_app
+from app.initialized import fastapi_app
+from app.initialized import celery_app as celery_app
 
 from app import auth
 
@@ -266,44 +266,44 @@ def retrieve_virtual_machine_backups_from_path(self, virtualMachineName: str, st
         raise ValueError(e)
 
 
-@app.get('/api/v1/virtualmachines/{virtual_machine_id}/breaklock', status_code=202)
+@fastapi_app.get('/api/v1/virtualmachines/{virtual_machine_id}/breaklock', status_code=202)
 def break_virtual_machine_borg_lock(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), borg_misc.borgbreaklock.s(virtual_machine_id)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.get('/api/v1/virtualmachines', status_code=202)
+@fastapi_app.get('/api/v1/virtualmachines', status_code=202)
 def list_virtual_machines(identity: Json = Depends(auth.valid_token)):
     res = chain(host.retrieve_host.s(), dmap.s(
         parse_host.s()), handle_results.s()).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.get('/api/v1/virtualmachines/{virtual_machine_id}', status_code=202)
+@fastapi_app.get('/api/v1/virtualmachines/{virtual_machine_id}', status_code=202)
 def retrieve_specific_virtual_machine(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), retrieve_virtual_machine_disk.s(virtual_machine_id)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.get('/api/v1/virtualmachines/{virtual_machine_id}/backups', status_code=202)
+@fastapi_app.get('/api/v1/virtualmachines/{virtual_machine_id}/backups', status_code=202)
 def list_virtual_machine_backups(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), retrieve_virtual_machine_backups.s(virtual_machine_id)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.delete('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
+@fastapi_app.delete('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
 def delete_specific_virtual_machine_backup(virtual_machine_id, backup_name, identity: Json = Depends(auth.valid_token)):
     if not virtual_machine_id:
         raise HTTPException(
@@ -312,36 +312,36 @@ def delete_specific_virtual_machine_backup(virtual_machine_id, backup_name, iden
         raise HTTPException(status_code=404, detail='Backup not found')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), manage_backup.remove_archive.s(virtual_machine_id, backup_name)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.get('/api/v1/virtualmachines/{virtual_machine_id}/repository', status_code=202)
+@fastapi_app.get('/api/v1/virtualmachines/{virtual_machine_id}/repository', status_code=202)
 def list_virtual_machine_repository(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), retrieve_virtual_machine_repository.s(virtual_machine_id)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.get('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
+@fastapi_app.get('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
 def get_virtual_machine_backup_stats(virtual_machine_id, backup_name, identity: Json = Depends(auth.valid_token)):
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), retrieve_virtual_machine_backup_stats.s(virtual_machine_id, backup_name)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.get('/api/v1/virtualmachinespaths', status_code=202)
+@fastapi_app.get('/api/v1/virtualmachinespaths', status_code=202)
 def get_virtual_machine_paths(identity: Json = Depends(auth.valid_token)):
     return {'paths': retrieve_virtual_machine_paths()}
 
 
-@app.post('/api/v1/virtualmachinebackupsfrompath', status_code=202)
+@fastapi_app.post('/api/v1/virtualmachinebackupsfrompath', status_code=202)
 def get_virtual_machine_backups_from_path(virtualMachineBackupsRequest: VirtualMachineBackupsRequest, identity: Json = Depends(auth.valid_token)):
     res = chain(retrieve_virtual_machine_backups_from_path.s(
         virtualMachineBackupsRequest.virtualMachineName, virtualMachineBackupsRequest.storagePath)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}

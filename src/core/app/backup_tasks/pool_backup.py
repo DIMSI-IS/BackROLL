@@ -18,7 +18,7 @@
 #!/usr/bin/env python
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
-from app.initialized import celery
+from app.initialized import celery_app
 
 import time
 from app.routes import host
@@ -34,7 +34,7 @@ from app.routes import backup_policy
 from app.cloudstack import virtual_machine as cs_manage_vm
 
 
-@celery.task(queue='backup_tasks', name='backup_subtask', soft_time_limit=5400)
+@celery_app.task(queue='backup_tasks', name='backup_subtask', soft_time_limit=5400)
 def backup_subtask(info):
 
     def backup_sequence(info, host_info=None):
@@ -206,11 +206,11 @@ def backup_subtask(info):
     return {'info': info, 'status': 'success'}
 
 
-@celery.task(name='backup_completed', bind=True)
+@celery_app.task(name='backup_completed', bind=True)
 def backup_completed(target, *args, **kwargs):
     print('backup successfull !')
 
 
-@celery.task(name='backup_failed', bind=True)
+@celery_app.task(name='backup_failed', bind=True)
 def backup_failed(target, *args, **kwargs):
     print('backup failed !')

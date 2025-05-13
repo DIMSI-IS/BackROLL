@@ -20,13 +20,13 @@ from fastapi import HTTPException, Depends
 from pydantic import Json
 from fastapi.encoders import jsonable_encoder
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 
 from app import auth
 
 
-@celery.task()
+@celery_app.task()
 def retrieve_job():
     try:
         return [
@@ -55,7 +55,7 @@ def retrieve_job():
         raise ValueError(e)
 
 
-@app.get('/api/v1/jobs', status_code=202)
+@fastapi_app.get('/api/v1/jobs', status_code=202)
 def list_available_jobs(identity: Json = Depends(auth.valid_token)):
     task = retrieve_job.delay()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}

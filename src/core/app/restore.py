@@ -23,7 +23,7 @@ import subprocess
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
-from app.initialized import celery
+from app.initialized import celery_app
 
 from app.routes import host
 from app.routes import storage
@@ -43,7 +43,7 @@ from app.kvm import kvm_manage_vm
 from app.cloudstack import virtual_machine as cs_manage_vm
 
 
-@celery.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
+@celery_app.task(name='VM_Restore_Disk', bind=True, max_retries=3, base=QueueOnce)
 def restore_disk_vm(self, info, backup_name, storage, mode):
     # def restore_disk_vm(self, info, backup_name):
 
@@ -249,7 +249,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
         raise e
 
 
-@celery.task(name='VM_Restore_To_Path', bind=True, max_retries=3, base=QueueOnce)
+@celery_app.task(name='VM_Restore_To_Path', bind=True, max_retries=3, base=QueueOnce)
 # TODO Fixme but referenced in the code.
 def restore_to_path_task(self, virtual_machine_info, backup_name, storage_path, mode):
     """Deactivated task but referenced in the code. Mind code factorization and code duplication when re-opening the feature development."""

@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from app.initialized import celery
+from app.initialized import celery_app
 from celery.signals import task_failure, task_success
 
 from app.backup_tasks import single_backup
@@ -29,12 +29,12 @@ def list_running_tasks(application):
     return application.active()
 
 
-@celery.task(name='Handle task success', max_retries=None)
+@celery_app.task(name='Handle task success', max_retries=None)
 def handle_task_success(task_id, msg):
     notification_sender.on_task_success(task_id, msg)
 
 
-@celery.task(name='Handle task failure')
+@celery_app.task(name='Handle task failure')
 def handle_task_failure(task_id, msg):
     notification_sender.on_task_failure(task_id, msg)
 
@@ -63,6 +63,6 @@ def restore_backup_failure_handler(sender=None, body=None, *args,  **kwargs):
         args=(sender.request.id, "A new diskfile restore job has ended"))
 
 
-@celery.task()
+@celery_app.task()
 def pool_backup_notification(result, pool_id):
     notification_sender.on_pool(result, pool_id)

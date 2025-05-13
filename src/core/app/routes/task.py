@@ -29,8 +29,8 @@ import json
 
 from typing import Optional
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 from celery import chain
 
 from app.backup_tasks import single_backup
@@ -65,13 +65,13 @@ def get_task_logs(task_id):
     return response.content
 
 
-@app.get('/api/v1/status/{task_id}', status_code=200)
+@fastapi_app.get('/api/v1/status/{task_id}', status_code=200)
 def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(task_id)
     except ValueError:
         raise HTTPException(status_code=404, detail='Given uuid is not valid')
-    task = celery.AsyncResult(task_id)
+    task = celery_app.AsyncResult(task_id)
     if task.state == 'PENDING':
         response = {
             'state': task.state,
@@ -105,7 +105,7 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
     return response
 
 
-@app.get('/api/v1/logs/{task_id}', status_code=200)
+@fastapi_app.get('/api/v1/logs/{task_id}', status_code=200)
 def retrieve_task_logs(task_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(task_id)
@@ -114,7 +114,7 @@ def retrieve_task_logs(task_id, identity: Json = Depends(auth.valid_token)):
     return get_task_logs(task_id)
 
 
-@app.post('/api/v1/tasks/singlebackup/{virtual_machine_id}', status_code=202)
+@fastapi_app.post('/api/v1/tasks/singlebackup/{virtual_machine_id}', status_code=202)
 def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(virtual_machine_id)
@@ -125,10 +125,10 @@ def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.val
             status_code=404, detail='Virtual machine not found')
     res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(
     ), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), single_backup.single_vm_backup.s()).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.post('/api/v1/tasks/restore/{virtual_machine_id}', status_code=202)
+@fastapi_app.post('/api/v1/tasks/restore/{virtual_machine_id}', status_code=202)
 def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(virtual_machine_id)
@@ -147,10 +147,10 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
     res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(
     ), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, '', '')).apply_async()
     # res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@app.post('/api/v1/tasks/restorespecificpath', status_code=202)
+@fastapi_app.post('/api/v1/tasks/restorespecificpath', status_code=202)
 def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
     virtual_machine_id = item.virtual_machine_id
     backup_name = item.backup_name
@@ -160,10 +160,10 @@ def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = D
     # res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async()
     res = chain(restore.restore_to_path_task.s(
         virtual_machine_id, backup_name, storage, mode)).apply_async()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=res.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@celery.task(name='restore_task_jobs')
+@celery_app.task(name='restore_task_jobs')
 def retrieve_restore_task_jobs():
     single_vm_payload = {"taskname": "VM_Restore_Disk"}
     single_vm_response = requests.get(
@@ -183,7 +183,7 @@ def retrieve_restore_task_jobs():
     return single_vm_task
 
 
-@celery.task(name='backuptask_jobs')
+@celery_app.task(name='backuptask_jobs')
 def retrieve_backup_task_jobs():
     single_vm_payload = {"taskname": "	Single_VM_Backup"}
     single_vm_response = requests.get(
@@ -206,11 +206,11 @@ def retrieve_backup_task_jobs():
     return aggregated_jobs_list
 
 
-@app.get('/api/v1/tasks/backup', status_code=200)
+@fastapi_app.get('/api/v1/tasks/backup', status_code=200)
 def list_backup_tasks(identity: Json = Depends(auth.valid_token)):
     return {'info': retrieve_backup_task_jobs()}
 
 
-@app.get('/api/v1/tasks/restore', status_code=200)
+@fastapi_app.get('/api/v1/tasks/restore', status_code=200)
 def list_restore_tasks(identity: Json = Depends(auth.valid_token)):
     return {'info': retrieve_restore_task_jobs()}

@@ -27,8 +27,8 @@ from pydantic import BaseModel, Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 
-from app.initialized import app
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app
 
 from app import auth
 from app import database
@@ -85,7 +85,7 @@ class items_connect_host(BaseModel):
         }
 
 
-@celery.task(name='filter_host_by_id')
+@celery_app.task(name='filter_host_by_id')
 def filter_host_by_id(host_id):
     try:
         engine = database.init_db_connection()
@@ -100,7 +100,7 @@ def filter_host_by_id(host_id):
         raise ValueError(e)
 
 
-@celery.task(name='filter_host_list_by_pool')
+@celery_app.task(name='filter_host_list_by_pool')
 def filter_host_list_by_pool(host_list, pool_id):
     filtered_host_list = []
     for host in host_list:
@@ -169,7 +169,7 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
         raise ValueError(e)
 
 
-@celery.task(name='List registered hosts')
+@celery_app.task(name='List registered hosts')
 def retrieve_host():
     try:
         engine = database.init_db_connection()
@@ -222,20 +222,20 @@ def api_delete_host(host_id):
     return {'state': 'SUCCESS'}
 
 
-@app.post("/api/v1/hosts", status_code=201)
+@fastapi_app.post("/api/v1/hosts", status_code=201)
 def create_host(item: items_create_host, identity: Json = Depends(auth.valid_token)):
     return api_create_host(item)
 
 
-@app.get("/api/v1/hosts", status_code=202)
+@fastapi_app.get("/api/v1/hosts", status_code=202)
 # def list_hosts():
 def list_hosts(identity: Json = Depends(auth.valid_token)):
 
     task = retrieve_host.delay()
-    return {'Location': app.url_path_for('retrieve_task_status', task_id=task.id)}
+    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
-@app.patch("/api/v1/hosts/{host_id}", status_code=200)
+@fastapi_app.patch("/api/v1/hosts/{host_id}", status_code=200)
 def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(host_id)
@@ -248,7 +248,7 @@ def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.
     return api_update_host(host_id, name, tags, ip_address, pool_id)
 
 
-@app.delete('/api/v1/hosts/{host_id}', status_code=200)
+@fastapi_app.delete('/api/v1/hosts/{host_id}', status_code=200)
 def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
     try:
         uuid_obj = UUID(host_id)
@@ -257,7 +257,7 @@ def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
     return api_delete_host(host_id)
 
 
-@app.post('/api/v1/connect/{host_id}', status_code=200)
+@fastapi_app.post('/api/v1/connect/{host_id}', status_code=200)
 def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.valid_token)):
     try:
         ssh.init_ssh_connection(host_id, item.ip_address, item.username)
@@ -266,7 +266,7 @@ def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json =
         raise HTTPException(status_code=400, detail=f"{exception}")
 
 
-@app.get("/api/v1/publickeys", status_code=200)
+@fastapi_app.get("/api/v1/publickeys", status_code=200)
 def list_ssh_public_keys(identity: Json = Depends(auth.valid_token)):
     try:
         return {'state': 'SUCCESS', 'info': list(map(dataclasses.asdict, ssh.list_public_keys()))}

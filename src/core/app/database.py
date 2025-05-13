@@ -26,9 +26,9 @@ from sqlmodel import Field, SQLModel, create_engine
 # Other imports
 import os
 import json
-from app.initialized import app
-from app.initialized import celery as celeryWorker
-from app.initialized import celery
+from app.initialized import fastapi_app
+from app.initialized import celery_app as celeryWorker
+from app.initialized import celery_app
 
 
 class Policies(SQLModel, table=True):
@@ -118,7 +118,7 @@ class Connectors(SQLModel, table=True):
     password: str
 
 
-@app.on_event("startup")
+@fastapi_app.on_event("startup")
 async def startup_event():
     # If DB is not yet configured, proceed to initialization
     engine = init_db_connection()

@@ -19,7 +19,7 @@
 from redis import Redis
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
-from app.initialized import celery
+from app.initialized import celery_app
 from app.routes import host
 from app.routes import storage
 from app.borg import borg_core
@@ -157,7 +157,7 @@ def backup_creation(info):
         raise sequence_error
 
 
-@celery.task(queue='backup_tasks', name='Single_VM_Backup', soft_time_limit=5400)
+@celery_app.task(queue='backup_tasks', name='Single_VM_Backup', soft_time_limit=5400)
 def single_vm_backup(virtual_machine_info):
     redis_client = Redis(host='redis', port=6379)
     try:
@@ -179,7 +179,7 @@ def single_vm_backup(virtual_machine_info):
 
 
 # # Orphan backups cleaner (remove virtual machine borg's repository (and all of it's data) of any non-existing VM)
-# @celery.task(name='garbageCollector')
+# @celery_app.task(name='garbageCollector')
 # def garbage_collector():
 #   parsedArchiveList = []
 #   try:
