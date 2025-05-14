@@ -82,7 +82,7 @@ import axios from "axios";
 import ErrorModal from "../modals/ErrorModal.vue";
 
 export default {
-  name: "backup-table",
+  name: "task-table",
   components: { ErrorModal },
   props: {
     pagination: { type: Boolean, default: false },

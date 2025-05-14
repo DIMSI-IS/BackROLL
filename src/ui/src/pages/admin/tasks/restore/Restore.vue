@@ -1,167 +1,43 @@
 <template>
-  <div class="row">
-    <div class="flex lg12 xl10">
-      <va-card class="mb-4">
-        <va-card-title>
-          <h1>Restore</h1>
-          <div class="mr-0 text-right">
-            <va-button color="info"
-              @click="this.$router.push({ path: '/admin/tasks/kickstart', query: { task: 'restore' } })">
-              Start restore task
-            </va-button>
-          </div>
-        </va-card-title>
-        <va-card-content>
-          <va-chip v-show="successTaskNumber" color="success" class="mr-4 mb-2">
-            <va-icon name="task_alt" />
-            <span style="font-style: bold; padding-left: 5px;">
-              {{ successTaskNumber }}
-            </span>
-          </va-chip>
-          <va-chip v-show="failureTaskNumber" color="danger" class="mr-4 mb-2">
-            <va-icon name="error" />
-            <span style="font-style: bold; padding-left: 5px;">
-              {{ failureTaskNumber }}
-            </span>
-          </va-chip>
-          <va-chip v-show="pendingTaskNumber" color="info" class="mr-4 mb-2">
-            <va-icon name="loop" spin="counter-clockwise" />
-            <span style="font-style: bold; padding-left: 5px;">
-              {{ pendingTaskNumber }}
-            </span>
-          </va-chip>
-          <backup-table :data="tableData" :columns="columns" />
-          <div v-if="!$store.state.isbackupTaskTableReady" class="flex-center ma-3">
-            <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
-          </div>
-        </va-card-content>
-      </va-card>
-    </div>
-    <div class="flex lg12 xl2">
-      <va-card class="d-flex">
-        <va-card-title>
-          Filter by date
-        </va-card-title>
-        <va-card-content class="row">
-          <va-date-picker v-model="selectedDate" :highlight-today="false"
-            :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" mode="single" />
-        </va-card-content>
-      </va-card>
-    </div>
-  </div>
-  <va-modal v-model="logModal" size="large" :hide-default-actions="true">
-    <template #header>
-      <h2>
-        <va-icon name="bug_report" color="info" />
-        Task logs
-      </h2>
-    </template>
-    <hr>
-    <div class="consoleStyle">
-      {{ taskInfo.traceback }}
-    </div>
-    <template #footer>
-      <va-button @click="logModal = !logModal">
-        Close
-      </va-button>
-    </template>
-  </va-modal>
+  <task-page title="Restore" kickstart-title="Start restore task" kickstart-task="restore"
+    :get-task-list="getTaskList" />
 </template>
 
 <script>
-import BackupTable from "@/components/backup-table/BackupTable.vue"
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import TaskTable from "@/components/tasks/TaskTable.vue"
+import TaskPage from '@/components/tasks/TaskPage.vue'
+
 export default defineComponent({
   name: 'BackupsTable',
-  components: { ...spinners, BackupTable },
-  data() {
-    return {
-      columns: [
-        { key: 'target', sortable: true },
-        { key: 'started', sortable: true },
-        { key: 'runtime', sortable: true },
-        { key: 'state', sortable: true },
-        { key: 'actions' },
-      ],
-      selectedDate: new Date(),
-      logModal: false,
-      taskInfo: { traceback: null },
-
-      positionVertical: 'bottom',
-      positionHorizontal: 'right',
-
-      verticalOffset: 5,
-      horizontalOffset: 5,
-      visibilityHeight: 1,
-      scrollSpeed: 50
-    }
+  components: {
+    ...spinners,
+    TaskTable,
+    TaskPage
   },
   computed: {
-    filteredTaskList() {
-      if (this.selectedDate) {
-        return Object.values(this.$store.state.restoreTaskList).filter(x => (this.dateSelector(x.received)))
-      } else {
+    getTaskList() {
+      return (taskFilter) => {
         return Object.values(this.$store.state.restoreTaskList)
+          .filter(taskFilter)
+          .map(task => {
+            const taskArg = task.args[0]
+            return {
+              uuid: task.uuid,
+              name: task.name.replaceAll('_', ' '),
+              target: taskArg?.name ?? "N/A",
+              targetPage: "virtualmachines",
+              targetUuid: taskArg?.uuid,
+              started: task.started,
+              ipAddress: task.ip_address,
+              runtime: task.runtime,
+              state: task.state,
+            }
+          })
       }
     },
-    successTaskNumber() {
-      return this.filteredTaskList.filter(x => x.state === 'SUCCESS').length
-    },
-    failureTaskNumber() {
-      return this.filteredTaskList.filter(x => x.state === 'FAILURE').length
-    },
-    pendingTaskNumber() {
-      return this.filteredTaskList.filter(x => x.state === 'RECEIVED').length
-    },
-    tableData() {
-      return this.filteredTaskList.map(x => {
-        const taskArg = x.args[0]
-        return {
-          uuid: x.uuid,
-          name: x.name.replaceAll('_', ' '),
-          target: taskArg?.name ?? "N/A",
-          targetPage: "virtualmachines",
-          targetUuid: taskArg?.uuid,
-          started: x.started,
-          ipAddress: x.ip_address,
-          runtime: x.runtime,
-          state: x.state,
-        }
-      })
-    }
   },
-  methods: {
-    dateSelector(dateToCheck) {
-      const convertedDateCheck = new Date(dateToCheck * 1000)
-      return (
-        this.selectedDate.getFullYear() === convertedDateCheck.getFullYear() &&
-        this.selectedDate.getMonth() === convertedDateCheck.getMonth() &&
-        this.selectedDate.getDate() === convertedDateCheck.getDate()
-      )
-    }
-  }
 })
 </script>
-<style scoped>
-.text-right {
-  text-align: right;
-  width: 100%;
-}
-
-.center-div {
-  margin: 0 auto;
-  width: 100px;
-}
-
-.consoleStyle {
-  padding: 1% 1% 1% 1%;
-  background: black;
-  color: silver;
-  font-size: 1em;
-  border-radius: 5px;
-  max-height: 5%;
-  width: auto;
-}
-</style>

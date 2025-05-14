@@ -1,148 +1,45 @@
 <template>
-  <div class="row">
-    <div class="flex lg12 xl10">
-      <va-card class="mb-4">
-        <va-card-title>
-          <h1>Backups</h1>
-          <div class="mr-0 text-right">
-            <va-button color="info"
-              @click="this.$router.push({ path: '/admin/tasks/kickstart', query: { task: 'backup' } })">
-              Start backup task
-            </va-button>
-          </div>
-        </va-card-title>
-        <va-card-content>
-          <va-chip v-show="successTaskNumber" color="success" class="mr-4 mb-2">
-            <va-icon name="task_alt" />
-            <span style="font-style: bold; padding-left: 5px;">
-              {{ successTaskNumber }}
-            </span>
-          </va-chip>
-          <va-chip v-show="failureTaskNumber" color="danger" class="mr-4 mb-2">
-            <va-icon name="error" />
-            <span style="font-style: bold; padding-left: 5px;">
-              {{ failureTaskNumber }}
-            </span>
-          </va-chip>
-          <va-chip v-show="pendingTaskNumber" color="info" class="mr-4 mb-2">
-            <va-icon name="loop" spin="counter-clockwise" />
-            <span style="font-style: bold; padding-left: 5px;">
-              {{ pendingTaskNumber }}
-            </span>
-          </va-chip>
-          <backup-table :data="tableData" :columns="columns" />
-          <div v-if="!$store.state.isbackupTaskTableReady" class="flex-center ma-3">
-            <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
-          </div>
-        </va-card-content>
-      </va-card>
-    </div>
-    <div class="flex lg12 xl2">
-      <va-card class="d-flex">
-        <va-card-title>
-          Filter by date
-        </va-card-title>
-        <va-card-content class="row">
-          <va-date-picker v-model="selectedDate" :highlight-today="false"
-            :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" mode="single" />
-        </va-card-content>
-      </va-card>
-    </div>
-  </div>
+  <task-page title="Backups" kickstart-title="Start backup task" kickstart-task="backup" :get-task-list="getTaskList" />
 </template>
 
 <script>
-import BackupTable from "@/components/backup-table/BackupTable.vue"
 import { defineComponent } from 'vue'
 import * as spinners from 'epic-spinners'
 
+import TaskTable from "@/components/tasks/TaskTable.vue"
+import TaskPage from '@/components/tasks/TaskPage.vue'
+
 export default defineComponent({
   name: 'BackupsTable',
-  components: { ...spinners, BackupTable },
-  data() {
-    return {
-      columns: [
-        { key: 'target', sortable: true },
-        { key: 'started', sortable: true },
-        { key: 'runtime', sortable: true },
-        { key: 'state', sortable: true },
-        { key: 'actions' },
-      ],
-      selectedDate: new Date(),
-      logModal: false,
-      taskInfo: { traceback: null },
-
-      positionVertical: 'bottom',
-      positionHorizontal: 'right',
-
-      verticalOffset: 5,
-      horizontalOffset: 5,
-      visibilityHeight: 1,
-      scrollSpeed: 50,
-
-      loadingBackupType: "SelfBuildingSquareSpinner"
-    }
+  components: {
+    ...spinners,
+    TaskTable,
+    TaskPage
   },
   computed: {
-    filteredTaskList() {
-      if (this.selectedDate) {
-        return Object.values(this.$store.state.backupTaskList).filter(x => ((x.name === 'Single_VM_Backup' || x.name === 'backup_subtask') && this.dateSelector(x.received)))
-      } else {
-        return Object.values(this.$store.state.backupTaskList).filter(x => (x.name === 'Single_VM_Backup' || x.name === 'backup_subtask'))
+    getTaskList() {
+      return (taskFilter) => {
+        return Object.values(this.$store.state.backupTaskList)
+          .filter(taskFilter)
+          .filter(({ name }) => ['Single_VM_Backup', 'backup_subtask'].includes(name))
+          .map(task => {
+            const isPool = task.name == "Pool_VM_Backup"
+            const taskArg = task.args[0]
+            const poolId = taskArg?.pool_id
+            return {
+              uuid: task.uuid,
+              name: task.name.replaceAll('_', ' '),
+              target: isPool ? this.$store.state.resources.poolList.find(e => e.id == poolId)?.name : taskArg?.name ?? "N/A",
+              targetPage: isPool ? "pools" : "virtualmachines",
+              targetUuid: taskArg?.uuid,
+              started: task.started,
+              ipAddress: task.ip_address,
+              runtime: isPool ? null : task.runtime,
+              state: task.state
+            }
+          })
       }
-    },
-    successTaskNumber() {
-      return this.filteredTaskList.filter(x => x.state === 'SUCCESS').length
-    },
-    failureTaskNumber() {
-      return this.filteredTaskList.filter(x => x.state === 'FAILURE').length
-    },
-    pendingTaskNumber() {
-      return this.filteredTaskList.filter(x => x.state === 'STARTED').length
-    },
-    tableData() {
-      return this.filteredTaskList.map(x => {
-        const isPool = x.name == "Pool_VM_Backup"
-        const taskArg = x.args[0]
-        const poolId = taskArg?.pool_id
-        return {
-          uuid: x.uuid,
-          name: x.name.replaceAll('_', ' '),
-          target: isPool ? this.$store.state.resources.poolList.find(e => e.id == poolId)?.name : taskArg?.name ?? "N/A",
-          targetPage: isPool ? "pools" : "virtualmachines",
-          targetUuid: taskArg?.uuid,
-          started: x.started,
-          ipAddress: x.ip_address,
-          runtime: isPool ? null : x.runtime,
-          state: x.state
-        }
-      })
     }
   },
-  methods: {
-    dateSelector(dateToCheck) {
-      const convertedDateCheck = new Date(dateToCheck * 1000)
-      if (
-        this.selectedDate.getFullYear() === convertedDateCheck.getFullYear() &&
-        this.selectedDate.getMonth() === convertedDateCheck.getMonth() &&
-        this.selectedDate.getDate() === convertedDateCheck.getDate()
-      ) {
-        return true
-      } else {
-        return false
-      }
-    }
-  }
 })
 </script>
-<style scoped>
-.text-right {
-  text-align: right;
-  width: 100%;
-}
-
-.center-div {
-  margin: 0 auto;
-  width: 100px;
-}
-</style>

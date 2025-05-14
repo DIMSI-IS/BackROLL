@@ -12,7 +12,7 @@
           </div>
         </va-card-title>
         <va-card-content>
-          <backup-table :data="tableData" :columns="columns" :pagination="true" :perPage="6" />
+          <task-table :data="tableData" :columns="columns" :pagination="true" :perPage="6" />
           <div v-if="!$store.state.isbackupTaskTableReady" class="flex-center ma-3">
             <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
           </div>
@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import BackupTable from "@/components/backup-table/BackupTable.vue"
+import TaskTable from "@/components/tasks/TaskTable.vue"
 import * as spinners from 'epic-spinners'
 import { getDonutChartData } from '@/data/charts/DonutChartData'
 import { getLineChartData } from '@/data/charts/LineChartData'
@@ -54,7 +54,7 @@ import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'dashboard-charts',
-  components: { ...spinners, VaChart, BackupTable },
+  components: { ...spinners, VaChart, TaskTable },
   data() {
     return {
       lineChartData: null,
