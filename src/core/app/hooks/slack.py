@@ -159,6 +159,10 @@ class SlackClient(HookClient):
         if len(failure_list) > 0:
             alerting = '<!channel> '
 
+        # TODO Or received ?
+        # timestamp = (failure_list + success_list)[0]["started"]
+        timestamp = 0
+
         blocks = [
             {
                 "type": "header",
@@ -219,7 +223,7 @@ class SlackClient(HookClient):
                     },
                     "value": "click_me_123",
                     # The notification may not be displayed in Slack if the URL is invalid.
-                    "url": make_path(os.getenv('FRONT_URL'), "admin/tasks/backup"),
+                    "url": make_path(os.getenv('FRONT_URL'), f"admin/tasks/backup?date={timestamp}"),
                     "action_id": "button-action"
                 }
             }

@@ -66,6 +66,13 @@ export default defineComponent({
     getTaskList: Function,
   },
   data() {
+    let selectedDate = new Date();
+    const date = this.$route.query.date
+    try {
+      // Note that the calendar view is not moving to the selected date…
+      selectedDate = new Date(date ?? (() => { throw "date is null" })())
+    } catch (_) { }
+
     return {
       columns: [
         { key: 'target', sortable: true },
@@ -74,7 +81,7 @@ export default defineComponent({
         { key: 'state', sortable: true },
         { key: 'actions' },
       ],
-      selectedDate: new Date(),
+      selectedDate,
       logModal: false,
       taskInfo: { traceback: null },
 
@@ -102,6 +109,7 @@ export default defineComponent({
     },
   },
   methods: {
+    // TODO Move to computed method ? Or dependencies are tracked ?
     isOnSelectedDay(dateToCheck) {
       const convertedDateCheck = new Date(dateToCheck * 1000)
       return (
@@ -110,7 +118,7 @@ export default defineComponent({
         this.selectedDate.getDate() === convertedDateCheck.getDate()
       )
     }
-  }
+  },
 })
 </script>
 <!-- TODO Is CSS used ? -->

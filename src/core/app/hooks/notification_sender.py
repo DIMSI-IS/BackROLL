@@ -70,10 +70,11 @@ def on_pool(result, pool_id):
         success_list = []
         failure_list = []
 
+        # TODO Analyse the result to find the task and received or started.
         for item in result:
             if isinstance(item, dict):
                 if item.get('status') == 'success':
-                    success_list.append(item['info'])
+                    success_list.append(item)
             else:
                 failure_list.append(item)
 
@@ -97,9 +98,11 @@ def test(hook_id):
             'name': "Notification test VM"
         }]
     }
+
     message = "Notification test message"
     client.on_task_success(task, message)
     client.on_task_failure(task, message)
 
-    client.on_pool(__StubPool(), ["item"], [])
-    client.on_pool(__StubPool(), [], ["item"])
+    # TODO More accurate stub for list item.
+    client.on_pool(__StubPool(), [task], [])
+    client.on_pool(__StubPool(), [], [task])
