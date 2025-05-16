@@ -154,14 +154,10 @@ class SlackClient(HookClient):
         self.__send(blocks)
 
     @logged()
-    def on_pool(self, pool, success_list, failure_list):
+    def on_pool(self, pool, success_list, failure_list, received):
         alerting = ''
         if len(failure_list) > 0:
             alerting = '<!channel> '
-
-        # TODO Or received ?
-        # timestamp = (failure_list + success_list)[0]["started"]
-        timestamp = 0
 
         blocks = [
             {
@@ -223,7 +219,7 @@ class SlackClient(HookClient):
                     },
                     "value": "click_me_123",
                     # The notification may not be displayed in Slack if the URL is invalid.
-                    "url": make_path(os.getenv('FRONT_URL'), f"admin/tasks/backup?date={timestamp}"),
+                    "url": make_path(os.getenv('FRONT_URL'), f"admin/tasks/backup?date={received.strftime("%Y-%m-%d")}"),
                     "action_id": "button-action"
                 }
             }

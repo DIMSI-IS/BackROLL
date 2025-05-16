@@ -62,23 +62,26 @@ def on_task_failure(task_id, message):
         client.on_task_failure(task, message)
 
 
+# TODO Direct event binding here ?
 @logged()
-def on_pool(result, pool_id):
+def on_pool(result, pool_id, received):
     pool, client = __from_pool_id(pool_id)
     if client is not None:
         # Build success and failure lists based on chord tasks results
         success_list = []
         failure_list = []
 
-        # TODO Analyse the result to find the task and received or started.
         for item in result:
             if isinstance(item, dict):
                 if item.get('status') == 'success':
-                    success_list.append(item)
+                    vm = item["info"]
+                    success_list.append(vm)
+                # TODO else ?
             else:
-                failure_list.append(item)
+                exception = item
+                failure_list.append(exception)
 
-        client.on_pool(pool, success_list, failure_list)
+        client.on_pool(pool, success_list, failure_list, received)
 
 
 class __StubPool:

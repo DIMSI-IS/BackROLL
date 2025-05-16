@@ -18,5 +18,5 @@ class HookClient:
     def on_task_failure(self, task, message):
         pass
 
-    def on_pool(self, pool, success_list, failure_list):
+    def on_pool(self, pool, success_list, failure_list, received):
         pass

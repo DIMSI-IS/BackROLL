@@ -64,5 +64,5 @@ def restore_backup_failure_handler(sender=None, body=None, *args,  **kwargs):
 
 
 @celery_app.task()
-def pool_backup_notification(result, pool_id):
-    notification_sender.on_pool(result, pool_id)
+def pool_backup_notification(result, pool_id, received):
+    notification_sender.on_pool(result, pool_id, received)

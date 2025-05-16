@@ -16,7 +16,8 @@
 # under the License.
 
 #!/usr/bin/env python
-import os
+from datetime import datetime
+
 from uuid import UUID
 from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
@@ -108,8 +109,9 @@ def getVMtobackup(pool_id):
 def kickstart_pool_backup(pool_id):
     try:
         ready_to_backup_list = getVMtobackup(pool_id)
+        received = datetime.now()
         mychord = chord((pool_backup.backup_subtask.s(
-            vm) for vm in ready_to_backup_list), task_handler.pool_backup_notification.s(pool_id))
+            vm) for vm in ready_to_backup_list), task_handler.pool_backup_notification.s(pool_id, received))
         task = mychord.apply_async()
         return task.id
     except Exception:
