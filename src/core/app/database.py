@@ -15,20 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# MySQL Module Imports
-import sys
 from urllib.parse import quote_plus
 import uuid
 from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine
 
-# Other imports
-import os
-import json
+from app.environment import get_env_var
 from app.initialized import fastapi_app
-from app.initialized import celery_app as celeryWorker
-from app.initialized import celery_app
 
 
 class Policies(SQLModel, table=True):
@@ -128,27 +122,5 @@ async def startup_event():
 
 
 def init_db_connection():
-    if not 'DB_USER_NAME' in os.environ:
-        sys.exit(
-            "Missing required environment variable: DB_USER_NAME. Check your backroll_config.yml file")
-
-    if not 'DB_USER_PASSWORD' in os.environ:
-        sys.exit(
-            "Missing required environment variable: DB_USER_PASSWORD. Check your backroll_config.yml file")
-
-    if not 'DB_IP' in os.environ:
-        sys.exit(
-            "Missing required environment variable: DB_IP. Check your backroll_config.yml file")
-
-    if not 'DB_PORT' in os.environ:
-        sys.exit(
-            "Missing required environment variable: DB_PORT. Check your backroll_config.yml file")
-
-    if not 'DB_BASE' in os.environ:
-        sys.exit(
-            "Missing required environment variable: DB_BASE. Check your backroll_config.yml file")
-    try:
-        mysql_url = f'''mysql+mysqlconnector://{os.getenv("DB_USER_NAME")}:%s@{os.getenv("DB_IP")}:{os.getenv("DB_PORT")}/{os.getenv("DB_BASE")}'''
-        return create_engine(mysql_url % quote_plus(os.getenv("DB_USER_PASSWORD")))
-    except Exception as e:
-        sys.exit(e)
+    mysql_url = f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_IP")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
+    return create_engine(mysql_url)

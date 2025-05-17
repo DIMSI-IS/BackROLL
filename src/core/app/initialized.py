@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Form, Request
+from fastapi.responses import JSONResponse
+
 from pydantic_settings import BaseSettings
 from starlette.middleware.cors import CORSMiddleware
 
@@ -8,6 +10,8 @@ from celery.backends.redis import RedisBackend
 from celery.schedules import crontab
 
 from kombu import Queue
+
+import sqlalchemy
 
 
 class Settings(BaseSettings):
@@ -35,6 +39,12 @@ class Settings(BaseSettings):
 
 settings = Settings()
 fastapi_app = FastAPI()
+
+
+@fastapi_app.exception_handler(sqlalchemy.exc.DatabaseError)
+def database_exception_handler(request, exception):
+    return JSONResponse(status_code=500, content={"detail": "Database error."})
+
 
 origins = [
     "*"
