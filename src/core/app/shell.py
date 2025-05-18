@@ -6,8 +6,8 @@ from app.logging import logged
 
 
 class ShellException(Exception):
-    def __init__(self, message, exit_code, stderr=None):
-        super().__init__(f"{message} {exit_code=} {stderr}")
+    def __init__(self, exit_code, stderr=None):
+        super().__init__(f"{exit_code=} {stderr}")
         self.exit_code = exit_code
         self.stderr = stderr
 
@@ -19,7 +19,7 @@ def os_system(command, logger):
     exit_code = os.waitstatus_to_exitcode(exit_status)
     if exit_code != 0:
         logger.info(f"{exit_code=}")
-        raise ShellException(f"[os_system]", exit_code)
+        raise ShellException(exit_code)
 
 
 @logged(bounds=False)
@@ -32,7 +32,7 @@ def os_popen(command, logger):
     if exit_status is not None:
         exit_code = os.waitstatus_to_exitcode(exit_status)
         logger.info(f"{exit_code=}")
-        raise ShellException(f"[os_popen]", exit_code)
+        raise ShellException(exit_code)
 
     logger.info(result)
     return result
@@ -51,8 +51,7 @@ def subprocess_run(command, logger):
         stderr = error.stderr
         logger.info(f"{exit_code=}")
         logger.info(stderr)
-        raise ShellException(
-            f"[subprocess_run]", exit_code, stderr)
+        raise ShellException(exit_code, stderr)
 
 
 @logged(bounds=False)
@@ -66,8 +65,7 @@ def subprocess_popen(command, logger):
     if exit_code != 0:
         logger.info(f"{exit_code=}")
         logger.info(stderr)
-        raise ShellException(
-            f"[subprocess_popen]", exit_code, stderr)
+        raise ShellException(exit_code, stderr)
 
     logger.info(stdout)
     return stdout
