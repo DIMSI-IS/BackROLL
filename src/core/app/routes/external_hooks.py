@@ -50,10 +50,8 @@ class items_create_external_hook(BaseModel):
 
 @celery_app.task(name="Filter external hook by id")
 def get_hook_by_id(hook_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as exc:
-        raise ValueError(exc) from exc
+    engine = database.init_db_connection()
+
     try:
         with Session(engine) as session:
             statement = select(ExternalHooks).where(
@@ -69,10 +67,8 @@ def get_hook_by_id(hook_id):
 
 @celery_app.task(name="Create external_hook")
 def api_create_external_hook(name, value):
-    try:
-        engine = database.init_db_connection()
-    except Exception as exc:
-        raise ValueError(exc) from exc
+    engine = database.init_db_connection()
+
     try:
         new_external_hook = ExternalHooks(name=name, value=value)
         with Session(engine) as session:
@@ -86,10 +82,8 @@ def api_create_external_hook(name, value):
 
 @celery_app.task(name="Read external_hook")
 def api_read_external_hook():
-    try:
-        engine = database.init_db_connection()
-    except Exception as exc:
-        raise ValueError(exc) from exc
+    engine = database.init_db_connection()
+
     records = []
     with Session(engine) as session:
         statement = select(ExternalHooks)
@@ -101,10 +95,8 @@ def api_read_external_hook():
 
 @celery_app.task(name="Update external_hook")
 def api_update_external_hook(hook_id, name, value):
-    try:
-        engine = database.init_db_connection()
-    except Exception as exc:
-        raise ValueError("Unable to connect to database.") from exc
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(ExternalHooks).where(
             ExternalHooks.id == ensure_uuid(hook_id))
@@ -129,10 +121,7 @@ def api_update_external_hook(hook_id, name, value):
 
 @celery_app.task(name="Delete external_hook")
 def api_delete_external_hook(hook_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as exc:
-        raise ValueError(exc) from exc
+    engine = database.init_db_connection()
 
     records = []
     with Session(engine) as session:

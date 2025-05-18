@@ -53,10 +53,8 @@ class items_create_connector(BaseModel):
 
 
 def filter_connector_by_id(connector_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         with Session(engine) as session:
             statement = select(Connectors).where(
@@ -72,10 +70,8 @@ def filter_connector_by_id(connector_id):
 
 @celery_app.task(name='Update connector')
 def api_update_connector(connector_id, name, url, login, password):
-    try:
-        engine = database.init_db_connection()
-    except:
-        raise ValueError('Unable to connect to database.')
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Connectors).where(
             Connectors.id == ensure_uuid(connector_id))
@@ -104,10 +100,8 @@ def api_update_connector(connector_id, name, url, login, password):
 
 @celery_app.task(name='create connector')
 def api_create_connector(name, url, login, password):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         new_connector = Connectors(
             name=name, url=url, login=login, password=password)
@@ -122,10 +116,8 @@ def api_create_connector(name, url, login, password):
 
 @celery_app.task(name='list connectors')
 def api_retrieve_connectors():
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         records = []
         with Session(engine) as session:
@@ -140,10 +132,8 @@ def api_retrieve_connectors():
 
 @celery_app.task(name='Delete connector')
 def api_delete_connector(connector_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     records = []
     with Session(engine) as session:
         statement = select(Hosts).where(

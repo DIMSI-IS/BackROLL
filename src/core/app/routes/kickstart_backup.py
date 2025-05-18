@@ -49,10 +49,8 @@ class connectorObject(object):
 
 
 def getVMtobackup(pool_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception:
-        raise
+    engine = database.init_db_connection()
+
     virtual_machine_list = []
     try:
         with Session(engine) as session:

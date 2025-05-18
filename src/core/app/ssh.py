@@ -74,10 +74,7 @@ def init_ssh_connection(host_id, ip_address, username):
             "Authentication to the hypervisor has failed.")
 
     host.filter_host_by_id(host_id)
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
 
     with Session(engine) as session:
         statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))

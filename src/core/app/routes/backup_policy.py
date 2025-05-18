@@ -95,10 +95,8 @@ class backup_policy_update(BaseModel):
 
 
 def filter_policy_by_id(policy_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         with Session(engine) as session:
             statement = select(Policies).where(
@@ -114,10 +112,8 @@ def filter_policy_by_id(policy_id):
 
 @celery_app.task(name='create_backup_policy')
 def api_create_backup_policy(name, description, schedule, retention, storage, externalhook):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         new_policy = Policies(name=name, description=description, schedule=schedule, retention_day=retention["day"], retention_week=retention[
                               "week"], retention_month=retention["month"], retention_year=retention["year"], storage=storage, externalhook=externalhook)
@@ -132,10 +128,8 @@ def api_create_backup_policy(name, description, schedule, retention, storage, ex
 
 @celery_app.task(name='delete_backup_policy')
 def api_delete_backup_policy(backup_policy_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         with Session(engine) as session:
             statement = select(Policies).where(
@@ -154,10 +148,8 @@ def api_delete_backup_policy(backup_policy_id):
 
 @celery_app.task(name='List backup policies')
 def retrieve_backup_policies():
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         records = []
         with Session(engine) as session:
@@ -171,15 +163,8 @@ def retrieve_backup_policies():
 
 
 def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled):
-    try:
-        engine = database.init_db_connection()
-    except:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            # "Invalid authentication credentials",
-            detail='Unable to connect to database.',
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Policies).where(
             Policies.id == ensure_uuid(policy_id))
@@ -312,10 +297,8 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
 
 @fastapi_app.post("/api/v1/backup_policies", status_code=201)
 def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.valid_token)):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    engine = database.init_db_connection()
+
     records = []
     with Session(engine) as session:
         statement = select(Storage).where(
@@ -363,10 +346,8 @@ def update_backup_policy(policy_id, item: backup_policy_update, identity: Json =
 
 @fastapi_app.delete("/api/v1/backup_policies/{policy_id}", status_code=200)
 def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.valid_token)):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=jsonable_encoder(e))
+    engine = database.init_db_connection()
+
     records = []
     with Session(engine) as session:
         statement = select(Pools).where(

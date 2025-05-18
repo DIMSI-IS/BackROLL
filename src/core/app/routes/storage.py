@@ -51,10 +51,8 @@ class items_storage(BaseModel):
 
 
 def retrieveStoragePathsFromDb():
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     storagePaths = []
     # Get all storage define in storage bdd
     with Session(engine) as session:
@@ -66,10 +64,8 @@ def retrieveStoragePathsFromDb():
 
 
 def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         with Session(engine) as session:
             if 'host' in virtual_machine_info:
@@ -118,10 +114,8 @@ def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
 
 
 def filter_storage_by_id(storage_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         with Session(engine) as session:
             statement = select(Storage).where(
@@ -137,10 +131,8 @@ def filter_storage_by_id(storage_id):
 
 @celery_app.task(name='create storage')
 def api_create_storage(name, path):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         new_storage = Storage(name=name, path=path)
         with Session(engine) as session:
@@ -154,10 +146,8 @@ def api_create_storage(name, path):
 
 @celery_app.task(name='Update storage')
 def api_update_storage(storage_id, name, path):
-    try:
-        engine = database.init_db_connection()
-    except:
-        raise ValueError('Unable to connect to database.')
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Storage).where(
             Storage.id == ensure_uuid(storage_id))
@@ -182,10 +172,8 @@ def api_update_storage(storage_id, name, path):
 
 @celery_app.task(name='Delete storage')
 def api_delete_storage(storage_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     records = []
     with Session(engine) as session:
         statement = select(Policies).where(
@@ -209,10 +197,8 @@ def api_delete_storage(storage_id):
 
 @celery_app.task(name='List registered storage')
 def retrieve_storage():
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     records = []
     with Session(engine) as session:
         statement = select(Storage)

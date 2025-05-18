@@ -87,8 +87,9 @@ class items_connect_host(BaseModel):
 
 @celery_app.task(name='filter_host_by_id')
 def filter_host_by_id(host_id):
+    engine = database.init_db_connection()
+
     try:
-        engine = database.init_db_connection()
         with Session(engine) as session:
             statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
             results = session.exec(statement)
@@ -110,10 +111,8 @@ def filter_host_list_by_pool(host_list, pool_id):
 
 
 def api_create_host(item):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Pools).where(Pools.id == ensure_uuid(item.pool_id))
         results = session.exec(statement)
@@ -133,10 +132,8 @@ def api_create_host(item):
 
 
 def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
-    try:
-        engine = database.init_db_connection()
-    except:
-        raise ValueError('Unable to connect to database.')
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
         results = session.exec(statement)
@@ -171,10 +168,8 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
 
 @celery_app.task(name='List registered hosts')
 def retrieve_host():
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         records = []
         with Session(engine) as session:
@@ -195,10 +190,8 @@ def retrieve_host():
 
 
 def api_delete_host(host_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
         results = session.exec(statement)

@@ -66,10 +66,8 @@ class update_items_pool(BaseModel):
 
 @celery_app.task(name='filter_pool_by_id')
 def filter_pool_by_id(pool_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     try:
         with Session(engine) as session:
             statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
@@ -83,10 +81,8 @@ def filter_pool_by_id(pool_id):
 
 
 def api_create_pool(item):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Policies).where(
             Policies.id == ensure_uuid(item.policy_id))
@@ -108,10 +104,8 @@ def api_create_pool(item):
 
 @celery_app.task(name='Update pool')
 def api_update_pool(pool_id, item):
-    try:
-        engine = database.init_db_connection()
-    except:
-        raise ValueError('Unable to connect to database.')
+    engine = database.init_db_connection()
+
     with Session(engine) as session:
         statement = select(Pools).where(Pools.id == ensure_uuid(pool_id))
         results = session.exec(statement)
@@ -138,10 +132,7 @@ def api_update_pool(pool_id, item):
 
 
 def api_delete_pool(pool_id):
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
 
     records = []
     with Session(engine) as session:
@@ -164,10 +155,8 @@ def api_delete_pool(pool_id):
 
 @celery_app.task(name='List registered pools')
 def retrieve_pool():
-    try:
-        engine = database.init_db_connection()
-    except Exception as e:
-        raise ValueError(e)
+    engine = database.init_db_connection()
+
     records = []
     with Session(engine) as session:
         statement = select(Pools)
