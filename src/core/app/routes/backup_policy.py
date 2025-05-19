@@ -37,6 +37,7 @@ from app.database import Policies
 from app.database import Storage
 from app.database import Pools
 from app.database import Hosts
+from app.logging import logged
 
 from app.routes import external_hooks
 
@@ -162,7 +163,8 @@ def retrieve_backup_policies():
         raise ValueError(e)
 
 
-def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled):
+@logged(bounds=False)
+def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled, logger):
     engine = database.init_db_connection()
 
     with Session(engine) as session:
@@ -208,24 +210,26 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
             )
         for pool in data_pool:
             currentPool = pool.to_json()
+            unique_task_name = f"{task}-{data_backup_policy.name}-{data_backup_policy.id}-{currentPool['name']}"
+            key = f"redbeat:{unique_task_name}"
+            entry = None
             try:
-                unique_task_name = f"{task}-{data_backup_policy.name}-{data_backup_policy.id}-{currentPool['name']}"
-                key = f"redbeat:{unique_task_name}"
-                e = RedBeatSchedulerEntry.from_key(key, app=celery_app)
+                entry = RedBeatSchedulerEntry.from_key(key, app=celery_app)
+            except:
+                # If the redis volume has been removed.
+                # TODO Warning to the user ?
+                logger.info("Scheduler entry is absent.")
+            if entry is not None:
                 try:
-                    e.delete()
-                except Exception as e:
+                    logger.info("Deleting scheduler entry…")
+                    entry.delete()
+                except Exception as entry:
                     raise HTTPException(
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail=str(e),
+                        detail=str(entry),
                         headers={"WWW-Authenticate": "Bearer"}
-                    ) from e
-            except:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f'Unable to disable backup policy with id {policy_id} as the scheduled task was not found.',
-                    headers={"WWW-Authenticate": "Bearer"}
-                )
+                    ) from entry
+
     if enabled == True:
         if not data_pool:
             raise HTTPException(
