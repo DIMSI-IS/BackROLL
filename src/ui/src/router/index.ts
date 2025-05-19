@@ -162,6 +162,24 @@ const routes: Array<RouteRecordRaw> = [
           }
         ],
       },
+      {
+        name: 'auth',
+        path: 'auth',
+        component: RouteViewComponent,
+        children: [
+          {
+            name: 'login',
+            path: 'login',
+            component: () => import('@/pages/auth/Login.vue')
+          },
+
+          {
+            name: 'setPassword',
+            path: 'setPassword',
+            component: () => import('@/pages/auth/SetPassword.vue')
+          },
+        ],
+      },
       UIRoute,
     ]
   },
