@@ -79,6 +79,24 @@ export default {
           displayName: 'menu.external-hooks',
         }
       ],
+    },
+    {
+      name: 'account',
+      displayName: 'menu.account',
+      meta: {
+        icon: 'profile',
+      },
+      disabled: true,
+      children: [
+        {
+          name: 'login',
+          displayName: 'menu.login',
+        },
+        {
+          name: 'setPassword',
+          displayName: 'menu.setPassword',
+        }
+      ],
     }
   ],
 }
