@@ -10,15 +10,26 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
 apps:
+  redis-server:
+    command: usr/bin/redis-server
+    daemon: simple
+    restart-condition: always
+  
   api-py:
     command: bin/backroll_api
+
   api-uvicorn:
     command: "bin/uvicorn app.finalized:starlette_app --host 0.0.0.0 --port 5050"
     daemon: simple
     restart-condition: always
 
 parts:
-  api:
+  redis:
+    plugin: nil
+    stage-snaps:
+      - redis
+
+  core:
     source: src/core
     build-packages:
       - pkg-config
