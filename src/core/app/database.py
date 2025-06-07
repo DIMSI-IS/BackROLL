@@ -112,6 +112,13 @@ class Connectors(SQLModel, table=True):
     password: str
 
 
+class User(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid.uuid4,
+                     primary_key=True, nullable=False)
+    name: str
+    password_hash: str
+
+
 @fastapi_app.on_event("startup")
 async def startup_event():
     # If DB is not yet configured, proceed to initialization
