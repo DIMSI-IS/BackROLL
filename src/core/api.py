@@ -21,5 +21,6 @@ import uvicorn
 
 # eventlet.monkey_patch()
 
-if __name__ == '__main__':
+def main():
+    # TODO Why use a custom python script ? Rather launch with uvicorn CLI ?
     uvicorn.run('app.finalized:starlette_app', host='0.0.0.0', port=5050)
