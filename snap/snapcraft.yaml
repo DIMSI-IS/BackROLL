@@ -9,6 +9,10 @@ description: |
 grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
+apps:
+  api:
+    command: bin/backroll_api
+
 parts:
   api:
     source: src/core
