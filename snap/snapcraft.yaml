@@ -13,7 +13,9 @@ apps:
   api-py:
     command: bin/backroll_api
   api-uvicorn:
-    command: bin/uvicorn app.finalized:starlette_app
+    command: "bin/uvicorn app.finalized:starlette_app --host 0.0.0.0 --port 5050"
+    daemon: simple
+    restart-condition: always
 
 parts:
   api:
