@@ -1,6 +1,6 @@
 [project]
-name = "backroll"
+name = "app"
 version = "0.0.0"
 
 [project.scripts]
-backroll_api = "backroll.api:main"
+backroll_api = "app.api:main"

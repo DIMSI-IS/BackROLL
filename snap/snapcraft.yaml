@@ -10,8 +10,10 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
 apps:
-  api:
+  api-py:
     command: bin/backroll_api
+  api-uvicorn:
+    command: bin/uvicorn app.finalized:starlette_app
 
 parts:
   api:
