@@ -6,6 +6,7 @@ class MissingEnvironmentVariableException(Exception):
         super().__init__(message)
 
 
+# TODO BACKROLL_ prefix ?
 def get_env_var(name, allow_blank=False, allow_undefined=False):
     value = os.getenv(name)
 

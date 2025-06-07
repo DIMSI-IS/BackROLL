@@ -25,6 +25,7 @@ from slack_sdk.errors import SlackApiError
 from app.patch import make_path
 from app.hooks.hook_client import HookClient, convert
 from app.logging import logged
+from app.environment import get_env_var
 
 
 class SlackClient(HookClient):
@@ -219,7 +220,7 @@ class SlackClient(HookClient):
                     },
                     "value": "click_me_123",
                     # The notification may not be displayed in Slack if the URL is invalid.
-                    "url": make_path(os.getenv('FRONT_URL'), f"admin/tasks/backup?date={received.strftime("%Y-%m-%d")}"),
+                    "url": make_path(get_env_var('FRONT_URL'), f"admin/tasks/backup?date={received.strftime("%Y-%m-%d")}"),
                     "action_id": "button-action"
                 }
             }

@@ -30,6 +30,7 @@ from pydantic import Json, BaseModel
 from authlib.integrations.starlette_client import OAuth
 
 from app.initialized import fastapi_app
+from app.environment import get_env_var
 from app.patch import make_path
 
 fastapi_app.add_middleware(SessionMiddleware,
@@ -38,7 +39,7 @@ fastapi_app.add_middleware(SessionMiddleware,
 config = Config(".env")
 oauth = OAuth(config)
 
-issuer_url = os.getenv("OPENID_ISSUER")
+issuer_url = get_env_var("OPENID_ISSUER")
 metadata_url = make_path(issuer_url, ".well-known/openid-configuration")
 connect_url = make_path(issuer_url, "protocol/openid-connect")
 auth_url = make_path(connect_url, "auth")
@@ -47,8 +48,8 @@ certs_url = make_path(connect_url, "certs")
 
 oauth.register(
     name="""openid_provider""",
-    client_id=os.getenv("OPENID_CLIENTID"),
-    client_secret=os.getenv("OPENID_CLIENTSECRET"),
+    client_id=get_env_var("OPENID_CLIENTID"),
+    client_secret=get_env_var("OPENID_CLIENTSECRET"),
     server_metadata_url=metadata_url,
     client_kwargs={"scope": "openid email profile"},
 )
