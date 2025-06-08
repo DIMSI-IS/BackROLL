@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# TODO May be useless
+
+echo "I'm the default-configure hook."
+
+bash "$SNAP/configuration/main.sh"
