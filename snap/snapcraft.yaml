@@ -10,52 +10,58 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
 apps:
-  redis-server:
-    command: usr/bin/redis-server
-    daemon: simple
-    restart-condition: always
+  #redis-server:
+  #  command: usr/bin/redis-server
+  #  daemon: simple
+  #  restart-condition: always
   
-  api-py:
-    command: bin/backroll_api
+  #api-py:
+  #  command: bin/backroll_api
 
   api-uvicorn:
-    command: "bin/uvicorn app.finalized:starlette_app --host 0.0.0.0 --port 5050"
+    command: bin/api
     daemon: simple
     restart-condition: always
-    # TODO To be replaced by a wrapper script to load configuration.
-    environment:
-      DB_IP: localhost
-      DB_PORT: 5432
-      DB_BASE: backroll
-      DB_USER_NAME: postgres
-      DB_USER_PASSWORD: postgres
-      OPENID_ISSUER: http://sso:8080/realms/backroll
-      OPENID_CLIENTID: backroll-api
-      OPENID_CLIENTSECRET: e7cbb6ae88ce7cd7cf3b104a972d08ed
+
+  hello:
+    command: bin/hello
+  
+  hello-server:
+    command: bin/hello
+    daemon: simple
+    restart-condition: always
 
 parts:
-  snap-src:
-    source: snap-src
+  example:
     plugin: dump
+    source: src
+    organize:
+      hello.sh: bin/hello
 
-  redis:
-    plugin: nil
-    stage-snaps:
-      - redis
+  snap-src:
+    plugin: dump
+    source: snap-src
+    organize:
+      wrappers/api.sh: bin/api
 
-  core:
-    source: src/core
-    build-packages:
-      - pkg-config
-      - libssl-dev
-      - liblz4-dev
-      - libzstd-dev
-      - libxxhash-dev
-      - libacl1-dev
-      - libvirt-dev
-    stage-packages:
-      - libvirt-dev
-      - sqlite3
-    plugin: python
-    python-requirements:
-    - requirements.txt
+  #redis:
+  #  plugin: nil
+  #  stage-snaps:
+  #    - redis
+
+  #core:
+  #  source: src/core
+  #  build-packages:
+  #    - pkg-config
+  #    - libssl-dev
+  #    - liblz4-dev
+  #    - libzstd-dev
+  #    - libxxhash-dev
+  #    - libacl1-dev
+  #    - libvirt-dev
+  #  stage-packages:
+  #    - libvirt-dev
+  #    - sqlite3
+  #  plugin: python
+  #  python-requirements:
+  #  - requirements.txt
