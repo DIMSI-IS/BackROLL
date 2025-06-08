@@ -22,6 +22,7 @@ from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine
 
 from app.environment import get_env_var
+from app.patch import make_path
 from app.initialized import fastapi_app
 
 
@@ -122,5 +123,6 @@ async def startup_event():
 
 
 def init_db_connection():
-    mysql_url = f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_IP")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
+    # TODO Just a database url env var ?
+    mysql_url = f"sqlite:///{make_path(get_env_var("SNAP_COMMON"), "database.sqlite")}"
     return create_engine(mysql_url)

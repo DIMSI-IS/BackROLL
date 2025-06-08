@@ -22,8 +22,22 @@ apps:
     command: "bin/uvicorn app.finalized:starlette_app --host 0.0.0.0 --port 5050"
     daemon: simple
     restart-condition: always
+    # TODO To be replaced by a wrapper script to load configuration.
+    environment:
+      DB_IP: localhost
+      DB_PORT: 5432
+      DB_BASE: backroll
+      DB_USER_NAME: postgres
+      DB_USER_PASSWORD: postgres
+      OPENID_ISSUER: http://sso:8080/realms/backroll
+      OPENID_CLIENTID: backroll-api
+      OPENID_CLIENTSECRET: e7cbb6ae88ce7cd7cf3b104a972d08ed
 
 parts:
+  snap-src:
+    source: snap-src
+    plugin: dump
+
   redis:
     plugin: nil
     stage-snaps:
@@ -39,6 +53,9 @@ parts:
       - libxxhash-dev
       - libacl1-dev
       - libvirt-dev
+    stage-packages:
+      - libvirt-dev
+      - sqlite3
     plugin: python
     python-requirements:
     - requirements.txt
