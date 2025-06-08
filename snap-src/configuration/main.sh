@@ -1,5 +1,3 @@
-#!/bin/bash
-
 load_configuration() {
     while read line; do
         local name="${line%%=*}"
@@ -17,12 +15,13 @@ load_configuration() {
             snapctl set "$snap_name=$value"
         fi
 
+        # TODO -x to export.
         declare -g "$env_name=$value"
     done < "$SNAP/configuration/default.txt"
 }
 
 check_configuration() {
-    echo "TODO implement the check configuration."
+    echo "TODO implement the configuration check."
 }
 
 load_configuration
