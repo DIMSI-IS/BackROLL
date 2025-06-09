@@ -15,12 +15,23 @@ apps:
     daemon: simple
     restart-condition: always
 
-  # TODO Clean pyproject.toml
-  #api-py:
-  #  command: bin/backroll_api
-
   api:
     command: wrappers/api.sh
+    daemon: simple
+    restart-condition: always
+
+  worker-one:
+    command: wrappers/worker_one.sh
+    daemon: simple
+    restart-condition: always
+
+  worker-two:
+    command: wrappers/worker_two.sh
+    daemon: simple
+    restart-condition: always
+
+  beat:
+    command: wrappers/beat.sh
     daemon: simple
     restart-condition: always
 
