@@ -1,6 +1,6 @@
 name: backroll # you probably want to 'snapcraft register <name>'
 base: core24
-version: '0.1'
+version: "0.1"
 summary: Backup and restore your KVM VMs # 79 char long summary
 description: |
   Manage and schedule backups of your KVM or Apache CloudStack VMs in a web UI.
@@ -10,58 +10,43 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 confinement: devmode # use 'strict' once you have the right plugs and slots
 
 apps:
-  #redis-server:
-  #  command: usr/bin/redis-server
-  #  daemon: simple
-  #  restart-condition: always
-  
-  #api-py:
-  #  command: bin/backroll_api
-
-  api-uvicorn:
-    command: bin/api
+  redis:
+    command: usr/bin/redis-server
     daemon: simple
     restart-condition: always
 
-  hello:
-    command: bin/hello
-  
-  hello-server:
-    command: bin/hello
+  # TODO Clean pyproject.toml
+  #api-py:
+  #  command: bin/backroll_api
+
+  api:
+    command: wrappers/api.sh
     daemon: simple
     restart-condition: always
 
 parts:
-  example:
-    plugin: dump
-    source: src
-    organize:
-      hello.sh: bin/hello
+  redis:
+    plugin: nil
+    stage-snaps:
+      - redis
+
+  core:
+    source: src/core
+    build-packages:
+      - pkg-config
+      - libssl-dev
+      - liblz4-dev
+      - libzstd-dev
+      - libxxhash-dev
+      - libacl1-dev
+      - libvirt-dev
+    stage-packages:
+      - libvirt-dev
+      # - sqlite3
+    plugin: python
+    python-requirements:
+      - requirements.txt
 
   snap-src:
     plugin: dump
     source: snap-src
-    organize:
-      wrappers/api.sh: bin/api
-
-  #redis:
-  #  plugin: nil
-  #  stage-snaps:
-  #    - redis
-
-  #core:
-  #  source: src/core
-  #  build-packages:
-  #    - pkg-config
-  #    - libssl-dev
-  #    - liblz4-dev
-  #    - libzstd-dev
-  #    - libxxhash-dev
-  #    - libacl1-dev
-  #    - libvirt-dev
-  #  stage-packages:
-  #    - libvirt-dev
-  #    - sqlite3
-  #  plugin: python
-  #  python-requirements:
-  #  - requirements.txt
