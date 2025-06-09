@@ -15,9 +15,8 @@ load_configuration() {
             snapctl set "$snap_name=$value"
         fi
 
-        # TODO -x to export.
-        declare -g "$env_name=$value"
-    done < "$SNAP/configuration/default.txt"
+        declare -gx "$env_name=$value"
+    done <<< "$(cat "$SNAP/configuration/default.txt" | grep -E "[A-Z_]+=")"
 }
 
 check_configuration() {
