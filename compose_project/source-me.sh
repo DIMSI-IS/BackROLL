@@ -210,6 +210,7 @@ backroll_setup() {
 
                 cp "$template_path" "$path"
 
+                # TODO Better use envsubst ?
                 for var_name in backroll_host_user \
                                 backroll_hostname \
                                 backroll_mode \
