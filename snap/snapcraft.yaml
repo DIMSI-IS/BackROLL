@@ -35,6 +35,11 @@ apps:
     daemon: simple
     restart-condition: always
 
+  ui:
+    command: wrappers/ui.sh
+    daemon: simple
+    restart-condition: always
+
 parts:
   redis:
     plugin: nil
@@ -58,6 +63,37 @@ parts:
     python-requirements:
       - requirements.txt
 
+  ui:
+    plugin: nil
+    source: src/ui
+    build-packages:
+      - nodejs
+      - npm
+    override-build: |
+      export NODE_OPTIONS=--openssl-legacy-provider
+      npm install --legacy-peer-deps
+      npm run build
+
+      src=dist
+      dst="$SNAPCRAFT_PART_INSTALL/ui/"
+      mkdir -p "$dst"
+      cp -r "$src"/* "$dst"/
+
+      mv nginx.conf "$SNAPCRAFT_PART_INSTALL/etc/nginx/sites-enabled/app"
+    stage-packages:
+      - gettext
+      - nginx
+
   snap-src:
-    plugin: dump
     source: snap-src
+    plugin: dump
+
+layout:
+  /etc/nginx:
+    bind: $SNAP/etc/nginx
+  /var/lib/nginx:
+    bind: $SNAP_DATA/var/lib/nginx
+  /var/log/nginx:
+    bind: $SNAP_DATA/var/log/nginx
+  /usr/share/nginx/html:
+    bind: $SNAP_DATA/usr/share/nginx/html

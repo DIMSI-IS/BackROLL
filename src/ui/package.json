@@ -1,6 +1,6 @@
 {
-  "name": "vuestic-admin",
-  "version": "3.0.2",
+  "name": "app",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
