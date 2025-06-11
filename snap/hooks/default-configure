@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TODO May be useless
+# TODO Help the user to configure Backroll.
 
 echo "I'm the default-configure hook."
 

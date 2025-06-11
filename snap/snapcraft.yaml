@@ -89,6 +89,8 @@ parts:
     plugin: dump
 
 layout:
+  # TODO ssh keys
+
   /etc/nginx:
     bind: $SNAP/etc/nginx
   /var/lib/nginx:
