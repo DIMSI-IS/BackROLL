@@ -28,47 +28,47 @@ const setToken = (token: any) => {
 
 // Allow usage of this.$keycloak in components
 declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties  {
+  interface ComponentCustomProperties {
     $keycloak: VueKeycloakInstance;
   }
 }
 
-function instantiateVueApp () {
-    const app = createApp({
-      extends: App,
-      created() {
-        this.$watch('$keycloak.token', setToken, { immediate: true })
-      }
-    })
-    app.config.globalProperties.window = window
-    app.use(VueKeyCloak, {
-      init: {
-        onLoad: 'login-required'
-      },
-      config: {
-        url: process.env.VUE_APP_OPENID_ISSUER,
-        clientId: process.env.VUE_APP_OPENID_CLIENTID,
-        realm: process.env.VUE_APP_OPENID_REALM
-      },
-      onReady (kc: { token: any }) {
-        // Store token immediately
-        setToken(kc.token)
-        app.use(store)
-        app.use(router)
-        if (process.env.VUE_APP_GTM_ENABLED === 'true') {
-          const gtmConfig = {
-            id: process.env.VUE_APP_GTM_KEY,
-            debug: false,
-            vueRouter: router,
-          }
-          app.use(createGtm(gtmConfig))
+function instantiateVueApp() {
+  const app = createApp({
+    extends: App,
+    created() {
+      this.$watch('$keycloak.token', setToken, { immediate: true })
+    }
+  })
+  app.config.globalProperties.window = window
+  app.use(VueKeyCloak, {
+    init: {
+      onLoad: 'login-required'
+    },
+    config: {
+      url: process.env.VUE_APP_OPENID_ISSUER,
+      realm: process.env.VUE_APP_OPENID_REALM,
+      clientId: process.env.VUE_APP_OPENID_CLIENT_UI_ID
+    },
+    onReady(kc: { token: any }) {
+      // Store token immediately
+      setToken(kc.token)
+      app.use(store)
+      app.use(router)
+      if (process.env.VUE_APP_GTM_ENABLED === 'true') {
+        const gtmConfig = {
+          id: process.env.VUE_APP_GTM_KEY,
+          debug: false,
+          vueRouter: router,
         }
-        app.use(createI18n(i18nConfig))
-        app.use(VuesticPlugin, vuesticGlobalConfig)
-        app.use(VueAxios, axios)
-        app.mount('#app')
+        app.use(createGtm(gtmConfig))
       }
-    })
+      app.use(createI18n(i18nConfig))
+      app.use(VuesticPlugin, vuesticGlobalConfig)
+      app.use(VueAxios, axios)
+      app.mount('#app')
+    }
+  })
 }
 
 

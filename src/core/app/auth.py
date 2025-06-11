@@ -39,7 +39,7 @@ fastapi_app.add_middleware(SessionMiddleware,
 config = Config(".env")
 oauth = OAuth(config)
 
-issuer_url = get_env_var("OPENID_ISSUER")
+issuer_url = make_path(get_env_var("OPENID_ISSUER"), "realms", get_env_var("OPENID_REALM"))
 metadata_url = make_path(issuer_url, ".well-known/openid-configuration")
 connect_url = make_path(issuer_url, "protocol/openid-connect")
 auth_url = make_path(connect_url, "auth")
@@ -48,8 +48,8 @@ certs_url = make_path(connect_url, "certs")
 
 oauth.register(
     name="""openid_provider""",
-    client_id=get_env_var("OPENID_CLIENTID"),
-    client_secret=get_env_var("OPENID_CLIENTSECRET"),
+    client_id=get_env_var("OPENID_CLIENT_API_ID"),
+    client_secret=get_env_var("OPENID_CLIENT_API_SECRET"),
     server_metadata_url=metadata_url,
     client_kwargs={"scope": "openid email profile"},
 )
