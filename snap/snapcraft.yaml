@@ -79,7 +79,7 @@ parts:
       mkdir -p "$dst"
       cp -r "$src"/* "$dst"/
 
-      mv nginx.conf "$SNAPCRAFT_PART_INSTALL/etc/nginx/sites-enabled/app"
+      cp nginx.conf "$SNAPCRAFT_PART_INSTALL/etc/nginx/sites-enabled/app"
     stage-packages:
       - gettext
       - nginx
