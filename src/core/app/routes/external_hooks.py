@@ -145,7 +145,7 @@ def api_delete_external_hook(hook_id):
 
 @fastapi_app.post("/api/v1/externalhooks", status_code=201)
 def create_external_hook(
-    item: items_create_external_hook, identity: Json = Depends(auth.valid_token)
+    item: items_create_external_hook, identity: Json = Depends(auth.verify_token)
 ):
     name = item.name
     value = item.value
@@ -153,7 +153,7 @@ def create_external_hook(
 
 
 @fastapi_app.get("/api/v1/externalhooks", status_code=202)
-def read_external_hook(_: Json = Depends(auth.valid_token)):
+def read_external_hook(_: Json = Depends(auth.verify_token)):
     task = api_read_external_hook.delay()
     return {"Location": fastapi_app.url_path_for("retrieve_task_status", task_id=task.id)}
 
@@ -162,7 +162,7 @@ def read_external_hook(_: Json = Depends(auth.valid_token)):
 def update_external_hook(
     hook_id,
     item: items_create_external_hook,
-    _: Json = Depends(auth.valid_token),
+    _: Json = Depends(auth.verify_token),
 ):
     try:
         uuid_obj = UUID(hook_id)
@@ -175,13 +175,13 @@ def update_external_hook(
 
 
 @fastapi_app.get("/api/v1/externalhooks/{hook_id}/test", status_code=200)
-def test_external_hook(hook_id, _: Json = Depends(auth.valid_token)):
+def test_external_hook(hook_id, _: Json = Depends(auth.verify_token)):
     notification_sender.test(hook_id)
     return {"state": "SUCCESS"}
 
 
 @fastapi_app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
-def delete_external_hook(hook_id, identity: Json = Depends(auth.valid_token)):
+def delete_external_hook(hook_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(hook_id)
     except ValueError:

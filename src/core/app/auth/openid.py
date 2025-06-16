@@ -56,7 +56,7 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 )
 
 
-def valid_token(token: str = Security(oauth2_scheme)) -> Json:
+def verify(token: str = Security(oauth2_scheme)) -> Json:
     jwks_client = PyJWKClient(certs_url)
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)

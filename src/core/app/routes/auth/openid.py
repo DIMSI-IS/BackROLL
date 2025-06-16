@@ -23,7 +23,7 @@ from starlette.responses import RedirectResponse
 from pydantic import Json, BaseModel
 
 from app.initialized import fastapi_app
-from app.auth.openid import token_url, valid_token
+from app.auth.openid import token_url, verify
 
 
 class items_login(BaseModel):
@@ -54,7 +54,7 @@ def login(item: items_login):
 
 
 @fastapi_app.post("/api/v1/auth", status_code=200)
-def auth(identity: Json = Depends(valid_token)):
+def auth(identity: Json = Depends(verify)):
     return {"state": "authenticated", "jwt": identity}
 
 

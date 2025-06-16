@@ -218,20 +218,20 @@ def retrieve_storage():
 
 
 @fastapi_app.get('/api/v1/storage', status_code=202)
-def list_storage(identity: Json = Depends(auth.valid_token)):
+def list_storage(identity: Json = Depends(auth.verify_token)):
     task = retrieve_storage.delay()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
 @fastapi_app.post('/api/v1/storage', status_code=201)
-def create_storage(item: items_storage, identity: Json = Depends(auth.valid_token)):
+def create_storage(item: items_storage, identity: Json = Depends(auth.verify_token)):
     name = item.name
     path = item.path
     return api_create_storage(name, path)
 
 
 @fastapi_app.patch("/api/v1/storage/{storage_id}", status_code=200)
-def update_storage(storage_id, item: items_storage, identity: Json = Depends(auth.valid_token)):
+def update_storage(storage_id, item: items_storage, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(storage_id)
     except ValueError:
@@ -242,7 +242,7 @@ def update_storage(storage_id, item: items_storage, identity: Json = Depends(aut
 
 
 @fastapi_app.delete('/api/v1/storage/{storage_id}', status_code=200)
-def delete_storage(storage_id: str, identity: Json = Depends(auth.valid_token)):
+def delete_storage(storage_id: str, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(storage_id)
     except ValueError:

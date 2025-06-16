@@ -300,7 +300,7 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
 
 
 @fastapi_app.post("/api/v1/backup_policies", status_code=201)
-def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.valid_token)):
+def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.verify_token)):
     engine = database.init_db_connection()
 
     records = []
@@ -323,13 +323,13 @@ def create_backup_policy(item: backup_policy_create, identity: Json = Depends(au
 
 
 @fastapi_app.get("/api/v1/backup_policies", status_code=202)
-def list_backup_policies(identity: Json = Depends(auth.valid_token)):
+def list_backup_policies(identity: Json = Depends(auth.verify_token)):
     task = retrieve_backup_policies.delay()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
 @fastapi_app.patch("/api/v1/backup_policies/{policy_id}", status_code=200)
-def update_backup_policy(policy_id, item: backup_policy_update, identity: Json = Depends(auth.valid_token)):
+def update_backup_policy(policy_id, item: backup_policy_update, identity: Json = Depends(auth.verify_token)):
     name = item.name
     description = item.description
     schedule = item.schedule
@@ -349,7 +349,7 @@ def update_backup_policy(policy_id, item: backup_policy_update, identity: Json =
 
 
 @fastapi_app.delete("/api/v1/backup_policies/{policy_id}", status_code=200)
-def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.valid_token)):
+def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.verify_token)):
     engine = database.init_db_connection()
 
     records = []

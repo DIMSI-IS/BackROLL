@@ -56,6 +56,6 @@ def retrieve_job():
 
 
 @fastapi_app.get('/api/v1/jobs', status_code=202)
-def list_available_jobs(identity: Json = Depends(auth.valid_token)):
+def list_available_jobs(identity: Json = Depends(auth.verify_token)):
     task = retrieve_job.delay()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}

@@ -117,7 +117,7 @@ def kickstart_pool_backup(pool_id):
 
 
 @fastapi_app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
-def start_pool_backup(pool_id, identity: Json = Depends(auth.valid_token)):
+def start_pool_backup(pool_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(pool_id)
     except ValueError:

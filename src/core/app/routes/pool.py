@@ -167,18 +167,18 @@ def retrieve_pool():
 
 
 @fastapi_app.post('/api/v1/pools', status_code=201)
-def create_pool(item: create_items_pool, identity: Json = Depends(auth.valid_token)):
+def create_pool(item: create_items_pool, identity: Json = Depends(auth.verify_token)):
     return api_create_pool(item)
 
 
 @fastapi_app.get('/api/v1/pools', status_code=202)
-def list_pools(identity: Json = Depends(auth.valid_token)):
+def list_pools(identity: Json = Depends(auth.verify_token)):
     task = retrieve_pool.delay()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
 @fastapi_app.patch('/api/v1/pools/{pool_id}', status_code=200)
-def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.valid_token)):
+def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(pool_id)
     except ValueError:
@@ -188,7 +188,7 @@ def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.
 
 
 @fastapi_app.delete('/api/v1/pools/{pool_id}', status_code=200)
-def delete_pool(pool_id, identity: Json = Depends(auth.valid_token)):
+def delete_pool(pool_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(pool_id)
     except ValueError:
