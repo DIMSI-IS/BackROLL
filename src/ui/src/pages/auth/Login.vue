@@ -36,10 +36,10 @@ export default defineComponent({
                         password: this.password
                     },
                     { headers: { 'Content-Type': 'application/json' } })
-                this.$keycloak.token = response.data.token
+                this.$keycloak.token = response.data
                 this.$vaToast.init({
                     title: "Login",
-                    message: "You are logged in.",
+                    message: "You are logged in." + response.data,
                     color: 'success',
                 })
             } catch (error) {

@@ -31,6 +31,7 @@ from authlib.integrations.starlette_client import OAuth
 from app.initialized import fastapi_app
 from app.environment import get_env_var
 from app.patch import make_path
+from app import auth2
 
 fastapi_app.add_middleware(SessionMiddleware,
                            secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xWTKGM""")
@@ -74,26 +75,32 @@ class items_login(BaseModel):
 
 
 def valid_token(token: str = Security(oauth2_scheme)) -> Json:
-    # print(f"Inspect token at https://jwt.io/#id_token={token}.")
-    jwks_client = PyJWKClient(certs_url)
     try:
-        signing_key = jwks_client.get_signing_key_from_jwt(token)
-        # print(f"{signing_key.key=}")
-        return jwt.decode(
-            token,
-            signing_key.key,
-            issuer=issuer_url,
-            audience="account",
-            algorithms=["RS256"],
-            options={"verify_aud": False}
-        )
-    except Exception as exc:
-        print(f"{exc=}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(exc),  # "Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
+        # TODO Cleaner
+        return auth2.password.verify(token)
+    except Exception as exception:
+        print(f"new {exception=}")
+
+        # print(f"Inspect token at https://jwt.io/#id_token={token}.")
+        jwks_client = PyJWKClient(certs_url)
+        try:
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            # print(f"{signing_key.key=}")
+            return jwt.decode(
+                token,
+                signing_key.key,
+                issuer=issuer_url,
+                audience="account",
+                algorithms=["RS256"],
+                options={"verify_aud": False}
+            )
+        except Exception as exc:
+            print(f"legacy {exc=}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=str(exc),  # "Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            ) from exc
 
 
 @fastapi_app.post("/api/v1/login", status_code=200)

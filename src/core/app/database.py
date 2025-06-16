@@ -22,7 +22,6 @@ from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine, Column, VARCHAR
 
 from app.environment import get_env_var
-from app.initialized import fastapi_app
 
 
 class Policies(SQLModel, table=True):
@@ -118,15 +117,6 @@ class User(SQLModel, table=True):
     # TODO Choose username length
     name: str  # = Field(sa_column=Column("name", VARCHAR, unique=True))
     password_hash: str
-
-
-@fastapi_app.on_event("startup")
-async def startup_event():
-    # If DB is not yet configured, proceed to initialization
-    engine = init_db_connection()
-    SQLModel.metadata.create_all(engine)
-
-    # Add default connectors
 
 
 def init_db_connection():
