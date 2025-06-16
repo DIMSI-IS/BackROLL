@@ -19,7 +19,7 @@ from urllib.parse import quote_plus
 import uuid
 from uuid import UUID
 from typing import Optional
-from sqlmodel import Field, SQLModel, create_engine
+from sqlmodel import Field, SQLModel, create_engine, Column, VARCHAR
 
 from app.environment import get_env_var
 from app.initialized import fastapi_app
@@ -115,7 +115,8 @@ class Connectors(SQLModel, table=True):
 class User(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid.uuid4,
                      primary_key=True, nullable=False)
-    name: str
+    # TODO Choose username length
+    name: str  # = Field(sa_column=Column("name", VARCHAR, unique=True))
     password_hash: str
 
 

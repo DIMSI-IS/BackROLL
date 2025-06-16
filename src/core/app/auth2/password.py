@@ -14,7 +14,7 @@ def register(username: str, password: str):
         session.commit()
 
 
-def token(username: str, password: str) -> str:
+def login(username: str, password: str) -> str:
     engine = init_db_connection()
     with Session(engine) as session:
         statement = select(User).where(User.name == username)
@@ -29,5 +29,19 @@ def token(username: str, password: str) -> str:
 
 def verify(token: str) -> bool:
     decoded = jwt.decode(token)
-    
+    return decoded.username == "admin"
 
+
+def change(username: str, old_password, new_password):
+    engine = init_db_connection()
+    with Session(engine) as session:
+        statement = select(User).where(User.name == username)
+        results = session.exec(statement)
+        user: User = results.one()
+
+        if not bcrypt.checkpw(old_password, user.password_hash):
+            raise Exception()
+
+        user.password_hash = bcrypt.hashpw(new_password)
+        session.add(user)
+        session.commit()

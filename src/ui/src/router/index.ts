@@ -174,9 +174,9 @@ const routes: Array<RouteRecordRaw> = [
           },
 
           {
-            name: 'setPassword',
-            path: 'setPassword',
-            component: () => import('@/pages/auth/SetPassword.vue')
+            name: 'changePassword',
+            path: 'changePassword',
+            component: () => import('@/pages/auth/ChangePassword.vue')
           },
         ],
       },

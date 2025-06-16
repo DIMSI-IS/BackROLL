@@ -93,8 +93,8 @@ export default {
           displayName: 'menu.login',
         },
         {
-          name: 'setPassword',
-          displayName: 'menu.setPassword',
+          name: 'changePassword',
+          displayName: 'menu.changePassword',
         }
       ],
     }

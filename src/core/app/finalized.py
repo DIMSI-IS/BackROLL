@@ -22,6 +22,8 @@ from app.routes import backup_policy
 from app.routes import storage
 from app.routes import kickstart_backup
 from app.routes import connectors
+# TODO Still not found.
+from app.routes.auth import password
 
 # Re-export
 from app.initialized import starlette_app, celery_app
