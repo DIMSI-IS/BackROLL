@@ -1,3 +1,4 @@
+from pydantic import Json
 import sqlalchemy
 from sqlmodel import Session, select
 import bcrypt
@@ -48,13 +49,13 @@ def change(username: str, old_password, new_password):
         session.commit()
 
 
-def verify(token: str) -> bool:
-    print(f"Inspect token at https://jwt.io/#id_token={token}.")
+def verify(token: str) -> Json:
     decoded = jwt.decode(token,
                          __get_private_key(),
                          algorithms=["HS256"])
-    print(f"{decoded=}")
-    return decoded["username"] == get_env_var("DEFAULT_USER_NAME")
+    if decoded["username"] != get_env_var("DEFAULT_USER_NAME"):
+        raise Exception("You must use the default user.")
+    return decoded
 
 
 def ensure_default_user():

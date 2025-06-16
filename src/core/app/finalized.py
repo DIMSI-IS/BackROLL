@@ -22,7 +22,7 @@ from app.routes import backup_policy
 from app.routes import storage
 from app.routes import kickstart_backup
 from app.routes import connectors
-from app.routes.auth import password
+from app.routes.auth import openid, password
 
 from app import events
 

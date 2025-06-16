@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from app.initialized import fastapi_app
-from app.auth2.password import login, change
+from app.auth.password import login, change
 
 
 class Credentials(BaseModel):

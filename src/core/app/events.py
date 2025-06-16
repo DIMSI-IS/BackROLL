@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel
 from app.initialized import fastapi_app
 from app.database import init_db_connection
-from app.auth2.password import ensure_default_user
+from app.auth.password import ensure_default_user
 
 
 @fastapi_app.on_event("startup")
