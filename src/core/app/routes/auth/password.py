@@ -8,7 +8,7 @@ class Credentials(BaseModel):
     password: str
 
 
-@fastapi_app.post("api/v1/auth/password/login")
+@fastapi_app.post("/api/v1/auth/password/login")
 def login_route(request: Credentials):
     return login(request.username, request.password)
 
@@ -19,6 +19,6 @@ class CredentialsChange(BaseModel):
     new_password: str
 
 
-@fastapi_app.post("api/v1/auth/password/change")
+@fastapi_app.post("/api/v1/auth/password/change")
 def change_route(request: CredentialsChange):
     change(request.username, request.old_password, request.new_password)
