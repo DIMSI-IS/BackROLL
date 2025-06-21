@@ -15,13 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from urllib.parse import quote_plus
 import uuid
 from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine
 
 from app.environment import get_env_var
-from app.patch import make_path
 
 
 class Policies(SQLModel, table=True):
@@ -120,6 +120,5 @@ class User(SQLModel, table=True):
 
 
 def init_db_connection():
-    # TODO Just a database url env var ?
-    mysql_url = f"sqlite:///{make_path(get_env_var("SNAP_COMMON"), "database.sqlite")}"
+    mysql_url = f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_IP")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
     return create_engine(mysql_url)

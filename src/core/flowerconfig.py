@@ -2,7 +2,7 @@ import os
 
 # Broker
 # TODO Env var BACKROLL_REDIS_HOST
-broker = 'redis://localhost:6379/0'
+broker = 'redis://redis:6379/0'
 
 # Persistency
 persistent = True
