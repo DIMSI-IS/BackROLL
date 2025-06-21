@@ -10,5 +10,3 @@ src/core/dev.Dockerfile
 
 common/secret/**
 install.sh
-
-*.snap
