@@ -58,7 +58,8 @@ export default createStore({
       context.commit("insertToken", token);
     },
     // Ask and retrieve pools from BackROLL API
-    async requestPool(context, { token }) {
+    async requestPool(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/pools`,
         {
@@ -68,16 +69,17 @@ export default createStore({
           },
         }
       );
-      context.dispatch("parsePool", { token: token, location: data.Location });
+      context.dispatch("parsePool", { location: data.Location });
     },
-    async parsePool(context, { token, location }) {
+    async parsePool(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parsePool", { token: token, location: location });
+          context.dispatch("parsePool", { location: location });
         }, 2000);
       } else {
         context.commit("loadingPool", true);
@@ -88,7 +90,8 @@ export default createStore({
         }
       }
     },
-    async updatePool(context, { vm, token, poolValues }) {
+    async updatePool(context, { vm, poolValues }) {
+      const token = context.state.token
       await axios
         .patch(
           `${this.state.endpoint.api}/api/v1/pools/${poolValues.id}`,
@@ -102,7 +105,7 @@ export default createStore({
         )
         .then((response) => {
           if (response.status === 200) {
-            context.dispatch("requestPool", { token: token });
+            context.dispatch("requestPool");
             router.push("/admin/resources/pools");
             vm.$vaToast.init({
               message: "Pool has been successfully updated",
@@ -123,7 +126,8 @@ export default createStore({
       context.commit("poolList", poolsList);
     },
     // Ask and retrieve policies from BackROLL API
-    async requestPolicy(context, { token }) {
+    async requestPolicy(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/backup_policies`,
         {
@@ -134,18 +138,18 @@ export default createStore({
         }
       );
       context.dispatch("parsePolicy", {
-        token: token,
         location: data.Location,
       });
     },
-    async parsePolicy(context, { token, location }) {
+    async parsePolicy(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parsePolicy", { token: token, location: location });
+          context.dispatch("parsePolicy", { location: location });
         }, 2000);
       } else {
         context.commit("loadingPolicy", true);
@@ -156,7 +160,8 @@ export default createStore({
         }
       }
     },
-    async updatePolicy(context, { vm, token, policyValues }) {
+    async updatePolicy(context, { vm, policyValues }) {
+      const token = context.state.token
       await axios
         .patch(
           `${this.state.endpoint.api}/api/v1/backup_policies/${policyValues.id}`,
@@ -178,7 +183,7 @@ export default createStore({
         )
         .then((response) => {
           if (response.status === 200) {
-            context.dispatch("requestPolicy", { token: token });
+            context.dispatch("requestPolicy");
             router.push("/admin/configuration/policies");
             vm.$vaToast.init({
               message: "Policy has been successfully updated",
@@ -199,7 +204,8 @@ export default createStore({
       context.commit("policyList", policiesList);
     },
     // Ask and retrieve hypervisors from BackROLL API
-    async requestHost(context, { token }) {
+    async requestHost(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/hosts`,
         {
@@ -209,16 +215,17 @@ export default createStore({
           },
         }
       );
-      context.dispatch("parseHost", { token: token, location: data.Location });
+      context.dispatch("parseHost", { location: data.Location });
     },
-    async parseHost(context, { token, location }) {
+    async parseHost(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parseHost", { token: token, location: location });
+          context.dispatch("parseHost", { location: location });
         }, 2000);
       } else {
         context.commit("loadingHost", true);
@@ -229,7 +236,8 @@ export default createStore({
         }
       }
     },
-    async updateHost(context, { vm, token, hostValues }) {
+    async updateHost(context, { vm, hostValues }) {
+      const token = context.state.token
       await axios
         .patch(
           `${this.state.endpoint.api}/api/v1/hosts/${hostValues.id}`,
@@ -243,7 +251,7 @@ export default createStore({
         )
         .then((response) => {
           if (response.status === 200) {
-            context.dispatch("requestHost", { token: token });
+            context.dispatch("requestHost");
             router.push("/admin/resources/hypervisors");
             vm.$vaToast.init({
               message: "Hypervisor has been successfully updated",
@@ -264,7 +272,8 @@ export default createStore({
       context.commit("hostList", hostList);
     },
     // Ask and retrieve virtual machines from BackROLL API
-    async requestVirtualMachine(context, { token }) {
+    async requestVirtualMachine(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/virtualmachines`,
         {
@@ -275,11 +284,11 @@ export default createStore({
         }
       );
       context.dispatch("parseVirtualMachine", {
-        token: token,
         location: data.Location,
       });
     },
-    async parseVirtualMachine(context, { token, location }) {
+    async parseVirtualMachine(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -287,7 +296,6 @@ export default createStore({
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
           context.dispatch("parseVirtualMachine", {
-            token: token,
             location: location,
           });
         }, 2000);
@@ -304,7 +312,8 @@ export default createStore({
       context.commit("vmList", vmList);
     },
     // Ask and retrieve storage from BackROLL API
-    async requestStorage(context, { token }) {
+    async requestStorage(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/storage`,
         {
@@ -315,11 +324,11 @@ export default createStore({
         }
       );
       context.dispatch("parseStorage", {
-        token: token,
         location: data.Location,
       });
     },
-    async parseStorage(context, { token, location }) {
+    async parseStorage(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -327,7 +336,6 @@ export default createStore({
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
           context.dispatch("parseStorage", {
-            token: token,
             location: location,
           });
         }, 2000);
@@ -340,7 +348,8 @@ export default createStore({
         }
       }
     },
-    async updateStorage(context, { vm, token, storageId, name, path }) {
+    async updateStorage(context, { vm, storageId, name, path }) {
+      const token = context.state.token
       await axios
         .patch(
           `${this.state.endpoint.api}/api/v1/storage/${storageId}`,
@@ -354,7 +363,7 @@ export default createStore({
         )
         .then((response) => {
           if (response.status === 200) {
-            context.dispatch("requestStorage", { token: token });
+            context.dispatch("requestStorage");
             router.push("/admin/configuration/storage");
             vm.$vaToast.init({
               message: "Storage has been successfully updated",
@@ -375,7 +384,8 @@ export default createStore({
       context.commit("storageList", storageList);
     },
     // Ask and retrieve backup task from BackROLL API
-    async requestBackupTask(context, { token }) {
+    async requestBackupTask(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/tasks/backup`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -383,14 +393,15 @@ export default createStore({
       context.commit("loadingBackupTask", true);
       context.dispatch("updateBackupTaskList", data.info);
       setTimeout(() => {
-        context.dispatch("requestBackupTask", { token: token });
+        context.dispatch("requestBackupTask");
       }, 10000);
     },
     updateBackupTaskList(context, taskList) {
       context.commit("backupTaskList", taskList);
     },
     // Ask and retrieve restore task from BackROLL API
-    async requestRestoreTask(context, { token }) {
+    async requestRestoreTask(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/tasks/restore`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -398,14 +409,15 @@ export default createStore({
       context.commit("loadingRestoreTask", true);
       context.dispatch("updateRestoreTaskList", data.info);
       setTimeout(() => {
-        context.dispatch("requestRestoreTask", { token: token });
+        context.dispatch("requestRestoreTask");
       }, 10000);
     },
     updateRestoreTaskList(context, taskList) {
       context.commit("restoreTaskList", taskList);
     },
     // Ask and retrive celery tasks from BackROLL API
-    async requestCeleryTasks(context, { token }) {
+    async requestCeleryTasks(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/tasks`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -413,28 +425,30 @@ export default createStore({
       context.commit("loadingCeleryTasks", true);
       context.dispatch("updateCeleryTaskList", data.info);
       setTimeout(() => {
-        context.dispatch("requestCeleryTasks", { token: token });
+        context.dispatch("requestCeleryTasks");
       }, 10000);
     },
     updateCeleryTaskList(context, taskList) {
       context.commit("celeryTaskList", taskList);
     },
     // Ask and retrieve jobs (task types) from BackROLL API
-    async requestJob(context, { token }) {
+    async requestJob(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/jobs`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      context.dispatch("parseJob", { token: token, location: data.Location });
+      context.dispatch("parseJob", { location: data.Location });
     },
-    async parseJob(context, { token, location }) {
+    async parseJob(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parseJob", { token: token, location: location });
+          context.dispatch("parseJob", { location: location });
         }, 2000);
       } else {
         context.commit("loadingJob", true);
@@ -449,7 +463,8 @@ export default createStore({
       context.commit("jobList", taskList);
     },
     // Ask and retrieve external hooks from BackROLL API
-    async requestExternalHook(context, { token }) {
+    async requestExternalHook(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/externalhooks`,
         {
@@ -460,11 +475,11 @@ export default createStore({
         }
       );
       context.dispatch("parseExternalHooks", {
-        token: token,
         location: data.Location,
       });
     },
-    async parseExternalHooks(context, { token, location }) {
+    async parseExternalHooks(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -472,7 +487,6 @@ export default createStore({
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
           context.dispatch("parseExternalHooks", {
-            token: token,
             location: location,
           });
         }, 2000);
@@ -485,7 +499,8 @@ export default createStore({
         }
       }
     },
-    async updateExternalHook(context, { vm, token, hookValues }) {
+    async updateExternalHook(context, { vm, hookValues }) {
+      const token = context.state.token
       await axios
         .patch(
           `${this.state.endpoint.api}/api/v1/externalhooks/${hookValues.id}`,
@@ -499,7 +514,7 @@ export default createStore({
         )
         .then((response) => {
           if (response.status === 200) {
-            context.dispatch("requestExternalHook", { token: token });
+            context.dispatch("requestExternalHook");
             router.push("/admin/configuration/externalhooks");
             vm.$vaToast.init({
               message: "External hook has been successfully updated",
@@ -521,7 +536,8 @@ export default createStore({
     },
 
     // Ask and retrieve connectors from BackROLL API
-    async requestConnector(context, { token }) {
+    async requestConnector(context) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}/api/v1/connectors`,
         {
@@ -532,11 +548,11 @@ export default createStore({
         }
       );
       context.dispatch("parseConnectors", {
-        token: token,
         location: data.Location,
       });
     },
-    async parseConnectors(context, { token, location }) {
+    async parseConnectors(context, { location }) {
+      const token = context.state.token
       const { data } = await axios.get(
         `${this.state.endpoint.api}${location}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -544,7 +560,6 @@ export default createStore({
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
           context.dispatch("parseConnectors", {
-            token: token,
             location: location,
           });
         }, 2000);
@@ -557,7 +572,8 @@ export default createStore({
         }
       }
     },
-    async updateConnector(context, { vm, token, connectorValues }) {
+    async updateConnector(context, { vm, connectorValues }) {
+      const token = context.state.token
       await axios
         .patch(
           `${this.state.endpoint.api}/api/v1/connectors/${connectorValues.id}`,
@@ -576,7 +592,7 @@ export default createStore({
         )
         .then((response) => {
           if (response.status === 200) {
-            context.dispatch("requestConnector", { token: token });
+            context.dispatch("requestConnector");
             router.push("/admin/configuration/connectors");
             vm.$vaToast.init({
               message: "Connector has been successfully updated",

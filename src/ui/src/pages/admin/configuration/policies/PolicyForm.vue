@@ -199,7 +199,7 @@ export default {
     updatePolicy() {
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$keycloak.token,
+        token: this.$store.state.token,
         policyValues: this.exportPolicy(),
       });
     },
@@ -211,13 +211,13 @@ export default {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$keycloak.token}`,
+              Authorization: `Bearer ${this.$store.state.token}`,
             },
           }
         )
         .then((response) => {
           this.$store.dispatch("requestPolicy", {
-            token: this.$keycloak.token,
+            token: this.$store.state.token,
           });
           this.$router.push("/admin/configuration/policies");
           this.$vaToast.init({

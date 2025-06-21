@@ -71,7 +71,7 @@ export default defineComponent({
   methods: {
     async testHook(id) {
       try {
-        const response = await axios.get(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${id}/test`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        const response = await axios.get(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${id}/test`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully tested.', color: 'success' })
       } catch (error) {
         console.error(error)
@@ -83,9 +83,9 @@ export default defineComponent({
       }
     },
     deleteHook() {
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${this.selectedHookId}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${this.selectedHookId}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
-          this.$store.dispatch("requestExternalHook", { token: this.$keycloak.token })
+          this.$store.dispatch("requestExternalHook", { token: this.$store.state.token })
           this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully removed', color: 'success' })
         })
         .catch(error => {

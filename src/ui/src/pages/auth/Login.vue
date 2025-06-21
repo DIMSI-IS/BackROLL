@@ -29,17 +29,18 @@ export default defineComponent({
     methods: {
         async login() {
             try {
-                const response = await axios.post(
+                const { data } = await axios.post(
                     `${this.$store.state.endpoint.api}/api/v1/auth/password/login`,
                     {
                         username: this.username,
                         password: this.password
                     },
                     { headers: { 'Content-Type': 'application/json' } })
-                this.$keycloak.token = response.data
+                this.$store.dispatch('insertToken', data);
+                this.$store.commit('insertToken', data);
                 this.$vaToast.init({
                     title: "Login",
-                    message: "You are logged in." + response.data,
+                    message: "You are logged in." + (this.$store.state.token == data),
                     color: 'success',
                 })
             } catch (error) {

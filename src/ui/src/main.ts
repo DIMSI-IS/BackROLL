@@ -37,6 +37,7 @@ function instantiateVueApp() {
   const app = createApp({
     extends: App,
     created() {
+      // TODO Could be cause of the old token coming back after a minute.
       this.$watch('$keycloak.token', setToken, { immediate: true })
     }
   })
@@ -51,6 +52,7 @@ function instantiateVueApp() {
       clientId: process.env.VUE_APP_OPENID_CLIENT_UI_ID
     },
     onReady(kc: { token: any }) {
+      // TODO Not using $keycloak.token ?
       // Store token immediately
       setToken(kc.token)
       app.use(store)

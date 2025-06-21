@@ -101,7 +101,7 @@ export default {
     },
     exportPool() {
       const pool = JSON.parse(JSON.stringify(this.formPool));
-      
+
       if (this.selectedPolicy) {
         pool.policy_id = this.selectedPolicy.value;
       }
@@ -114,7 +114,7 @@ export default {
     updatePool() {
       this.$store.dispatch("updatePool", {
         vm: this,
-        token: this.$keycloak.token,
+        token: this.$store.state.token,
         poolValues: this.exportPool(),
       });
     },
@@ -126,12 +126,12 @@ export default {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$keycloak.token}`,
+              Authorization: `Bearer ${this.$store.state.token}`,
             },
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestPool", { token: this.$keycloak.token });
+          this.$store.dispatch("requestPool", { token: this.$store.state.token });
           this.$router.push("/admin/resources/pools");
           this.$vaToast.init({
             title: response.data.state,
