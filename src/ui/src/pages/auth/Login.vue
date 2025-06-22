@@ -5,7 +5,7 @@
         </va-card-title>
         <va-card-content>
             <va-form ref="form">
-                <va-input class="mb-3" label="Username" v-model="username" />
+                <!-- va-input class="mb-3" label="Username" v-model="username" /-->
                 <va-input class="mb-3" label="Password" v-model="password" />
             </va-form>
             <va-button class="mb-3" @click="$refs.form.validate() && login()">
@@ -22,7 +22,7 @@ export default defineComponent({
     name: "Login",
     data() {
         return {
-            username: "",
+            // username: "",
             password: "",
         }
     },
@@ -32,7 +32,7 @@ export default defineComponent({
                 const { data } = await axios.post(
                     `${this.$store.state.endpoint.api}/api/v1/auth/password/login`,
                     {
-                        username: this.username,
+                        username: "admin",
                         password: this.password
                     },
                     { headers: { 'Content-Type': 'application/json' } })

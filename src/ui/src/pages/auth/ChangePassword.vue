@@ -35,7 +35,6 @@ export default defineComponent({
 
                 await axios.post(`${this.$store.state.endpoint.api}/api/v1/auth/password/change`,
                     {
-                        // TODO
                         username: "admin",
                         old_password: this.oldPassword,
                         new_password: this.newPassword,

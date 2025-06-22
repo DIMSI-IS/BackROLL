@@ -37,8 +37,7 @@ async function instantiateVueApp() {
   const app = createApp({
     extends: App,
     created() {
-      // TODO Could be cause of the old token coming back after a minute.
-      //this.$watch('$keycloak.token', setToken, { immediate: true })
+      this.$watch('$keycloak.token', setToken, { immediate: true })
     }
   })
   app.config.globalProperties.window = window
