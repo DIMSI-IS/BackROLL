@@ -154,7 +154,7 @@ def api_delete_connector(connector_id):
 
 
 @fastapi_app.post('/api/v1/connectors', status_code=201)
-def create_connector(item: items_create_connector, identity: Json = Depends(auth.valid_token)):
+def create_connector(item: items_create_connector, identity: Json = Depends(auth.verify_token)):
     name = item.name
     url = item.url
     login = item.login
@@ -163,13 +163,13 @@ def create_connector(item: items_create_connector, identity: Json = Depends(auth
 
 
 @fastapi_app.get('/api/v1/connectors', status_code=202)
-def retrieve_connectors(identity: Json = Depends(auth.valid_token)):
+def retrieve_connectors(identity: Json = Depends(auth.verify_token)):
     task = api_retrieve_connectors.delay()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
 @fastapi_app.patch('/api/v1/connectors/{connector_id}', status_code=200)
-def update_connector(connector_id, item: items_create_connector, identity: Json = Depends(auth.valid_token)):
+def update_connector(connector_id, item: items_create_connector, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(connector_id)
     except ValueError:
@@ -182,7 +182,7 @@ def update_connector(connector_id, item: items_create_connector, identity: Json 
 
 
 @fastapi_app.delete('/api/v1/connectors/{connector_id}', status_code=200)
-def delete_connector(connector_id, identity: Json = Depends(auth.valid_token)):
+def delete_connector(connector_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(connector_id)
     except ValueError:

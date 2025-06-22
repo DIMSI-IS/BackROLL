@@ -69,9 +69,9 @@ export default defineComponent({
   methods: {
     deleteConnector() {
       const connector = { ...this.selectedConnector }
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/connectors/${connector.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/connectors/${connector.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
-          this.$store.dispatch("requestConnector", { token: this.$keycloak.token })
+          this.$store.dispatch("requestConnector", { token: this.$store.state.token })
           this.$vaToast.init({ title: response.data.state, message: 'connector has been successfully removed', color: 'success' })
         })
         .catch(error => {

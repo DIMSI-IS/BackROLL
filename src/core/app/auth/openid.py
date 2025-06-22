@@ -15,17 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-import json
-import requests
-from fastapi import Depends, HTTPException, Security, status
+from fastapi import HTTPException, Security, status
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from starlette.config import Config
-from starlette.requests import Request
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import RedirectResponse
 import jwt
 from jwt import PyJWKClient
-from pydantic import Json, BaseModel
+from pydantic import Json
 from authlib.integrations.starlette_client import OAuth
 
 from app.initialized import fastapi_app
@@ -60,62 +56,15 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 )
 
 
-class items_login(BaseModel):
-    app_id: str
-    app_secret: str
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "app_id": "openid application id",
-                "app_secret": "openid application secret",
-            }
-        }
-
-
-def valid_token(token: str = Security(oauth2_scheme)) -> Json:
-    # print(f"Inspect token at https://jwt.io/#id_token={token}.")
+def verify(token: str = Security(oauth2_scheme)) -> Json:
     jwks_client = PyJWKClient(certs_url)
-    try:
-        signing_key = jwks_client.get_signing_key_from_jwt(token)
-        # print(f"{signing_key.key=}")
-        return jwt.decode(
-            token,
-            signing_key.key,
-            issuer=issuer_url,
-            audience="account",
-            algorithms=["RS256"],
-            options={"verify_aud": False}
-        )
-    except Exception as exc:
-        print(f"{exc=}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(exc),  # "Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
-
-
-@fastapi_app.post("/api/v1/login", status_code=200)
-def login(item: items_login):
-    app_id = item.app_id
-    app_secret = item.app_secret
-    payload = {
-        "grant_type": "client_credentials",
-        "client_id": app_id,
-        "client_secret": app_secret,
-    }
-    response = requests.post(token_url, data=payload, timeout=120)
-    token = json.loads(response.text)
-    return token
-
-
-@fastapi_app.post("/api/v1/auth", status_code=200)
-def auth(identity: Json = Depends(valid_token)):
-    return {"state": "authenticated", "jwt": identity}
-
-
-@fastapi_app.get("/api/v1/logout")
-def logout(request: Request):
-    request.session.pop("user", None)
-    return RedirectResponse(url="/")
+    signing_key = jwks_client.get_signing_key_from_jwt(token)
+    # print(f"{signing_key.key=}")
+    return jwt.decode(
+        token,
+        signing_key.key,
+        issuer=issuer_url,
+        audience="account",
+        algorithms=["RS256"],
+        options={"verify_aud": False}
+    )

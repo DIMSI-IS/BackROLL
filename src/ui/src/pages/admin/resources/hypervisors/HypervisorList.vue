@@ -197,9 +197,9 @@ export default defineComponent({
     },
     connectHost() {
       if (this.validation) {
-        axios.post(`${this.$store.state.endpoint.api}/api/v1/connect/${this.selectedHost.id}`, { ip_address: this.selectedHost.ipaddress, username: this.user }, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        axios.post(`${this.$store.state.endpoint.api}/api/v1/connect/${this.selectedHost.id}`, { ip_address: this.selectedHost.ipaddress, username: this.user }, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
           .then(response => {
-            this.$store.dispatch("requestHost", { token: this.$keycloak.token })
+            this.$store.dispatch("requestHost", { token: this.$store.state.token })
             this.$vaToast.init({ title: response.data.state, message: `Successfully connected to ${this.selectedHost.hostname}`, color: 'success' })
             this.showConnectModal = false
           })
@@ -214,7 +214,7 @@ export default defineComponent({
       }
     },
     requestKeys() {
-      axios.get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.sshKeys = response.data.info.map(({ name, full_line }) => ({ name, fullLine: full_line }))
         })
@@ -228,9 +228,9 @@ export default defineComponent({
         })
     },
     deleteHost() {
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
-          this.$store.dispatch("requestHost", { token: this.$keycloak.token })
+          this.$store.dispatch("requestHost", { token: this.$store.state.token })
           this.$vaToast.init({ title: response.data.state, message: 'Hypervisor has been successfully deleted', color: 'success' })
         })
         .catch(error => {

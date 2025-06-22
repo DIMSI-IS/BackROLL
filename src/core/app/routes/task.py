@@ -66,7 +66,7 @@ def get_task_logs(task_id):
 
 
 @fastapi_app.get('/api/v1/status/{task_id}', status_code=200)
-def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
+def retrieve_task_status(task_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(task_id)
     except ValueError:
@@ -106,7 +106,7 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.valid_token)):
 
 
 @fastapi_app.get('/api/v1/logs/{task_id}', status_code=200)
-def retrieve_task_logs(task_id, identity: Json = Depends(auth.valid_token)):
+def retrieve_task_logs(task_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(task_id)
     except ValueError:
@@ -115,7 +115,7 @@ def retrieve_task_logs(task_id, identity: Json = Depends(auth.valid_token)):
 
 
 @fastapi_app.post('/api/v1/tasks/singlebackup/{virtual_machine_id}', status_code=202)
-def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.valid_token)):
+def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(virtual_machine_id)
     except ValueError:
@@ -129,7 +129,7 @@ def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.val
 
 
 @fastapi_app.post('/api/v1/tasks/restore/{virtual_machine_id}', status_code=202)
-def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
+def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(virtual_machine_id)
     except ValueError:
@@ -151,7 +151,7 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
 
 
 @fastapi_app.post('/api/v1/tasks/restorespecificpath', status_code=202)
-def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = Depends(auth.valid_token)):
+def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = Depends(auth.verify_token)):
     virtual_machine_id = item.virtual_machine_id
     backup_name = item.backup_name
     storage = item.storage
@@ -207,10 +207,10 @@ def retrieve_backup_task_jobs():
 
 
 @fastapi_app.get('/api/v1/tasks/backup', status_code=200)
-def list_backup_tasks(identity: Json = Depends(auth.valid_token)):
+def list_backup_tasks(identity: Json = Depends(auth.verify_token)):
     return {'info': retrieve_backup_task_jobs()}
 
 
 @fastapi_app.get('/api/v1/tasks/restore', status_code=200)
-def list_restore_tasks(identity: Json = Depends(auth.valid_token)):
+def list_restore_tasks(identity: Json = Depends(auth.verify_token)):
     return {'info': retrieve_restore_task_jobs()}

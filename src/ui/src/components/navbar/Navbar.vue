@@ -17,7 +17,7 @@
       <template #right>
         <app-navbar-actions
           class="app-navbar__actions md5 lg4"
-          :user-name="this.$keycloak.userName"
+          :user-name="this.$keycloak?.userName ?? 'TODO'"
         />
       </template>
     </va-navbar>

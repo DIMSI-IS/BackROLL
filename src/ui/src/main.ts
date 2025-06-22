@@ -33,7 +33,7 @@ declare module '@vue/runtime-core' {
   }
 }
 
-function instantiateVueApp() {
+async function instantiateVueApp() {
   const app = createApp({
     extends: App,
     created() {
@@ -41,38 +41,42 @@ function instantiateVueApp() {
     }
   })
   app.config.globalProperties.window = window
-  app.use(VueKeyCloak, {
-    init: {
-      onLoad: 'login-required'
-    },
-    config: {
-      url: process.env.VUE_APP_OPENID_ISSUER,
-      realm: process.env.VUE_APP_OPENID_REALM,
-      clientId: process.env.VUE_APP_OPENID_CLIENT_UI_ID
-    },
-    onReady(kc: { token: any }) {
-      // Store token immediately
-      setToken(kc.token)
-      app.use(store)
-      app.use(router)
-      if (process.env.VUE_APP_GTM_ENABLED === 'true') {
-        const gtmConfig = {
-          id: process.env.VUE_APP_GTM_KEY,
-          debug: false,
-          vueRouter: router,
-        }
-        app.use(createGtm(gtmConfig))
-      }
-      app.use(createI18n(i18nConfig))
-      app.use(VuesticPlugin, vuesticGlobalConfig)
-      app.use(VueAxios, axios)
-      app.mount('#app')
+
+  if (process.env.VUE_APP_KEYCLOAK == "true") {
+    const { token } = await new Promise((resolve) =>
+      app.use(VueKeyCloak, {
+        init: {
+          onLoad: 'login-required'
+        },
+        config: {
+          url: process.env.VUE_APP_OPENID_ISSUER,
+          realm: process.env.VUE_APP_OPENID_REALM,
+          clientId: process.env.VUE_APP_OPENID_CLIENT_UI_ID
+        },
+        onReady: resolve
+      })
+    );
+    // TODO Not using $keycloak.token ?
+    // Store token immediately
+    setToken(token)
+  }
+
+  app.use(store)
+  app.use(router)
+
+  if (process.env.VUE_APP_GTM_ENABLED === 'true') {
+    const gtmConfig = {
+      id: process.env.VUE_APP_GTM_KEY,
+      debug: false,
+      vueRouter: router,
     }
-  })
+    app.use(createGtm(gtmConfig))
+  }
+
+  app.use(createI18n(i18nConfig))
+  app.use(VuesticPlugin, vuesticGlobalConfig)
+  app.use(VueAxios, axios)
+  app.mount('#app')
 }
 
-
 instantiateVueApp()
-
-
-
