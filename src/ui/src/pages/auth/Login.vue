@@ -40,7 +40,7 @@ export default defineComponent({
                 this.$store.commit('insertToken', data);
                 this.$vaToast.init({
                     title: "Login",
-                    message: "You are logged in." + (this.$store.state.token == data),
+                    message: "You are logged in.",
                     color: 'success',
                 })
             } catch (error) {

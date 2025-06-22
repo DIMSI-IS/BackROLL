@@ -7,12 +7,24 @@ from app.database import init_db_connection, User
 from app.environment import get_env_var
 
 
+def __bytes_from_string(text):
+    return bytes(text, "utf-8")
+
+
+def __hash_password(password):
+    return bcrypt.hashpw(__bytes_from_string(password), bcrypt.gensalt())
+
+
+def __check_password(password, hash):
+    return bcrypt.checkpw(__bytes_from_string(password), __bytes_from_string(hash))
+
+
 def __get_private_key():
     return "TODO private key"
 
 
 def register(username: str, password: str):
-    hash = bcrypt.hashpw(bytes(password, "utf-8"), bcrypt.gensalt())
+    hash = __hash_password(password)
 
     user = User(name=username, password_hash=hash)
     engine = init_db_connection()
@@ -28,10 +40,12 @@ def login(username: str, password: str) -> str:
         results = session.exec(statement)
         user: User = results.one()
 
-        if bcrypt.checkpw(bytes(password, "utf-8"), bytes(user.password_hash, "utf-8")):
-            return jwt.encode({
-                "username": username,
-            }, __get_private_key(), algorithm="HS256")
+        if not __check_password(password, user.password_hash):
+            raise Exception("Wrong password")
+
+        return jwt.encode({
+            "username": username,
+        }, __get_private_key(), algorithm="HS256")
 
 
 def change(username: str, old_password, new_password):
@@ -41,10 +55,10 @@ def change(username: str, old_password, new_password):
         results = session.exec(statement)
         user: User = results.one()
 
-        if not bcrypt.checkpw(old_password, user.password_hash):
-            raise Exception()
+        if not __check_password(old_password, user.password_hash):
+            raise Exception("Wrong password")
 
-        user.password_hash = bcrypt.hashpw(new_password)
+        user.password_hash = __hash_password(new_password)
         session.add(user)
         session.commit()
 

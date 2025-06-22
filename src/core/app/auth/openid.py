@@ -58,21 +58,13 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 
 def verify(token: str = Security(oauth2_scheme)) -> Json:
     jwks_client = PyJWKClient(certs_url)
-    try:
-        signing_key = jwks_client.get_signing_key_from_jwt(token)
-        # print(f"{signing_key.key=}")
-        return jwt.decode(
-            token,
-            signing_key.key,
-            issuer=issuer_url,
-            audience="account",
-            algorithms=["RS256"],
-            options={"verify_aud": False}
-        )
-    except Exception as exc:
-        print(f"legacy {exc=}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(exc),  # "Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
+    signing_key = jwks_client.get_signing_key_from_jwt(token)
+    # print(f"{signing_key.key=}")
+    return jwt.decode(
+        token,
+        signing_key.key,
+        issuer=issuer_url,
+        audience="account",
+        algorithms=["RS256"],
+        options={"verify_aud": False}
+    )
