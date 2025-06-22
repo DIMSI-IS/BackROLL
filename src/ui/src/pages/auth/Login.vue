@@ -32,7 +32,7 @@ export default defineComponent({
                 const { data } = await axios.post(
                     `${this.$store.state.endpoint.api}/api/v1/auth/password/login`,
                     {
-                        username: "admin",
+                        username: process.env.VUE_APP_DEFAULT_USER_NAME,
                         password: this.password
                     },
                     { headers: { 'Content-Type': 'application/json' } })
