@@ -321,7 +321,7 @@ export default defineComponent({
         "virtual_machine_id": this.virtualMachine.uuid,
         "backup_name": this.selectedBackup.archive
       }
-      axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/restore/${this.virtualMachine.uuid}`, json, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/restore/${this.virtualMachine.uuid}`, json, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.$vaToast.init({ message: 'Restore task has been sent to backend', color: 'light' })
           this.trackRestoreJob(response.data.Location)
@@ -334,7 +334,7 @@ export default defineComponent({
     },
     startBackup() {
       this.backingUp = true;
-      axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/singlebackup/${this.virtualMachine.uuid}`, {}, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.post(`${this.$store.state.endpoint.api}/api/v1/tasks/singlebackup/${this.virtualMachine.uuid}`, {}, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.$vaToast.init({ message: 'Backup requested to backend', color: 'light' })
           this.trackBackupJob(response.data.Location)
@@ -347,7 +347,7 @@ export default defineComponent({
         })
     },
     trackBackupJob(location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
             setTimeout(() => {
@@ -377,7 +377,7 @@ export default defineComponent({
         "virtual_machine_id": this.virtualMachine.uuid,
         "backup_id": this.selectedBackup.archive
       }
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/backups/${JSON.parse(JSON.stringify(this.selectedBackup)).name}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/backups/${JSON.parse(JSON.stringify(this.selectedBackup)).name}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.$vaToast.init({ message: 'Delete backup requested to backend', color: 'light' })
           this.trackDeleteBackupJob(response.data.Location)
@@ -389,7 +389,7 @@ export default defineComponent({
         })
     },
     trackDeleteBackupJob(location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
             setTimeout(() => {
@@ -412,7 +412,7 @@ export default defineComponent({
         })
     },
     trackRestoreJob(location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
             setTimeout(() => {
@@ -434,7 +434,7 @@ export default defineComponent({
         })
     },
     getBorgBreakLock: function (location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
             setTimeout(() => {
@@ -454,7 +454,7 @@ export default defineComponent({
         })
     },
     requestBorgBreakLock() {
-      axios.get(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/breaklock`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/breaklock`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.$vaToast.init({ title: response.data.state, message: 'Asking to break backup repository lock...', color: 'light' })
           this.getBorgBreakLock(response.data.Location)
@@ -469,7 +469,7 @@ export default defineComponent({
         })
     },
     getBackupList(location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
             setTimeout(() => {
@@ -494,7 +494,7 @@ export default defineComponent({
     },
     requestBackupList() {
       if (this.virtualMachine) {
-        axios.get(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/backups`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        axios.get(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}/backups`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
           .then(response => {
             this.loadingBackups = true
             this.getBackupList(response.data.Location)
@@ -510,7 +510,7 @@ export default defineComponent({
       }
     },
     getVmDetails(location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
             setTimeout(() => {
@@ -544,7 +544,7 @@ export default defineComponent({
     },
     requestVmDetails() {
       if (this.virtualMachine) {
-        axios.get(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+        axios.get(`${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine.uuid}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
           .then(response => {
             this.loadingStorage = true
             this.getVmDetails(response.data.Location)

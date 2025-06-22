@@ -105,7 +105,7 @@ export default {
     updateHypervisor() {
       this.$store.dispatch("updateHost", {
         vm: this,
-        token: this.$keycloak.token,
+        token: this.$store.state.token,
         hostValues: this.exportHypervisor(),
       });
     },
@@ -117,12 +117,12 @@ export default {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$keycloak.token}`,
+              Authorization: `Bearer ${this.$store.state.token}`,
             },
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestHost", { token: this.$keycloak.token });
+          this.$store.dispatch("requestHost", { token: this.$store.state.token });
           this.$router.push("/admin/resources/hypervisors");
           this.$vaToast.init({
             title: response.data.state,

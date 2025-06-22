@@ -120,7 +120,7 @@ export default {
       const { id, name, path } = this.formStorage;
       this.$store.dispatch("updateStorage", {
         vm: this,
-        token: this.$keycloak.token,
+        token: this.$store.state.token,
         storageId: id,
         name,
         path,
@@ -135,13 +135,13 @@ export default {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$keycloak.token}`,
+              Authorization: `Bearer ${this.$store.state.token}`,
             },
           }
         )
         .then((response) => {
           this.$store.dispatch("requestStorage", {
-            token: this.$keycloak.token,
+            token: this.$store.state.token,
           });
           this.$router.push("/admin/configuration/storage");
           this.$vaToast.init({

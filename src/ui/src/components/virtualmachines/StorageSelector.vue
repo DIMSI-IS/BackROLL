@@ -41,7 +41,7 @@ export default defineComponent({
   },
   methods: {
     getStorageList(location) {
-      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(`${this.$store.state.endpoint.api}${location}`, { headers: { 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           if (response.data.state === 'PENDING' || response.data.state == 'STARTED') {
             setTimeout(() => {
@@ -66,7 +66,7 @@ export default defineComponent({
     },
     requestStoragesList() {
       const urlToCall = `${this.$store.state.endpoint.api}/api/v1/storage`;
-      axios.get(urlToCall, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(urlToCall, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.loadingStorages = true
           this.getStorageList(response.data.Location)

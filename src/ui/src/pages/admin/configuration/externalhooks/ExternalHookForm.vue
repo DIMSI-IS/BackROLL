@@ -81,7 +81,7 @@ export default {
     updateHook() {
       this.$store.dispatch("updateExternalHook", {
         vm: this,
-        token: this.$keycloak.token,
+        token: this.$store.state.token,
         hookValues: this.formHook,
       });
     },
@@ -93,13 +93,13 @@ export default {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$keycloak.token}`,
+              Authorization: `Bearer ${this.$store.state.token}`,
             },
           }
         )
         .then((response) => {
           this.$store.dispatch("requestExternalHook", {
-            token: this.$keycloak.token,
+            token: this.$store.state.token,
           });
           this.$router.push("/admin/configuration/externalhooks");
           this.$vaToast.init({

@@ -84,7 +84,7 @@ export default {
     updateConnector() {
       this.$store.dispatch("updateConnector", {
         vm: this,
-        token: this.$keycloak.token,
+        token: this.$store.state.token,
         connectorValues: this.formConnector,
       });
     },
@@ -96,13 +96,13 @@ export default {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$keycloak.token}`,
+              Authorization: `Bearer ${this.$store.state.token}`,
             },
           }
         )
         .then((response) => {
           this.$store.dispatch("requestConnector", {
-            token: this.$keycloak.token,
+            token: this.$store.state.token,
           });
           this.$router.push("/admin/configuration/connectors");
           this.$vaToast.init({

@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 
 from app.routes import host as host_route
@@ -107,5 +108,6 @@ def test(hook_id):
     client.on_task_failure(task, message)
 
     # TODO More accurate stub for list item.
-    client.on_pool(__StubPool(), [task], [])
-    client.on_pool(__StubPool(), [], [task])
+    received = datetime.now()
+    client.on_pool(__StubPool(), [task], [], received)
+    client.on_pool(__StubPool(), [], [task], received)

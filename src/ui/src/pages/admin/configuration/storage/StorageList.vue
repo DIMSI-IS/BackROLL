@@ -88,9 +88,9 @@ export default defineComponent({
   },
   methods: {
     deleteStorage() {
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/storage/${JSON.parse(JSON.stringify(this.selectedStorage)).id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.delete(`${this.$store.state.endpoint.api}/api/v1/storage/${JSON.parse(JSON.stringify(this.selectedStorage)).id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
-          this.$store.dispatch("requestStorage", { token: this.$keycloak.token })
+          this.$store.dispatch("requestStorage", { token: this.$store.state.token })
           this.$vaToast.init({ title: response.data.state, message: 'Storage has been successfully removed', color: 'success' })
         })
         .catch(error => {

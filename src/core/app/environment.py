@@ -25,3 +25,5 @@ def get_env_var(name, allow_blank=False, allow_undefined=False):
             f"Variable “{name}” must not be blank.")
 
     return value
+
+# TODO Create a function for each env var here to prevent using strings everywhere ?

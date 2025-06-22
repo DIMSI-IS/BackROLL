@@ -116,7 +116,7 @@ export default {
         .get(`${this.$store.state.endpoint.api}/api/v1/logs/${task.uuid}`, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${this.$keycloak.token}`,
+            Authorization: `Bearer ${this.$store.state.token}`,
           },
         })
         .then((response) => {

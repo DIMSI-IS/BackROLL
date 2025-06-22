@@ -23,7 +23,6 @@ from sqlmodel import Field, SQLModel, create_engine
 
 from app.environment import get_env_var
 from app.patch import make_path
-from app.initialized import fastapi_app
 
 
 class Policies(SQLModel, table=True):
@@ -113,13 +112,12 @@ class Connectors(SQLModel, table=True):
     password: str
 
 
-@fastapi_app.on_event("startup")
-async def startup_event():
-    # If DB is not yet configured, proceed to initialization
-    engine = init_db_connection()
-    SQLModel.metadata.create_all(engine)
-
-    # Add default connectors
+class User(SQLModel, table=True):
+    id: UUID = Field(default_factory=uuid.uuid4,
+                     primary_key=True, nullable=False)
+    # TODO Choose username length
+    name: str  # = Field(sa_column=Column("name", VARCHAR, unique=True))
+    password_hash: str
 
 
 def init_db_connection():

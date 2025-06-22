@@ -216,20 +216,20 @@ def api_delete_host(host_id):
 
 
 @fastapi_app.post("/api/v1/hosts", status_code=201)
-def create_host(item: items_create_host, identity: Json = Depends(auth.valid_token)):
+def create_host(item: items_create_host, identity: Json = Depends(auth.verify_token)):
     return api_create_host(item)
 
 
 @fastapi_app.get("/api/v1/hosts", status_code=202)
 # def list_hosts():
-def list_hosts(identity: Json = Depends(auth.valid_token)):
+def list_hosts(identity: Json = Depends(auth.verify_token)):
 
     task = retrieve_host.delay()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=task.id)}
 
 
 @fastapi_app.patch("/api/v1/hosts/{host_id}", status_code=200)
-def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.valid_token)):
+def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(host_id)
     except ValueError:
@@ -242,7 +242,7 @@ def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.
 
 
 @fastapi_app.delete('/api/v1/hosts/{host_id}', status_code=200)
-def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
+def delete_host(host_id, identity: Json = Depends(auth.verify_token)):
     try:
         uuid_obj = UUID(host_id)
     except ValueError:
@@ -251,7 +251,7 @@ def delete_host(host_id, identity: Json = Depends(auth.valid_token)):
 
 
 @fastapi_app.post('/api/v1/connect/{host_id}', status_code=200)
-def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.valid_token)):
+def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.verify_token)):
     try:
         ssh.init_ssh_connection(host_id, item.ip_address, item.username)
         return {'state': 'SUCCESS'}
@@ -260,7 +260,7 @@ def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json =
 
 
 @fastapi_app.get("/api/v1/publickeys", status_code=200)
-def list_ssh_public_keys(identity: Json = Depends(auth.valid_token)):
+def list_ssh_public_keys(identity: Json = Depends(auth.verify_token)):
     try:
         return {'state': 'SUCCESS', 'info': list(map(dataclasses.asdict, ssh.list_public_keys()))}
     except Exception as e:

@@ -52,7 +52,7 @@ export default defineComponent({
     },
     requestVirtualMachineList() {
       const urlToCall = `${this.$store.state.endpoint.api}/api/v1/virtualmachinespaths`;
-      axios.get(urlToCall, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$keycloak.token}` } })
+      axios.get(urlToCall, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.loadingVMs = true
           this.getVirtualMachineList(response.data.paths)
