@@ -392,9 +392,6 @@ export default createStore({
       );
       context.commit("loadingBackupTask", true);
       context.dispatch("updateBackupTaskList", data.info);
-      setTimeout(() => {
-        context.dispatch("requestBackupTask");
-      }, 10000);
     },
     updateBackupTaskList(context, taskList) {
       context.commit("backupTaskList", taskList);
@@ -408,9 +405,6 @@ export default createStore({
       );
       context.commit("loadingRestoreTask", true);
       context.dispatch("updateRestoreTaskList", data.info);
-      setTimeout(() => {
-        context.dispatch("requestRestoreTask");
-      }, 10000);
     },
     updateRestoreTaskList(context, taskList) {
       context.commit("restoreTaskList", taskList);
@@ -424,9 +418,6 @@ export default createStore({
       );
       context.commit("loadingCeleryTasks", true);
       context.dispatch("updateCeleryTaskList", data.info);
-      setTimeout(() => {
-        context.dispatch("requestCeleryTasks");
-      }, 10000);
     },
     updateCeleryTaskList(context, taskList) {
       context.commit("celeryTaskList", taskList);

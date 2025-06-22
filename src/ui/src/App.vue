@@ -7,16 +7,18 @@ export default {
   name: 'app-main',
   props: ['refreshPool'],
   mounted() {
-    this.$store.dispatch("requestConnector")
-    this.$store.dispatch("requestPool")
-    this.$store.dispatch("requestHost")
-    this.$store.dispatch("requestPolicy")
-    this.$store.dispatch("requestVirtualMachine")
-    this.$store.dispatch("requestJob")
-    this.$store.dispatch("requestStorage")
-    this.$store.dispatch("requestExternalHook")
-    this.$store.dispatch("requestBackupTask")
-    this.$store.dispatch("requestRestoreTask")
+    setInterval(() => {
+      this.$store.dispatch("requestConnector")
+      this.$store.dispatch("requestPool")
+      this.$store.dispatch("requestHost")
+      this.$store.dispatch("requestPolicy")
+      this.$store.dispatch("requestVirtualMachine")
+      this.$store.dispatch("requestJob")
+      this.$store.dispatch("requestStorage")
+      this.$store.dispatch("requestExternalHook")
+      this.$store.dispatch("requestBackupTask")
+      this.$store.dispatch("requestRestoreTask")
+    }, 10000)
   }
 }
 </script>
