@@ -7,16 +7,16 @@ from app.database import init_db_connection, User
 from app.environment import get_env_var
 
 
-def __bytes_from_string(text):
+def __bytes_from_string(text: str) -> bytes:
     return bytes(text, "utf-8")
 
 
-def __hash_password(password):
+def __hash_password(password: str) -> bytes:
     return bcrypt.hashpw(__bytes_from_string(password), bcrypt.gensalt())
 
 
-def __check_password(password, hash):
-    return bcrypt.checkpw(__bytes_from_string(password), __bytes_from_string(hash))
+def __check_password(password: str, hash: bytes) -> bool:
+    return bcrypt.checkpw(__bytes_from_string(password), hash)
 
 
 def __get_private_key():
@@ -24,8 +24,9 @@ def __get_private_key():
 
 
 def register(username: str, password: str):
-    hash = __hash_password(password)
+    hash: bytes = __hash_password(password)
 
+    # Enough space must be reserved in the table column.
     user = User(name=username, password_hash=hash)
     engine = init_db_connection()
     with Session(engine) as session:
