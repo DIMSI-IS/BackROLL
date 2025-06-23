@@ -58,7 +58,6 @@ parts:
       - libvirt-dev
     stage-packages:
       - libvirt-dev
-      # - sqlite3
     plugin: python
     python-requirements:
       - requirements.txt
