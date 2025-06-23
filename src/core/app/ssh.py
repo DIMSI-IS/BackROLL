@@ -28,7 +28,7 @@ from app import shell
 from app.logging import logged
 from app.database import Hosts
 from app.routes import host
-from app.patch import make_path, ensure_uuid
+from app.patch import ensure_uuid
 
 
 def __get_shared_ssh_directory() -> Path:
@@ -57,8 +57,8 @@ def push_ssh_directory() -> None:
         # Thus, it is not suitable for synchronizing.
         with config_path.open("w") as config_file:
             config_file.write("""
-Host *
-  StrictHostKeyChecking no
+                              Host *
+                                StrictHostKeyChecking no
                               """)
 
     sync = __get_sync_file()
@@ -75,17 +75,23 @@ def pull_ssh_directory(logger: Logger) -> None:
     src = __get_shared_ssh_directory().as_posix()
     dst = __get_local_ssh_directory().as_posix()
     shell.subprocess_run(f"""
-# Copy shared directory
-cp {src}/* {dst}/
+                         # Copy shared directory
+                         cp {src}/* {dst}/
+                         
+                         # Ensure proper file permissions
+                         
+                         # From ssh-keygen behavior
+                         chmod 600 {dst}/*
+                         chmod 644 {dst}/*.pub
 
-# Ensure proper file permissions
+                         # From OpenSSH man pages
+                         chmod 644 {dst}/config
+                         """)
 
-# From ssh-keygen behavior
-chmod 600 {dst}/*
-chmod 644 {dst}/*.pub
-
-# From OpenSSH man pages
-chmod 644 {dst}/config
+    # TODO Test if it is useful.
+    shell.subprocess_run(f"""
+                         eval `ssh-agent`
+                         ssh-add $(find "{dst}" | grep -E "id_[^.]+$")
                          """)
 
 

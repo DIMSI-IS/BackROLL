@@ -88,7 +88,8 @@ parts:
     plugin: dump
 
 layout:
-  # TODO ssh keys
+  /root/shared_ssh:
+    bind: $SNAP_DATA/root/shared_ssh
 
   /etc/nginx:
     bind: $SNAP/etc/nginx
