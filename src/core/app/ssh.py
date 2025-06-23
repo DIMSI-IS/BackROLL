@@ -31,37 +31,61 @@ from app.routes import host
 from app.patch import make_path, ensure_uuid
 
 
-# def __get_ssh_directory() -> str:
-#     return "/root/.ssh"
+def __get_shared_ssh_directory() -> Path:
+    return Path("/", "root", "shared_ssh")
 
-# @logged()
-#  def ensure_set_keys() -> None:
-#     for key_type in ["rsa", "ed25519"]:
-#         key_file = make_path("/root/shared_ssh", f"id_{key_type}")
-#         if not Path(key_file).exists():
-#             shell.subprocess_run(
-#                 f'ssh-keygen -t {key_type} -b 2048 -N "" -C "$BACKROLL_HOST_USER@$BACKROLL_HOSTNAME(backroll)" -f "{key_file}" -q')
+
+def __get_sync_file() -> Path:
+    return __get_shared_ssh_directory() / "sync"
+
+
+def __get_local_ssh_directory() -> Path:
+    return Path("/", "root", ".ssh")
 
 
 @logged()
-def get_keys(logger: Logger) -> None:
-    source = "/root/shared_ssh/id_rsa"
+def push_ssh_directory() -> None:
+    for key_type in ["rsa", "ed25519"]:
+        key_path = __get_shared_ssh_directory() / f"id_{key_type}"
+        if not key_path.exists():
+            shell.subprocess_run(
+                f'ssh-keygen -t {key_type} -b 2048 -N "" -C "$BACKROLL_HOST_USER@$BACKROLL_HOSTNAME(backroll)" -f "{key_path.as_posix()}" -q')
 
-    while not Path(source).exists():
-        logger.info("Waiting for keys…")
+    config_path = __get_shared_ssh_directory() / "config"
+    if not config_path.exists():
+        # The file may be created before being written.
+        # Thus, it is not suitable for synchronizing.
+        with config_path.open("w") as config_file:
+            config_file.write("""
+Host *
+  StrictHostKeyChecking no
+                              """)
+
+    sync = __get_sync_file()
+    if not sync.exists():
+        sync.touch()
+
+
+@logged()
+def pull_ssh_directory(logger: Logger) -> None:
+    while not __get_sync_file().exists():
+        logger.info("Waiting for shared SSH directory…")
         sleep(1)
 
+    src = __get_shared_ssh_directory().as_posix()
+    dst = __get_local_ssh_directory().as_posix()
     shell.subprocess_run(f"""
-cp /root/shared_ssh/* /root/.ssh/
+# Copy shared directory
+cp {src}/* {dst}/
 
 # Ensure proper file permissions
 
 # From ssh-keygen behavior
-chmod 600 /root/.ssh/*
-chmod 644 /root/.ssh/*.pub
+chmod 600 {dst}/*
+chmod 644 {dst}/*.pub
 
 # From OpenSSH man pages
-chmod 644 /root/.ssh/config
+chmod 644 {dst}/config
                          """)
 
 
@@ -79,7 +103,7 @@ def list_public_keys() -> list[SshPublicKey]:
             # Pipes are the chosen delimiters for the sed address thus they are removed.
             shell.os_popen(f"cat {path}").strip()
                 .replace("'", "").replace("|", "")),
-        shell.os_popen('find /root/.ssh/*.pub').splitlines()))
+        shell.os_popen(f"find {__get_local_ssh_directory().as_posix()}/*.pub").splitlines()))
 
 
 class ConnectionException(Exception):
@@ -88,7 +112,7 @@ class ConnectionException(Exception):
 
 
 def init_ssh_connection(host_id, ip_address, username):
-    shell.subprocess_run(f"ls -al /root/.ssh")
+    shell.subprocess_run(f"ls -al {__get_local_ssh_directory().as_posix()}")
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
