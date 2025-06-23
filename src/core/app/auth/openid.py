@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from fastapi import HTTPException, Security, status
+from fastapi import Security
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from starlette.config import Config
 from starlette.middleware.sessions import SessionMiddleware

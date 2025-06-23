@@ -35,7 +35,7 @@ export default defineComponent({
 
                 await axios.post(`${this.$store.state.endpoint.api}/api/v1/auth/password/change`,
                     {
-                        username: "admin",
+                        username: process.env.VUE_APP_DEFAULT_USER_NAME,
                         old_password: this.oldPassword,
                         new_password: this.newPassword,
                     },
