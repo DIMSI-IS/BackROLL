@@ -16,22 +16,53 @@
 # under the License.
 
 from dataclasses import dataclass
+from logging import Logger
 from pathlib import Path
-# SSH Module Imports
+from time import sleep
+
 import paramiko
-import select
-# Other imports
-from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
-from app.patch import ensure_uuid
-from app import shell
-# Misc
-import os
-from re import search
 
 from app import database
+from app import shell
+from app.logging import logged
 from app.database import Hosts
 from app.routes import host
+from app.patch import make_path, ensure_uuid
+
+
+# def __get_ssh_directory() -> str:
+#     return "/root/.ssh"
+
+# @logged()
+#  def ensure_set_keys() -> None:
+#     for key_type in ["rsa", "ed25519"]:
+#         key_file = make_path("/root/shared_ssh", f"id_{key_type}")
+#         if not Path(key_file).exists():
+#             shell.subprocess_run(
+#                 f'ssh-keygen -t {key_type} -b 2048 -N "" -C "$BACKROLL_HOST_USER@$BACKROLL_HOSTNAME(backroll)" -f "{key_file}" -q')
+
+
+@logged()
+def get_keys(logger: Logger) -> None:
+    source = "/root/shared_ssh/id_rsa"
+
+    while not Path(source).exists():
+        logger.info("Waiting for keys…")
+        sleep(1)
+
+    shell.subprocess_run(f"""
+cp /root/shared_ssh/* /root/.ssh/
+
+# Ensure proper file permissions
+
+# From ssh-keygen behavior
+chmod 600 /root/.ssh/*
+chmod 644 /root/.ssh/*.pub
+
+# From OpenSSH man pages
+chmod 644 /root/.ssh/config
+                         """)
 
 
 @dataclass
@@ -57,6 +88,8 @@ class ConnectionException(Exception):
 
 
 def init_ssh_connection(host_id, ip_address, username):
+    shell.subprocess_run(f"ls -al /root/.ssh")
+
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
