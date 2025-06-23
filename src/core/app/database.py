@@ -116,7 +116,7 @@ class User(SQLModel, table=True):
                      primary_key=True, nullable=False)
     # TODO Choose username length
     name: str  # = Field(sa_column=Column("name", VARCHAR, unique=True))
-    password_hash: str
+    password_hash: bytes
 
 
 def init_db_connection():
