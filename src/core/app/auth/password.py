@@ -1,10 +1,13 @@
+from logging import Logger
 from pydantic import Json
 import sqlalchemy
 from sqlmodel import Session, select
 import bcrypt
 import jwt
+
 from app.database import init_db_connection, User
 from app.environment import get_env_var
+from app.logging import logged
 
 
 def __bytes_from_string(text: str) -> bytes:
@@ -73,7 +76,8 @@ def verify(token: str) -> Json:
     return decoded
 
 
-def ensure_default_user():
+@logged()
+def ensure_default_user(logger: Logger):
     engine = init_db_connection()
     with Session(engine) as session:
         statement = select(User).where(
@@ -81,6 +85,12 @@ def ensure_default_user():
         results = session.exec(statement)
         try:
             results.one()
+
+            logger.info("Default user is already registered.")
         except sqlalchemy.exc.NoResultFound:
+            logger.info("Default user is missing. Registering default user…")
+
             register(get_env_var("DEFAULT_USER_NAME"),
                      get_env_var("DEFAULT_USER_PASSWORD"))
+
+            logger.info("Default user is now registered.")
