@@ -90,6 +90,8 @@ parts:
 layout:
   /root/shared_ssh:
     bind: $SNAP_DATA/root/shared_ssh
+  /root/.ssh:
+    bind: $SNAP_DATA/root/.ssh
 
   /etc/nginx:
     bind: $SNAP/etc/nginx

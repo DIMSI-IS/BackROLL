@@ -16,6 +16,7 @@
 # under the License.
 
 from dataclasses import dataclass
+import logging
 from logging import Logger
 from pathlib import Path
 from time import sleep
@@ -118,7 +119,15 @@ class ConnectionException(Exception):
 
 
 def init_ssh_connection(host_id, ip_address, username):
-    shell.subprocess_run(f"ls -al {__get_local_ssh_directory().as_posix()}")
+    try:
+        shell.subprocess_run(f"""
+                             ls -al {__get_local_ssh_directory().as_posix()}
+                             eval `ssh-agent` && ssh-add -l
+                             ssh {username}@{ip_address}""")
+    except Exception as exception:
+        print(exception)
+
+    logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
