@@ -55,5 +55,6 @@ So let’s setup KVM :
 Then create a VM :
 
 - see this [thread](https://unix.stackexchange.com/questions/309788/how-to-create-a-vm-from-scratch-with-virsh) : note that `virt-manager` is a nice tool to quickly create a VM for development purposes
+- if you are using a command line tool, mind that the install iso image may require a graphical interface
 
 If Backroll and KVM are running on the same host (WSL or a linux computer), you can reach the hypervisor by using the special domain name `host.docker.internal`.
