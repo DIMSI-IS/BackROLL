@@ -64,4 +64,4 @@ Then create a VM :
 If Backroll and KVM are running on the same host (WSL or a linux computer), you can reach the hypervisor by using the special domain name `host.docker.internal`.
 
 ## Next steps
-To configure and run BackROLL, please visit the [Compose Project README](https://github.com/DIMSI-IS/BackROLL/blob/main/compose_project/README.md). This document will guide you through the configuration process. (Follow the dev part).
+To configure and run BackROLL, please visit the [Compose Project README](https://github.com/DIMSI-IS/BackROLL/blob/main/compose_project/README.md). This document will guide you through the configuration process. (Follow the `dev` part).
