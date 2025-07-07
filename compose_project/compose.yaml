@@ -38,14 +38,15 @@ services:
         condition: service_started
       setup:
         condition: service_completed_successfully
-      # database:
-      #   condition: service_healthy
+    # database:
+    #   condition: service_healthy
     restart: on-failure # Compensates for the lack of database healthcheck.
     command: bash api.command.sh
     env_file:
       - core/@$BACKROLL_MODE.env
     volumes:
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
+      - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
       - /mnt:/mnt
 
   worker_primary:
@@ -56,6 +57,7 @@ services:
       - core/@$BACKROLL_MODE.env
     volumes:
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
+      - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
       - /mnt:/mnt
 
   worker_secondary:
@@ -66,6 +68,7 @@ services:
       - core/@$BACKROLL_MODE.env
     volumes:
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
+      - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
       - /mnt:/mnt
 
   flower:
