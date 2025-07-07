@@ -106,13 +106,14 @@ The password is `developer`. You must ensure that the command is running each ti
 
 If you are working remotely, do not forget to forward the port 2222.
 
-> ⚠️ **Warning:** : Keep in mind that the port 2222 may be already in use. Run 
+> ⚠️ **Warning:** keep in mind that the port 2222 may be already in use. Run the following command to find the exposed port of the proxy container.
 ```bash 
 docker port <proxy_container_name>
 ```
-to find the exposed port of the proxy container.
+
 
 For example, the diagram below illustrates how your browser traffic flows if you are working remotely (proxy port is 2230 here for example) :
+```
 Firefox (configured to use SOCKS proxy at localhost:1080)
          │
          │  <-- SOCKS v5 proxy tunnel established by SSH -D 1080
@@ -121,12 +122,12 @@ Local machine
          │
          │  <-- SSH local port forwarding (2230)
          ▼
-VM localhost port 2230
+Developpement server port 2230
          │
          │  <-- Docker port mapping from host port 2230 to container port 2222
          ▼
-Proxy container port 2222 (inside the VM)
-
+Proxy container port 2222 (inside the Developpement server)
+```
 
 ##### Connecting to the proxy server
 
