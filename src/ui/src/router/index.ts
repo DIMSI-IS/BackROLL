@@ -3,20 +3,32 @@ import AppLayout from '@/layout/app-layout.vue'
 
 import RouteViewComponent from './route-view.vue'
 import UIRoute from '@/pages/admin/ui/route'
+import store from '@/store'
 
 const routes: Array<RouteRecordRaw> = [
   {
+    name: 'login',
+    path: '/login',
+    component: () => import('@/pages/auth/Login.vue'),
+    meta: { requiresAuth: false }
+    
+  },
+
+  {
     path: "/",
     redirect: { name: 'dashboard' },
+    meta: { requiresAuth: true }
   },
   {
     path: "/:catchAll(.*)",
     redirect: { name: '/404' },
+    meta: { requiresAuth: false }
   },
   {
     name: 'admin',
     path: '/admin',
     component: AppLayout,
+    meta: { requiresAuth: true },
     children: [
       {
         name: 'dashboard',
@@ -51,6 +63,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'resources',
         path: 'resources',
         component: RouteViewComponent,
+        meta: { requiresAuth: true },
         children: [
           {
             name: 'pools',
@@ -99,6 +112,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'configuration',
         path: 'configuration',
         component: RouteViewComponent,
+        meta: { requiresAuth: true },
         children: [
           {
             name: 'policies',
@@ -166,18 +180,20 @@ const routes: Array<RouteRecordRaw> = [
         name: 'auth',
         path: 'auth',
         component: RouteViewComponent,
+        meta: { requiresAuth: true },
         children: [
-          {
-            name: 'login',
-            path: 'login',
-            component: () => import('@/pages/auth/Login.vue')
-          },
-
           {
             name: 'changePassword',
             path: 'changePassword',
             component: () => import('@/pages/auth/ChangePassword.vue')
           },
+          // {
+          //   name: 'login',
+          //   path: '/login',
+          //   component: () => import('@/pages/auth/Login.vue'),
+          //   meta: { requiresAuth: false }
+            
+          // }
         ],
       },
       UIRoute,
@@ -194,6 +210,19 @@ const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   //  mode: process.env.VUE_APP_ROUTER_MODE_HISTORY === 'true' ? 'history' : 'hash',
   routes
+})
+
+
+// Navigation guard
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = store.getters.isAuthenticated
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: 'login' })
+  } else if (to.name === 'login' && isAuthenticated) {
+    next({ name: 'dashboard' })
+  } else {
+    next()
+  }
 })
 
 export default router

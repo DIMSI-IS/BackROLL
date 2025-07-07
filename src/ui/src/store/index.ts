@@ -39,6 +39,7 @@ export default createStore({
     storageList: [],
   },
   getters: {
+    isAuthenticated: state => !!state.token ,//authentification
     policiesCount(state) {
       return state.resources.policyList.length;
     },
@@ -607,6 +608,9 @@ export default createStore({
   mutations: {
     insertToken(state, token) {
       state.token = token;
+    },
+    insertUserName(state, userName) {
+      state.userName = userName;
     },
     poolList(state, poolsList) {
       state.resources.poolList = poolsList;
