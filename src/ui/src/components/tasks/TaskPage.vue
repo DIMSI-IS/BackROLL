@@ -44,9 +44,7 @@
         </va-card-title>
         <va-card-content class="row">
           <va-date-picker v-model="selectedDate" :highlight-today="false"
-            :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" mode="single" :key="pickerKey" />
-            <!--implementation of today button in the calendar-->
-          <va-button color="primary" @click="setToday" class="today-button">{{todayDayNumber}}</va-button>
+            :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" mode="single" />
         </va-card-content>
       </va-card>
     </div>
@@ -76,8 +74,6 @@ export default defineComponent({
     } catch (_) { }
 
     return {
-      slectedDate: new Date(),
-      pickerKey: 0,
       columns: [
         { key: 'target', sortable: true },
         { key: 'started', sortable: true },
@@ -111,9 +107,6 @@ export default defineComponent({
     pendingTaskNumber() {
       return this.taskList.filter(({ state }) => ['RECEIVED', 'STARTED'].includes(state)).length
     },
-    todayDayNumber(){
-      return new Date().getDate();
-    },
   },
   methods: {
     // TODO Move to computed method ? Or dependencies are tracked ?
@@ -124,16 +117,10 @@ export default defineComponent({
         this.selectedDate.getMonth() === convertedDateCheck.getMonth() &&
         this.selectedDate.getDate() === convertedDateCheck.getDate()
       )
-    },
-    setToday() {
-    this.selectedDate = new Date()
-    this.pickerKey++
     }
   },
 })
 </script>
-
-
 <!-- TODO Is CSS used ? -->
 <style scoped>
 .text-right {
@@ -144,21 +131,5 @@ export default defineComponent({
 .center-div {
   margin: 0 auto;
   width: 100px;
-}
-.today-button{
-  /*position: absolute; 
-  top: 8px;
-  right: 8px;*/ 
-  width: var(--va-date-picker-cell-size, 32px);
-  height: var(--va-date-picker-cell-size, 32px);
-  background: var(--va-date-picker-cell-background, transparent);
-  border-radius: var(--va-date-picker-cell-radius, 4px);
-  padding: 0;
-  min-width: 0;
-  line-height: 1;
-  border-radius: 4px;
-  display: flex;
-  justify-content: center;
-  align-items: center; 
 }
 </style>
