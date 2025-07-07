@@ -604,6 +604,12 @@ export default createStore({
     updateConnectorsList(context, connectorList) {
       context.commit("connectorList", connectorList);
     },
+
+    logout(context) {
+    context.commit('insertToken', null);  
+    context.commit('insertUserName', null); 
+    router.push('/login');  
+    },
   },
   mutations: {
     insertToken(state, token) {

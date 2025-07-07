@@ -18,7 +18,7 @@
     </template>
     <va-dropdown-content class="profile-dropdown__content">
       <va-list-item>
-        <va-button @click="this.$keycloak.logoutFn()" color="danger" icon="logout" flat :rounded="false" class="mr-4">Logout</va-button>      
+        <va-button @click="logout" color="danger" icon="logout" flat :rounded="false" class="mr-4">Logout</va-button>      
       </va-list-item>
     </va-dropdown-content>
   </va-dropdown>
@@ -36,7 +36,13 @@ export default {
   },
   computed: {
     theme() { return useGlobalConfig().getGlobalConfig() },
+  },
+  methods: {
+    logout() {
+      this.$store.dispatch('logout')
+    }
   }
+
 }
 </script>
 
