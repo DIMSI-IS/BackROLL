@@ -1,5 +1,6 @@
 <template>
   <div class="row">
+    <!--list of backup part-->
     <div class="flex lg12 xl10">
       <va-card class="mb-4">
         <va-card-title>
@@ -37,6 +38,9 @@
         </va-card-content>
       </va-card>
     </div>
+    <!--end of list of backup part-->
+
+    <!--calendar part-->
     <div class="flex lg12 xl2">
       <va-card class="d-flex">
         <va-card-title>
@@ -161,4 +165,5 @@ export default defineComponent({
   justify-content: center;
   align-items: center; 
 }
+
 </style>
