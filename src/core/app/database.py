@@ -125,8 +125,7 @@ class User(SQLModel, table=True):
 @logged()
 def __get_db_url(logger: Logger):
     try:
-        # TODO Rename IP to address ?
-        url = f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_IP")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
+        url = f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_ADDRESS")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
         logger.info("Database settings found.")
         return url
     except Exception as exception:
