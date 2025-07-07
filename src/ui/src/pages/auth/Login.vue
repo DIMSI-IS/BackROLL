@@ -77,7 +77,7 @@ export default defineComponent({
                     { headers: { 'Content-Type': 'application/json' } })
                 this.$store.dispatch('insertToken', data);
                 this.$store.commit('insertToken', data);
-                this.$store.commit('insertUserName', data.username); // si l'API le renvoie
+                this.$store.commit('insertUserName', data.username); 
                 this.$vaToast.init({
                     title: "Login",
                     message: "You are logged in.",
@@ -86,11 +86,41 @@ export default defineComponent({
                 this.$router.push({ name: 'dashboard' });
             } catch (error) {
                 console.error(error)
-                this.$vaToast.init({
-                    title: 'Login failed.',
-                    message: error?.response?.data?.detail ?? error,
-                    color: 'danger'
-                })
+                if (error.response) {
+                    // Handle HTTP error status codes
+                    if (error.response.status === 401 || error.response.status === 403) {
+                        this.$vaToast.init({
+                        title: 'Authentication Error',
+                        message: 'Incorrect username or password.',
+                        color: 'danger'
+                        });
+                    } else if (error.response.status === 500) {
+                        this.$vaToast.init({
+                        title: 'Server Error',
+                        message: 'Server error, login failed.',
+                        color: 'danger'
+                        });
+                    } else {
+                        this.$vaToast.init({
+                        title: 'Error',
+                        message: error.response.data?.detail || 'Unknown error occurred.',
+                        color: 'danger'
+                        });
+                    }
+                    } else {
+                    // No response from server (network error, etc)
+                    this.$vaToast.init({
+                        title: 'Error',
+                        message: 'Unable to reach the server.',
+                        color: 'danger'
+                    });
+                    }
+
+                // this.$vaToast.init({
+                //     title: 'Login failed.',
+                //     message: error?.response?.data?.detail ?? error,
+                //     color: 'danger'
+                // })
             }
         }
     }
