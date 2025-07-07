@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from pathlib import Path
 from urllib.parse import quote_plus
 import uuid
 from uuid import UUID
@@ -120,7 +121,22 @@ class User(SQLModel, table=True):
     password_hash: bytes
 
 
+def __get_db_url():
+    try:
+        # TODO Rename IP to address ?
+        return f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_IP")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
+    except:
+        # TODO Debug log ?
+        pass
+
+    try:
+        return f"sqlite:///{Path(get_env_var("SNAP_COMMON"), "database.sqlite")}"
+    except:
+        # TODO Debug log ?
+        pass
+
+    return f"sqlite:////var/lib/backroll/database.sqlite"
+
+
 def init_db_connection():
-    # TODO Just a database url env var ?
-    mysql_url = f"sqlite:///{make_path(get_env_var("SNAP_COMMON"), "database.sqlite")}"
-    return create_engine(mysql_url)
+    return create_engine(__get_db_url())
