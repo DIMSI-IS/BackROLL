@@ -41,16 +41,26 @@
     <!--end of list of backup part-->
 
     <!--calendar part-->
-    <div class="flex lg12 xl2">
-      <va-card class="d-flex">
-        <va-card-title>
-          Filter by date
-        </va-card-title>
-        <va-card-content class="row">
-          <va-date-picker v-model="selectedDate" :highlight-today="false"
-            :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" mode="single" :key="pickerKey" />
-            <!--implementation of today button in the calendar-->
+    <div class="flex lg12 xl2" >
+      <va-card class="d-flex" >
+        <va-card-title class="header" style="justify-content: space-between; align-items: center;max-width: 260px;">
+          <span>Filter by date</span>
+          <!--implementation of today button in the calendar-->
           <va-button color="primary" @click="setToday" class="today-button">{{todayDayNumber}}</va-button>
+        </va-card-title>
+        <va-card-content class="row" >
+          <va-date-picker v-model="selectedDate" :highlight-today="false" mode="single" :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" :key="pickerKey">
+            <template #day="{ date }">
+              <div
+                class="cell"
+                :class="{ highlight: isHighlighted(date) }"
+                :style="getStyleForDay(date)"
+              >
+                {{ date.getDate() }}
+              </div>
+            </template>
+          </va-date-picker>
+            
         </va-card-content>
       </va-card>
     </div>
@@ -120,6 +130,10 @@ export default defineComponent({
     },
   },
   methods: {
+    isHighlighted(date) {
+      // On cible juste le 7 du mois en cours
+      return date.getDate() === 7
+    },
     // TODO Move to computed method ? Or dependencies are tracked ?
     isOnSelectedDay(dateToCheck) {
       const convertedDateCheck = new Date(dateToCheck * 1000)
@@ -140,6 +154,17 @@ export default defineComponent({
 
 <!-- TODO Is CSS used ? -->
 <style scoped>
+.cell {
+  width: var(--va-date-picker-cell-size);
+  height: var(--va-date-picker-cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--va-date-picker-cell-radius);
+}
+.highlight {
+  background-color: rgba(0, 123, 255, 0.4);
+}
 .text-right {
   text-align: right;
   width: 100%;
@@ -153,17 +178,24 @@ export default defineComponent({
   /*position: absolute; 
   top: 8px;
   right: 8px;*/ 
-  width: var(--va-date-picker-cell-size, 32px);
-  height: var(--va-date-picker-cell-size, 32px);
-  background: var(--va-date-picker-cell-background, transparent);
+  width: 36px; /* var(--va-date-picker-cell-size); */
+  height: 36px; /* var(--va-date-picker-cell-size); */
+  box-sizing: border-box;
+  background: transparent !important;
   border-radius: var(--va-date-picker-cell-radius, 4px);
+  border:  2px solid var(--va-date-picker-focused-border-color, #2c82e0) !important;
+  color : black !important;
   padding: 0;
   min-width: 0;
   line-height: 1;
-  border-radius: 4px;
   display: flex;
   justify-content: center;
   align-items: center; 
+  transition: border 0.2s ease;
 }
-
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 </style>
