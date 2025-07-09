@@ -89,10 +89,6 @@ export default {
       disabled: true,
       children: [
         {
-          name: 'login',
-          displayName: 'menu.login',
-        },
-        {
           name: 'changePassword',
           displayName: 'menu.changePassword',
         }

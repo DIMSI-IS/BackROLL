@@ -39,6 +39,7 @@ export default createStore({
     storageList: [],
   },
   getters: {
+    isAuthenticated: state => state.token !=null ,//authentification
     policiesCount(state) {
       return state.resources.policyList.length;
     },
@@ -603,10 +604,18 @@ export default createStore({
     updateConnectorsList(context, connectorList) {
       context.commit("connectorList", connectorList);
     },
+
+    logout(context) {
+    context.commit('insertToken', null);  
+    context.commit('insertUserName', null); 
+    },
   },
   mutations: {
     insertToken(state, token) {
       state.token = token;
+    },
+    insertUserName(state, userName) {
+      state.userName = userName;
     },
     poolList(state, poolsList) {
       state.resources.poolList = poolsList;
