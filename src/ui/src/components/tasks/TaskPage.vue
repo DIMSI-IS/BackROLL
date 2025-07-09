@@ -39,22 +39,28 @@
       </va-card>
     </div>
     <!--end of list of backup part-->
-
+    <!-- :class="{ highlight: isHighlighted(date) }" -->
     <!--calendar part-->
     <div class="flex lg12 xl2" >
       <va-card class="d-flex" >
         <va-card-title class="header" style="justify-content: space-between; align-items: center;max-width: 260px;">
           <span>Filter by date</span>
           <!--implementation of today button in the calendar-->
-          <va-button color="primary" @click="setToday" class="today-button">{{todayDayNumber}}</va-button>
+          <va-button color="primary" @click="setToday" class="today-button">
+              <div style="display: flex; flex-direction: column; align-items: center; line-height: 1;">
+                <small style="font-size: 0.55em;">TODAY</small>
+                <span>{{ todayDayNumber }}</span>
+              </div>
+          </va-button>
+          <!--end of today button-->
         </va-card-title>
         <va-card-content class="row" >
           <va-date-picker v-model="selectedDate" :highlight-today="false" mode="single" :allowedDays="(date) => new Date(date) < new Date()" first-weekday="Monday" :key="pickerKey">
             <template #day="{ date }">
               <div
                 class="cell"
-                :class="{ highlight: isHighlighted(date) }"
-                :style="getStyleForDay(date)"
+                
+                :class="getBackupClass(date)"
               >
                 {{ date.getDate() }}
               </div>
@@ -110,6 +116,17 @@ export default defineComponent({
       horizontalOffset: 5,
       visibilityHeight: 1,
       scrollSpeed: 50,
+
+      backupData: {
+      '2025-07-01': 0,
+      '2025-07-02': 1,
+      '2025-07-03': 2,
+      '2025-07-04': 3,
+      '2025-07-05': 0,
+      '2025-07-06': 4,
+      '2025-07-07': 5,
+      // Ajoutez d'autres dates
+      },
     }
   },
   computed: {
@@ -133,6 +150,13 @@ export default defineComponent({
     isHighlighted(date) {
       // On cible juste le 7 du mois en cours
       return date.getDate() === 7
+    },
+
+    getBackupClass(date) {
+      const backupCount = this.backupData[`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`] || 0;
+      if (backupCount > 4) return 'high-backup';   // Beaucoup de sauvegardes
+      if (backupCount > 1) return 'medium-backup'; // Quelques sauvegardes
+      return ;                          // Pas de sauvegardes
     },
     // TODO Move to computed method ? Or dependencies are tracked ?
     isOnSelectedDay(dateToCheck) {
@@ -165,6 +189,16 @@ export default defineComponent({
 .highlight {
   background-color: rgba(0, 123, 255, 0.4);
 }
+/* .low-backup {
+  background-color: white; /* Pas de sauvegarde = blanc} */
+
+.medium-backup {
+  background-color: rgba(255, 206, 0, 0.5); /* Quelques sauvegardes = jaune pâle */
+}
+.high-backup {
+  background-color: rgba(255, 0, 0, 0.7); /* Beaucoup de sauvegardes = rouge foncé */
+}
+
 .text-right {
   text-align: right;
   width: 100%;
@@ -175,9 +209,7 @@ export default defineComponent({
   width: 100px;
 }
 .today-button{
-  /*position: absolute; 
-  top: 8px;
-  right: 8px;*/ 
+  position: relative;
   width: 36px; /* var(--va-date-picker-cell-size); */
   height: 36px; /* var(--va-date-picker-cell-size); */
   box-sizing: border-box;
@@ -192,7 +224,32 @@ export default defineComponent({
   justify-content: center;
   align-items: center; 
   transition: border 0.2s ease;
+
+  clip-path: polygon(
+    0 0,           
+    100% 0,        
+    100% calc(100% - 10px), 
+    calc(100% - 10px) 100%, 
+    0 100%        
+  );
 }
+
+.today-button::after {
+  content: "";
+  position: absolute;
+  bottom: 10px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background: white; 
+  border-left: 12px solid transparent;
+  border-top: 12px solid #2c82e0;
+  border-top-right-radius: 3px;
+  transform: rotate(-90deg);
+  transform-origin: bottom right;
+  box-sizing: border-box;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
