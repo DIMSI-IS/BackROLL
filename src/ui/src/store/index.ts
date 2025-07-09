@@ -39,7 +39,7 @@ export default createStore({
     storageList: [],
   },
   getters: {
-    isAuthenticated: state => !!state.token ,//authentification
+    isAuthenticated: state => state.token !=null ,//authentification
     policiesCount(state) {
       return state.resources.policyList.length;
     },
@@ -608,7 +608,6 @@ export default createStore({
     logout(context) {
     context.commit('insertToken', null);  
     context.commit('insertUserName', null); 
-    router.push('/login');  
     },
   },
   mutations: {

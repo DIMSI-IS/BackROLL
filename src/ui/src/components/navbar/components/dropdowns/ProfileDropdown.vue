@@ -39,7 +39,10 @@ export default {
   },
   methods: {
     logout() {
-      this.$store.dispatch('logout')
+      // this.$keycloak.logoutFn() // TODO: Implement Keycloak logout
+      this.$store.dispatch('logout').then(() => {
+      this.$router.push('/login')
+      })
     }
   }
 

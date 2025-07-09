@@ -8,11 +8,11 @@
                 <h1>Please login to continue</h1>
             </va-card-title>
             <va-card-content>
-                <va-form ref="form" @submit.prevent="submitOnEnter">
-                    <va-input class="mb-3" label="Username" v-model="username" name="username" />
-                    <va-input class="mb-3" label="Password" v-model="password"  name="password" type="password" @keydown.enter.prevent="submitOnEnter"/>
+                <va-form ref="form" @submit.prevent="submit">
+                    <va-input class="mb-3" label="Username" v-model="username" />
+                    <va-input class="mb-3" label="Password" v-model="password" type="password" @keydown.enter.prevent="submitOnEnter"/>
                 </va-form>
-                <va-button class="mb-3" @click="submitOnEnter">
+                <va-button class="mb-3" @click="submit">
                     {{ "Login" }}
                 </va-button>
                 <div class="links">
@@ -60,9 +60,9 @@ export default defineComponent({
         }
     },
     methods: {
-        async submitOnEnter() {
+        async submit() {
             if (this.$refs.form.validate()) {
-            this.login();
+                await this.login();
             }
         },
         async login() {
@@ -70,12 +70,11 @@ export default defineComponent({
                 const { data } = await axios.post(
                     `${this.$store.state.endpoint.api}/api/v1/auth/password/login`,
                     {
-                        //username: process.env.VUE_APP_DEFAULT_USER_NAME,
                         username: this.username,
                         password: this.password
                     },
                     { headers: { 'Content-Type': 'application/json' } })
-                this.$store.dispatch('insertToken', data);
+                this.$store.dispatch('insertToken', data); //TODO dispatch or commit
                 this.$store.commit('insertToken', data);
                 this.$store.commit('insertUserName', data.username); 
                 this.$vaToast.init({
@@ -109,18 +108,13 @@ export default defineComponent({
                     }
                     } else {
                     // No response from server (network error, etc)
-                    this.$vaToast.init({
-                        title: 'Error',
-                        message: 'Unable to reach the server.',
-                        color: 'danger'
-                    });
+                        this.$vaToast.init({
+                            title: 'Error',
+                            message: 'Unable to reach the server.',
+                            color: 'danger'
+                        });
                     }
 
-                // this.$vaToast.init({
-                //     title: 'Login failed.',
-                //     message: error?.response?.data?.detail ?? error,
-                //     color: 'danger'
-                // })
             }
         }
     }

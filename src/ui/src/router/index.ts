@@ -187,13 +187,6 @@ const routes: Array<RouteRecordRaw> = [
             path: 'changePassword',
             component: () => import('@/pages/auth/ChangePassword.vue')
           },
-          // {
-          //   name: 'login',
-          //   path: '/login',
-          //   component: () => import('@/pages/auth/Login.vue'),
-          //   meta: { requiresAuth: false }
-            
-          // }
         ],
       },
       UIRoute,
