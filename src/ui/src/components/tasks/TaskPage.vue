@@ -47,9 +47,9 @@
           <span>Filter by date</span>
           <!--implementation of today button in the calendar-->
           <va-button color="primary" @click="setToday" class="today-button">
-              <div style="display: flex; flex-direction: column; align-items: center; line-height: 1;">
-                <small style="font-size: 0.55em;">TODAY</small>
-                <span>{{ todayDayNumber }}</span>
+              <div style="display: flex; flex-direction: column; align-items: center; line-height: 1; margin-top: -4px;">
+                <small style="font-size: 0.55em; margin-bottom: -1px;">TODAY</small>
+                <span style="font-size: 0.85em;">{{ todayDayNumber }}</span>
               </div>
           </va-button>
           <!--end of today button-->
@@ -154,9 +154,10 @@ export default defineComponent({
 
     getBackupClass(date) {
       const backupCount = this.backupData[`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`] || 0;
-      if (backupCount > 4) return 'high-backup';   // Beaucoup de sauvegardes
-      if (backupCount > 1) return 'medium-backup'; // Quelques sauvegardes
-      return ;                          // Pas de sauvegardes
+      if (backupCount > 4 ) return 'red-backup';   
+      if (backupCount > 2 ) return 'orange-backup'; 
+      if (backupCount >= 1 ) return 'green-backup'; 
+      return ;                         
     },
     // TODO Move to computed method ? Or dependencies are tracked ?
     isOnSelectedDay(dateToCheck) {
@@ -189,14 +190,14 @@ export default defineComponent({
 .highlight {
   background-color: rgba(0, 123, 255, 0.4);
 }
-/* .low-backup {
-  background-color: white; /* Pas de sauvegarde = blanc} */
-
-.medium-backup {
-  background-color: rgba(255, 206, 0, 0.5); /* Quelques sauvegardes = jaune pâle */
+.green-backup {
+  background-color: rgb(19, 216, 19,0.5); 
 }
-.high-backup {
-  background-color: rgba(255, 0, 0, 0.7); /* Beaucoup de sauvegardes = rouge foncé */
+.orange-backup {
+  background-color: rgba(245, 140, 3, 0.5); 
+}
+.red-backup {
+  background-color: rgba(255, 0, 0, 0.7); 
 }
 
 .text-right {
