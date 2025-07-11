@@ -22,6 +22,7 @@ from pathlib import Path
 from time import sleep
 
 import paramiko
+import os
 from sqlmodel import Session, select
 
 from app import database
@@ -33,7 +34,15 @@ from app.patch import ensure_uuid
 
 
 def __get_shared_ssh_directory() -> Path:
-    return Path("/", "root", "shared_ssh")
+    snap_common = os.getenv("SNAP_COMMON")
+
+    if snap_common:
+        return Path(snap_common) / ".ssh" / "shared_ssh"
+
+    raise RuntimeError(
+        "SNAP_COMMON is not set! "
+        "Cannot continue safely. Check your Snap environment."
+    )
 
 
 def __get_sync_file() -> Path:
@@ -41,11 +50,14 @@ def __get_sync_file() -> Path:
 
 
 def __get_local_ssh_directory() -> Path:
-    return Path("/", "root", ".ssh")
+    return Path("/var/snap/backroll/common/.ssh/local_ssh")
 
 
 @logged()
 def push_ssh_directory() -> None:
+    
+    __get_shared_ssh_directory().mkdir(parents=True, exist_ok=True)
+
     for key_type in ["rsa", "ed25519"]:
         key_path = __get_shared_ssh_directory() / f"id_{key_type}"
         if not key_path.exists():
@@ -75,6 +87,9 @@ def pull_ssh_directory(logger: Logger) -> None:
 
     src = __get_shared_ssh_directory().as_posix()
     dst = __get_local_ssh_directory().as_posix()
+
+    __get_local_ssh_directory().mkdir(parents=True, exist_ok=True)
+
     shell.subprocess_run(f"""
                          # Copy shared directory
                          cp {src}/* {dst}/
