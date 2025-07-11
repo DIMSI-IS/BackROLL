@@ -40,6 +40,11 @@ apps:
     daemon: simple
     restart-condition: always
 
+  flower:
+    command: wrappers/flower.sh
+    daemon: simple
+    restart-condition: always
+
 parts:
   redis:
     plugin: nil
