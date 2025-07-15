@@ -30,6 +30,24 @@
               {{ pendingTaskNumber }}
             </span>
           </va-chip>
+
+          <va-input
+            v-model="search"
+            placeholder="Search a VM's task..."
+            class="mb-3"
+            prepend-inner-icon="search"
+          />
+
+          <va-select
+            v-model="tasksPerVm"
+            :options="tasksPerVmOptions"
+            value-by="value"
+            class="mb-3"
+            style="max-width: 220px;"
+            placeholder="Number of tasks by VM"
+          />
+
+
           <task-table :data="taskList" :columns="columns" />
           <div v-if="!$store.state.isbackupTaskTableReady" class="flex-center ma-3">
             <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
@@ -92,12 +110,54 @@ export default defineComponent({
       horizontalOffset: 5,
       visibilityHeight: 1,
       scrollSpeed: 50,
+      search : '',
+      tasksPerVm: 0,
+      tasksPerVmOptions: [
+        { text: '1 (dernière tâche)', value: 1 },
+        { text: '2 dernières', value: 2 },
+        { text: '3 dernières', value: 3 },
+        { text: 'Toutes', value: 0 },
+      ],
     }
+    
   },
   computed: {
     taskList() {
-      return this.getTaskList((task) => this.isOnSelectedDay(task.received))
+      let list = this.getTaskList((task) => this.isOnSelectedDay(task.received));
+      console.log("Filtered task list:", list); // <= ajoute ceci
+      console.log("this.tasksPerVm:", this.tasksPerVm); // <= ajoute ceci*
+      
+      if (this.search){
+        const searchLower = this.search.toLowerCase();
+        list = list.filter(task =>
+        (task.target && task.target.toLowerCase().includes(searchLower)) ||
+        (task.args && task.args.name && task.args.name.toLowerCase().includes(searchLower))
+      );
+    }
+      
+      // Group by VM (by target or args.name)
+      if (this.tasksPerVm === 0) {
+        // 0 = all tasks
+        return list;
+      }
+      const grouped = {};
+      for (const task of list) {
+        const vmKey = task.target || (task.args && task.args.name);
+        if (!vmKey) continue;
+        if (!grouped[vmKey]) grouped[vmKey] = [];
+        grouped[vmKey].push(task);
+      }
+      // Sort each group by descending date
+      Object.values(grouped).forEach(tasks =>
+        tasks.sort((a, b) => new Date(b.started) - new Date(a.started))
+      );
+      // Take N tasks per VM
+      return Object.values(grouped).flatMap(tasks => tasks.slice(0, this.tasksPerVm));
     },
+
+    // taskList() {
+    //   return this.getTaskList((task) => this.isOnSelectedDay(task.received))
+    // },
     successTaskNumber() {
       return this.taskList.filter(({ state }) => state === 'SUCCESS').length
     },
