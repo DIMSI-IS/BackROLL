@@ -20,6 +20,7 @@ import logging
 from logging import Logger
 from pathlib import Path
 from time import sleep
+from typing import List, Tuple, Optional
 
 import paramiko
 import os
@@ -32,26 +33,21 @@ from app.database import Hosts
 from app.routes import host
 from app.patch import ensure_uuid
 
+def get_snap_path(*subdirs: str) -> Path:
+    """Returns a path based on SNAP_COMMON with the given subdirectories."""
+    snap_common = os.getenv("SNAP_COMMON")
+    if not snap_common:
+        raise RuntimeError("SNAP_COMMON is not set. Check your Snap environment.")
+    return Path(snap_common).joinpath(*subdirs)
 
 def __get_shared_ssh_directory() -> Path:
-    snap_common = os.getenv("SNAP_COMMON")
+    return get_snap_path(".ssh", "shared_ssh")
 
-    if snap_common:
-        return Path(snap_common) / ".ssh" / "shared_ssh"
-
-    raise RuntimeError(
-        "SNAP_COMMON is not set! "
-        "Cannot continue safely. Check your Snap environment."
-    )
-
+def __get_local_ssh_directory() -> Path:
+    return get_snap_path(".ssh", "local_ssh")
 
 def __get_sync_file() -> Path:
     return __get_shared_ssh_directory() / "sync"
-
-
-def __get_local_ssh_directory() -> Path:
-    return Path("/var/snap/backroll/common/.ssh/local_ssh")
-
 
 @logged()
 def push_ssh_directory() -> None:
@@ -127,10 +123,57 @@ def list_public_keys() -> list[SshPublicKey]:
                 .replace("'", "").replace("|", "")),
         shell.os_popen(f"find {__get_local_ssh_directory().as_posix()}/*.pub").splitlines()))
 
-
 class ConnectionException(Exception):
     def __init__(self, message):
         super().__init__(message)
+
+def get_ssh_private_keys() -> List[Tuple[str, str]]:
+    private_key_paths = shell.os_popen(
+        f"find {__get_local_ssh_directory().as_posix()} -type f -name 'id_*' ! -name '*.pub'"
+    ).splitlines()
+    key_paths = []
+    for path in private_key_paths:
+        key_type = None
+        if "id_rsa" in path:
+            key_type = "RSA"
+        elif "id_ed25519" in path:
+            key_type = "ED25519"
+        if key_type:
+            key_paths.append((key_type, path))
+    return key_paths
+
+def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Optional[Tuple[str, str]]]:
+    """Establishes an SSH connection and returns the client and used key."""
+    key_paths = get_ssh_private_keys()
+    if not key_paths:
+        raise ConnectionException("No valid SSH private key found.")
+
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    connected = False
+    used_key = None
+
+    for key_type, path in key_paths:
+        try:
+            key = (
+                paramiko.RSAKey.from_private_key_file(path)
+                if key_type == "RSA"
+                else paramiko.Ed25519Key.from_private_key_file(path)
+            )
+            logging.debug(f"Attempting connection with {key_type} key to {ip_address}")
+            client.connect(hostname=ip_address, username=username, pkey=key)
+            logging.info(f"SSH connection successful with {key_type} key to {ip_address}")
+            connected = True
+            used_key = (key_type, path)
+            break
+        except (paramiko.ssh_exception.AuthenticationException, paramiko.ssh_exception.SSHException) as e:
+            logging.debug(f"Failed with {key_type} key: {e}")
+
+    if not connected:
+        client.close()
+        raise ConnectionException("Unable to connect via SSH with any key.")
+
+    return client, used_key
 
 
 def init_ssh_connection(host_id, ip_address, username):
@@ -144,53 +187,47 @@ def init_ssh_connection(host_id, ip_address, username):
 
     logging.getLogger("paramiko").setLevel(logging.DEBUG)
 
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
     try:
-        client.connect(
-            hostname=ip_address,
-            username=username,
-        )
-        client.close()
+        client, _ = connect_ssh(ip_address, username)
+        try:
+            host.filter_host_by_id(host_id)
+            engine = database.init_db_connection()
+
+            with Session(engine) as session:
+                statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
+                results = session.exec(statement)
+                data_host = results.one()
+                data_host.ssh = 1
+                data_host.username = username
+                session.add(data_host)
+                session.commit()
+                session.refresh(data_host)
+        finally:
+            client.close()
+
     except OSError:
-        raise ConnectionException(
-            "The hypervisor is unreachable.")
+        raise ConnectionException("The hypervisor is unreachable.")
     except paramiko.ssh_exception.AuthenticationException:
-        raise ConnectionException(
-            "Authentication to the hypervisor has failed.")
-
-    host.filter_host_by_id(host_id)
-    engine = database.init_db_connection()
-
-    with Session(engine) as session:
-        statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
-        results = session.exec(statement)
-        data_host = results.one()
-        data_host.ssh = 1
-        data_host.username = username
-        session.add(data_host)
-        session.commit()
-        session.refresh(data_host)
+        raise ConnectionException("Authentication to the hypervisor has failed.")
 
 
 def remove_key(ip_address, username):
     try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(
-            hostname=ip_address,
-            username=username,
-        )
-        for public_key in list_public_keys():
-            # The sed script is delimited with simple quotes to prevent shell parameter expansion.
-            # Slashes are used to encode the key in base64 so the sed address is delimeted with pipes.
-            _, _, stderr = client.exec_command(
-                f"sed -i '\\|{public_key.full_line}|d' ~/.ssh/authorized_keys")
-            error = stderr.read().decode()
-            if error:
-                print(
-                    f"[Warning] Removing {public_key.name} SSH public key from {ip_address} failed: {error}")
-        client.close()
-    except Exception as e:
-        raise ValueError(e)
+        client, _ = connect_ssh(ip_address, username)
+        try:
+            for public_key in list_public_keys():
+                _, _, stderr = client.exec_command(
+                    f"sed -i '\\|{public_key.full_line}|d' ~/.ssh/authorized_keys"
+                )
+                error = stderr.read().decode()
+                if error:
+                    print(
+                        f"[Warning] Removing {public_key.name} SSH public key from {ip_address} failed: {error}"
+                    )
+        finally:
+            client.close()
+
+    except OSError:
+        raise ConnectionException("The hypervisor is unreachable.")
+    except paramiko.ssh_exception.AuthenticationException:
+        raise ConnectionException("Authentication to the hypervisor has failed.")
