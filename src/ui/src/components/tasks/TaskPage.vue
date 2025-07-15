@@ -48,7 +48,7 @@
           <!--implementation of today button in the calendar-->
           <va-button color="primary" @click="setToday" class="today-button">
               <div style="display: flex; flex-direction: column; align-items: center; line-height: 1; margin-top: -4px;">
-                <small style="font-size: 0.55em; margin-bottom: -1px;">TODAY</small>
+                <small style="font-size: 0.50em; margin-bottom: -1px;">TODAY</small>
                 <span style="font-size: 0.85em;">{{ todayDayNumber }}</span>
               </div>
           </va-button>
