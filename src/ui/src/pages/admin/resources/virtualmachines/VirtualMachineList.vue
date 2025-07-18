@@ -49,7 +49,7 @@
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings"
+            <va-button icon="info"
               @click="this.$router.push(`/resources/virtualmachines/${$store.state.resources.vmList[rowIndex].uuid}`)" />
           </va-button-group>
         </template>

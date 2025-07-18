@@ -4,7 +4,7 @@ const mapping = [
   "Monday",
   "Tuesday",
   "Wednesday",
-  "Thrusday",
+  "Thursday",
   "Friday",
   "Saturday",
   "Sunday",

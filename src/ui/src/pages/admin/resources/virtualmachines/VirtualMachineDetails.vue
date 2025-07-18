@@ -58,10 +58,11 @@
               STORAGE
             </span>
           </va-divider>
-          <div v-if="loadingStorage" class="flex-center ma-3">
+          <!-- <div v-if="loadingStorage" class="flex-center ma-3">
             <looping-rhombuses-spinner :animation-duration="1500" :size="50" color="#2c82e0" />
           </div>
-          <va-data-table v-else class="mb-4" :items="storageList" :columns="[
+          <va-data-table v-else class="mb-4" :items="storageList" :columns="[ -->
+          <va-data-table class="mb-4" :items="storageList" :columns="[
             { key: 'device', sortable: true },
             { key: 'source', sortable: true },
             { key: 'formattedStatus', label: 'status', sortable: true }]">
@@ -93,10 +94,11 @@
           </va-button>
         </div>
         <div v-else-if="selectedTab === 'save'" style="padding-top: 1%;">
-          <div v-if="loadingBackups" class="flex-center ma-3">
+          <!-- <div v-if="loadingBackups" class="flex-center ma-3">
             <scaling-squares-spinner :animation-duration="1500" :size="85" color="#2c82e0" />
           </div>
-          <div v-else>
+          <div v-else> -->
+          <div>
             <div class="row">
               <div class="flex xs6">
                 <div class="item">
@@ -228,6 +230,8 @@ export default defineComponent({
       storageList: [],
       loadingStorage: false,
       storageErrorToShow: null,
+      lastMostRecentBackup: null, // Used to track changes in most recent backup during the loading
+      lastOldestBackup: null, // Used to track changes in oldest backup during the loading
     }
   },
   watch: {
@@ -271,27 +275,20 @@ export default defineComponent({
       return ((this.virtualMachine.mem / 1024) / 1024).toFixed(0)
     },
     mostRecentBackup() {
-      if (!this.loadingBackups) {
-        if (this.backupInfo.archives.length > 0) {
-          return new Date(Math.max(...this.backupInfo.archives.map(e => new Date(e.start)))).toLocaleDateString()
-        } else {
-          return "N/A"
-        }
+      if (this.backupInfo.archives.length > 0) {
+        return new Date(Math.max(...this.backupInfo.archives.map(e => new Date(e.start)))).toLocaleDateString()
       } else {
         return "N/A"
       }
     },
-    oldestBackup() {
-      if (!this.loadingBackups) {
-        if (this.backupInfo.archives.length > 0) {
-          return new Date(Math.min(...this.backupInfo.archives.map(e => new Date(e.start)))).toLocaleDateString()
-        } else {
-          return "N/A"
-        }
-      } else {
-        return "N/A"
-      }
-    },
+  oldestBackup() {
+    if (this.backupInfo.archives.length > 0) {
+      const value = new Date(Math.min(...this.backupInfo.archives.map(e => new Date(e.start)))).toLocaleDateString()
+      this.lastOldestBackup = value
+      return value
+    }
+    return this.lastOldestBackup || "N/A"
+  },
     pages() {
       return (this.perPage && this.perPage !== 0)
         ? Math.ceil(this.backupInfo.archives.length / this.perPage)

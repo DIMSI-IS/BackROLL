@@ -16,9 +16,6 @@ export default defineComponent({
     TaskTable,
     TaskPage
   },
-  mounted() {
-    this.$store.dispatch("requestBackupTask", { token: this.$store.state.token });
-  },
   computed: {
     getTaskList() {
       return (taskFilter) => {
