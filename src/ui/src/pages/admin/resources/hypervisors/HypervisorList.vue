@@ -101,6 +101,8 @@
         You are about to remove hypervisor <b>{{ JSON.parse(JSON.stringify(this.selectedHost)).hostname }}</b>.
         <br>Please confirm action.
       </div>
+      <va-button color="danger" @click="forceDeleteHost">Force Delete</va-button>
+
     </va-modal>
   </div>
 </template>
