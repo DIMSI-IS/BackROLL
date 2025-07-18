@@ -11,7 +11,6 @@ export default {
         icon: 'vuestic-iconset-dashboard',
       },
     },
-
     {
       name: 'tasks',
       displayName: 'menu.tasks',
@@ -30,7 +29,6 @@ export default {
         },
       ],
     },
-
     {
       name: 'resources',
       displayName: 'menu.resources',
@@ -53,7 +51,6 @@ export default {
         },
       ],
     },
-
     {
       name: 'configuration',
       displayName: 'menu.configuration',
@@ -88,10 +85,6 @@ export default {
       },
       disabled: true,
       children: [
-        {
-          name: 'login',
-          displayName: 'menu.login',
-        },
         {
           name: 'changePassword',
           displayName: 'menu.changePassword',
