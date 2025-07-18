@@ -141,6 +141,7 @@ export default defineComponent({
   },
   mounted() {
     this.requestKeys()
+    this.$store.dispatch("requestHost", { token: this.$store.state.token });
   },
   computed: {
     areDependenciesResolved() {

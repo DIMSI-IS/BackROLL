@@ -26,6 +26,12 @@ export default defineComponent({
             password: "",
         }
     },
+    mounted() {
+        this.$store.dispatch("requestConnector")
+        this.$store.dispatch("requestPool")
+        this.$store.dispatch("requestHost")
+        this.$store.dispatch("requestPolicy")
+    },
     methods: {
         async login() {
             try {

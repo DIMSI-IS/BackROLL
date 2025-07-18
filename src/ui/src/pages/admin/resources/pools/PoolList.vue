@@ -73,6 +73,9 @@ export default defineComponent({
       selectedPool: null
     }
   },
+  mounted() {
+  this.$store.dispatch("requestPool", { token: this.$store.state.token });
+  },
   computed: {
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.

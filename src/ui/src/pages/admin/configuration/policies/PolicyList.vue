@@ -102,6 +102,9 @@ export default defineComponent({
       selectedPolicy: null
     }
   },
+  mounted() {
+    this.$store.dispatch("requestPolicy", { token: this.$store.state.token });
+  },
   computed: {
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.

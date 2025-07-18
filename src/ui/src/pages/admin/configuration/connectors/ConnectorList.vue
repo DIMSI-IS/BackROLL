@@ -64,6 +64,9 @@ export default defineComponent({
       selectedConnector: null
     }
   },
+  mounted() {
+    this.$store.dispatch("requestConnector", { token: this.$store.state.token });
+  },
   computed: {
   },
   methods: {

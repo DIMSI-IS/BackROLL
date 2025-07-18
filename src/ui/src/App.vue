@@ -8,10 +8,10 @@ export default {
   props: ['refreshPool'],
   mounted() {
     setInterval(() => {
-      this.$store.dispatch("requestConnector")
-      this.$store.dispatch("requestPool")
-      this.$store.dispatch("requestHost")
-      this.$store.dispatch("requestPolicy")
+      //this.$store.dispatch("requestConnector")
+      //this.$store.dispatch("requestPool")
+      //this.$store.dispatch("requestHost")
+      //this.$store.dispatch("requestPolicy")
       this.$store.dispatch("requestVirtualMachine")
       this.$store.dispatch("requestJob")
       this.$store.dispatch("requestStorage")
