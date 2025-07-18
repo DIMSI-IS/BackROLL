@@ -1,24 +1,14 @@
 <template>
-  <va-dropdown
-    class="profile-dropdown"
-    v-model="isShown"
-    boundary-body
-    position="bottom"
-    :offset="[0, 13]"
-  >
+  <va-dropdown class="profile-dropdown" v-model="isShown" boundary-body position="bottom" :offset="[0, 13]">
     <template #anchor>
       <span class="profile-dropdown__anchor">
-        <slot/>
-        <va-icon
-          class="px-2"
-          :name="isShown ? 'angle_up' :'angle_down'"
-          :color="theme.primary"
-        />
+        <slot />
+        <va-icon class="px-2" :name="isShown ? 'angle_up' : 'angle_down'" :color="theme.primary" />
       </span>
     </template>
     <va-dropdown-content class="profile-dropdown__content">
       <va-list-item>
-        <va-button @click="logout" color="danger" icon="logout" flat :rounded="false" class="mr-4">Logout</va-button>      
+        <va-button @click="logout" color="danger" icon="logout" flat :rounded="false" class="mr-4">Logout</va-button>
       </va-list-item>
     </va-dropdown-content>
   </va-dropdown>
@@ -29,7 +19,7 @@ import { useGlobalConfig } from 'vuestic-ui'
 
 export default {
   name: 'profile-section',
-  data () {
+  data() {
     return {
       isShown: false,
     }
@@ -41,7 +31,7 @@ export default {
     logout() {
       // this.$keycloak.logoutFn() // TODO: Implement Keycloak logout
       this.$store.dispatch('logout').then(() => {
-      this.$router.push('/login')
+        this.$router.push('/login')
       })
     }
   }
@@ -50,7 +40,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 .profile-dropdown {
   cursor: pointer;
 

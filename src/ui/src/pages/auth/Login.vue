@@ -2,7 +2,8 @@
 
     <div class="login-wrapper">
         <h1 class="login-title">Welcome to</h1>
-        <img class="va-icon-vuestic logo" height="80" style="margin-bottom: 2rem" src="/img/logo2-deg-backroll-cropped.9feb6084.svg" data-v-45c0bfaf="">
+        <img class="va-icon-vuestic logo" height="80" style="margin-bottom: 2rem"
+            src="/img/logo2-deg-backroll-cropped.9feb6084.svg" data-v-45c0bfaf="">
         <va-card class="login-form">
             <va-card-title>
                 <h1>Please login to continue</h1>
@@ -10,7 +11,8 @@
             <va-card-content>
                 <va-form ref="form" @submit.prevent="submit">
                     <va-input class="mb-3" label="Username" v-model="username" />
-                    <va-input class="mb-3" label="Password" v-model="password" type="password" @keydown.enter.prevent="submitOnEnter"/>
+                    <va-input class="mb-3" label="Password" v-model="password" type="password"
+                        @keydown.enter.prevent="submitOnEnter" />
                 </va-form>
                 <va-button class="mb-3" @click="submit">
                     {{ "Login" }}
@@ -25,14 +27,16 @@
 
 <style scoped>
 .login-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: #f8f9fa; /* Optionnel, ajoute un fond clair */
-  padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f8f9fa;
+    /* Optionnel, ajoute un fond clair */
+    padding: 2rem;
 }
+
 /* .login-form{
   display: flex;
   justify-content: center;
@@ -40,10 +44,10 @@
   height: 100vh;
 } */
 .login-title {
-  font-size: 5rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
-  text-align: center;
+    font-size: 5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
 }
 </style>
 
@@ -76,7 +80,7 @@ export default defineComponent({
                     { headers: { 'Content-Type': 'application/json' } })
                 this.$store.dispatch('insertToken', data); //TODO dispatch or commit
                 this.$store.commit('insertToken', data);
-                this.$store.commit('insertUserName', data.username); 
+                this.$store.commit('insertUserName', data.username);
                 this.$vaToast.init({
                     title: "Login",
                     message: "You are logged in.",
@@ -89,31 +93,31 @@ export default defineComponent({
                     // Handle HTTP error status codes
                     if (error.response.status === 401 || error.response.status === 403) {
                         this.$vaToast.init({
-                        title: 'Authentication Error',
-                        message: 'Incorrect username or password.',
-                        color: 'danger'
+                            title: 'Authentication Error',
+                            message: 'Incorrect username or password.',
+                            color: 'danger'
                         });
                     } else if (error.response.status === 500) {
                         this.$vaToast.init({
-                        title: 'Server Error',
-                        message: 'Server error, login failed.',
-                        color: 'danger'
+                            title: 'Server Error',
+                            message: 'Server error, login failed.',
+                            color: 'danger'
                         });
                     } else {
-                        this.$vaToast.init({
-                        title: 'Error',
-                        message: error.response.data?.detail || 'Unknown error occurred.',
-                        color: 'danger'
-                        });
-                    }
-                    } else {
-                    // No response from server (network error, etc)
                         this.$vaToast.init({
                             title: 'Error',
-                            message: 'Unable to reach the server.',
+                            message: error.response.data?.detail || 'Unknown error occurred.',
                             color: 'danger'
                         });
                     }
+                } else {
+                    // No response from server (network error, etc)
+                    this.$vaToast.init({
+                        title: 'Error',
+                        message: 'Unable to reach the server.',
+                        color: 'danger'
+                    });
+                }
 
             }
         }

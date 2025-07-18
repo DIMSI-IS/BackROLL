@@ -11,9 +11,8 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     component: () => import('@/pages/auth/Login.vue'),
     meta: { requiresAuth: false }
-    
-  },
 
+  },
   {
     path: "/",
     redirect: { name: 'dashboard' },
@@ -58,7 +57,6 @@ const routes: Array<RouteRecordRaw> = [
           },
         ],
       },
-
       {
         name: 'resources',
         path: 'resources',
@@ -107,7 +105,6 @@ const routes: Array<RouteRecordRaw> = [
           },
         ],
       },
-
       {
         name: 'configuration',
         path: 'configuration',
@@ -205,9 +202,8 @@ const router = createRouter({
   routes
 })
 
-
 // Navigation guard
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const isAuthenticated = store.getters.isAuthenticated
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'login' })
