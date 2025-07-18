@@ -11,6 +11,7 @@
               :text="virtualMachine.state" />
           </div>
         </div>
+        <va-button icon="clear" color="info" @click="$router.go(-1)">Close</va-button>
       </va-card-title>
       <va-card-content>
         <va-tabs v-model="selectedTab" grow>
