@@ -30,9 +30,9 @@ export default {
     },
   },
   methods: {
-    // this.$keycloak.logoutFn() // TODO: Implement Keycloak logout
     logout() {
       try {
+        // this.$keycloak.logoutFn() // TODO: Implement Keycloak logout
         this.$store.commit("logout");
         this.$router.push("/login");
       } catch (error) {
