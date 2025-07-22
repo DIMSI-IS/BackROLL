@@ -175,6 +175,14 @@ def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Opt
 
     return client, used_key
 
+def check_ssh_agent() -> bool:
+    try:
+        result = shell.subprocess_run("ssh-add -l")
+        return bool(result.strip())
+    except shell.ShellException as e:
+        logging.error(f"ERROR: Failed to check SSH agent: {e.stderr}")
+        return False
+
 
 def init_ssh_connection(host_id, ip_address, username):
     try:
