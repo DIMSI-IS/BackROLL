@@ -2,26 +2,48 @@
   <va-card>
     <va-card-title>
       <FormHeader
-        :title="hypersivorId ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}` : 'Adding hypervisor'" />
+        :title="
+          hypersivorId
+            ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}`
+            : 'Adding hypervisor'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!hypervisorId || stateHypervisor">
       <va-form ref="form">
-        <va-input label="Hostname" v-model="formHypervisor.hostname"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Hostname"
+          v-model="formHypervisor.hostname"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        />
         <br />
-        <va-input label="IP Address or Domain Name" v-model="formHypervisor.ipAddress" :rules="[
-          (value) =>
-            value?.match(/^[0-9a-zA-Z.-]+$/) ||
-            'Field is required and must be a valid IP address or domain name.',
-        ]" />
+        <va-input
+          label="IP Address or Domain Name"
+          v-model="formHypervisor.ipAddress"
+          :rules="[
+            (value) =>
+              value?.match(/^[0-9a-zA-Z.-]+$/) ||
+              'Field is required and must be a valid IP address or domain name.',
+          ]"
+        />
         <br />
-        <va-select label="Select Pool" v-model="selectedPool" :options="poolOptions"
-          :rules="[(value) => value || 'Field is required']" />
+        <va-select
+          label="Select Pool"
+          v-model="selectedPool"
+          :options="poolOptions"
+          :rules="[(value) => value || 'Field is required']"
+        />
         <br />
         <va-input label="Tag (optional)" v-model="formHypervisor.tags" />
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate() && (hypersivorId ? updateHypervisor() : addHypervisor())">
+      <va-button
+        class="mb-3"
+        @click="
+          $refs.form.validate() &&
+            (hypersivorId ? updateHypervisor() : addHypervisor())
+        "
+      >
         {{ hypervisorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -40,7 +62,7 @@ import FormHeader from "@/components/forms/FormHeader.vue";
 export default {
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -122,7 +144,9 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestHost", { token: this.$store.state.token });
+          this.$store.dispatch("requestHost", {
+            token: this.$store.state.token,
+          });
           this.$router.push("/admin/resources/hypervisors");
           this.$vaToast.init({
             title: response.data.state,
@@ -130,8 +154,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add hypervisor",
             message: error?.response?.data?.detail ?? error,
