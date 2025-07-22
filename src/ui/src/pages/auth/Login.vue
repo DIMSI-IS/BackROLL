@@ -90,7 +90,8 @@ export default defineComponent({
           { headers: { "Content-Type": "application/json" } }
         );
         this.$store.commit("insertToken", data);
-        this.$store.commit("insertUserName", data.username);
+        // TODO Provide username in token.
+        // this.$store.commit("insertUserName", data);
         this.$vaToast.init({
           title: "Login",
           message: "You are logged in.",
