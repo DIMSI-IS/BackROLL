@@ -1,7 +1,13 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="storageId ? `Updating storage ${stateStorage?.name ?? ''}` : 'Adding storage'" />
+      <FormHeader
+        :title="
+          storageId
+            ? `Updating storage ${stateStorage?.name ?? ''}`
+            : 'Adding storage'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!storageId || stateStorage">
       <va-alert border="top" class="mb-4">
@@ -12,19 +18,33 @@
         containers.<br />
         To do this, update the following portion in the docker-compose:
         <code class="consoleStyle">
-  volumes:<br />
-  - /mnt:/mnt
-</code>
+          volumes:<br />
+          - /mnt:/mnt
+        </code>
         This example gives access to the /mnt directory where NFS shares
         dedicated to backup storage can be mounted.
       </va-alert>
       <va-form ref="form">
-        <va-input label="Name" v-model="formStorage.name" :rules="storageNameRules" />
+        <va-input
+          label="Name"
+          v-model="formStorage.name"
+          :rules="storageNameRules"
+        />
         <br />
-        <va-input label="Path" placeholder="eg. /mnt/myNFSbackend" v-model="formStorage.path"
-          :rules="storagePathRules" />
+        <va-input
+          label="Path"
+          placeholder="eg. /mnt/myNFSbackend"
+          v-model="formStorage.path"
+          :rules="storagePathRules"
+        />
         <br />
-        <va-button class="mb-3" @click="$refs.form.validate() && (storageId ? updateStorage() : addStorage())">
+        <va-button
+          class="mb-3"
+          @click="
+            $refs.form.validate() &&
+              (storageId ? updateStorage() : addStorage())
+          "
+        >
           {{ storageId ? "Update" : "Add" }}
         </va-button>
       </va-form>
@@ -49,7 +69,7 @@ export default {
   name: "updateStorage",
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -81,6 +101,9 @@ export default {
         },
       ],
     };
+  },
+  mounted() {
+    this.$store.dispatch("requestStorage");
   },
   computed: {
     otherStorageList() {
@@ -150,8 +173,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add storage",
             message: error?.response?.data?.detail ?? error,

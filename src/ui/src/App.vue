@@ -11,12 +11,15 @@ export default {
       //this.$store.dispatch("requestPool")
       //this.$store.dispatch("requestHost")
       //this.$store.dispatch("requestPolicy")
-      this.$store.dispatch("requestVirtualMachine");
-      this.$store.dispatch("requestJob");
-      this.$store.dispatch("requestStorage");
-      this.$store.dispatch("requestExternalHook");
-      this.$store.dispatch("requestBackupTask");
-      this.$store.dispatch("requestRestoreTask");
+
+      //this.$store.dispatch("requestStorage");
+      //this.$store.dispatch("requestExternalHook");
+      if (this.$store.state.token) {
+        this.$store.dispatch("requestVirtualMachine");
+        this.$store.dispatch("requestJob");
+        this.$store.dispatch("requestBackupTask");
+        this.$store.dispatch("requestRestoreTask");
+      }
     }, 10000);
   },
 };

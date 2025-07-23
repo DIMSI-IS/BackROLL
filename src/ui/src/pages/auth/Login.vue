@@ -73,45 +73,21 @@ export default defineComponent({
       password: "",
     };
   },
+  mounted() {
+    if (this.$store.state.token) {
+      this.$store.dispatch("requestConnector");
+      this.$store.dispatch("requestPool");
+      this.$store.dispatch("requestHost");
+      this.$store.dispatch("requestPolicy");
+      this.$store.dispatch("requestStorage");
+    }
+  },
   methods: {
     async submit() {
       if (this.$refs.form.validate()) {
         await this.login();
       }
     },
-<<<<<<< HEAD
-    mounted() {
-        this.$store.dispatch("requestConnector")
-        this.$store.dispatch("requestPool")
-        this.$store.dispatch("requestHost")
-        this.$store.dispatch("requestPolicy")
-    },
-    methods: {
-        async login() {
-            try {
-                const { data } = await axios.post(
-                    `${this.$store.state.endpoint.api}/api/v1/auth/password/login`,
-                    {
-                        username: process.env.VUE_APP_DEFAULT_USER_NAME,
-                        password: this.password
-                    },
-                    { headers: { 'Content-Type': 'application/json' } })
-                this.$store.dispatch('insertToken', data);
-                this.$store.commit('insertToken', data);
-                this.$vaToast.init({
-                    title: "Login",
-                    message: "You are logged in.",
-                    color: 'success',
-                })
-            } catch (error) {
-                console.error(error)
-                this.$vaToast.init({
-                    title: 'Login failed.',
-                    message: error?.response?.data?.detail ?? error,
-                    color: 'danger'
-                })
-            }
-=======
     async login() {
       try {
         const { data } = await axios.post(
@@ -130,6 +106,11 @@ export default defineComponent({
           message: "You are logged in.",
           color: "success",
         });
+        this.$store.dispatch("requestConnector");
+        this.$store.dispatch("requestPool");
+        this.$store.dispatch("requestHost");
+        this.$store.dispatch("requestPolicy");
+        this.$store.dispatch("requestStorage");
         this.$router.push({ name: "dashboard" });
       } catch (error) {
         console.error(error);
@@ -161,7 +142,6 @@ export default defineComponent({
             message: "Unable to reach the server.",
             color: "danger",
           });
->>>>>>> 3ea4a802cb8b13a9dbe7af75c1984a15646778cf
         }
       }
     },
