@@ -1,7 +1,13 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="hookId ? `Updating hook ${stateHook?.name ?? ''}` : 'Adding external hook'" />
+      <FormHeader
+        :title="
+          hookId
+            ? `Updating hook ${stateHook?.name ?? ''}`
+            : 'Adding external hook'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!hookId || stateHook">
       <va-alert color="info" icon="info" dense>
@@ -9,21 +15,40 @@
       </va-alert>
       <br />
       <va-form ref="form">
-        <va-input label="Name" v-model="formHook.name" :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Name"
+          v-model="formHook.name"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        />
         <br />
-        <va-input label="Provider" v-model="formHook.provider"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" readonly />
+        <va-input
+          label="Provider"
+          v-model="formHook.provider"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          readonly
+        />
         <br />
-        <va-input v-model="formHook.value" :type="isPasswordVisible ? 'text' : 'password'" label="Value"
-          :rules="[(value) => value?.length > 0 || 'Field is required']">
+        <va-input
+          v-model="formHook.value"
+          :type="isPasswordVisible ? 'text' : 'password'"
+          label="Value"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        >
           <template #appendInner>
-            <va-icon :name="isPasswordVisible ? 'visibility_off' : 'visibility'" size="small" color="--va-primary"
-              @click="isPasswordVisible = !isPasswordVisible" />
+            <va-icon
+              :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
+              size="small"
+              color="--va-primary"
+              @click="isPasswordVisible = !isPasswordVisible"
+            />
           </template>
         </va-input>
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate() && (hookId ? updateHook() : addHook())">
+      <va-button
+        class="mb-3"
+        @click="$refs.form.validate() && (hookId ? updateHook() : addHook())"
+      >
         {{ hookId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -42,7 +67,7 @@ import FormHeader from "@/components/forms/FormHeader.vue";
 export default {
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -54,6 +79,9 @@ export default {
       },
       isPasswordVisible: false,
     };
+  },
+  mounted() {
+    this.$store.dispatch("requestExternalHook");
   },
   computed: {
     stateHook() {
@@ -108,8 +136,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add external hook",
             message: error?.response?.data?.detail ?? error,

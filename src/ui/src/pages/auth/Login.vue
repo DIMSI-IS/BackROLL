@@ -73,6 +73,15 @@ export default defineComponent({
       password: "",
     };
   },
+  mounted() {
+    if (this.$store.state.token) {
+      this.$store.dispatch("requestConnector");
+      this.$store.dispatch("requestPool");
+      this.$store.dispatch("requestHost");
+      this.$store.dispatch("requestPolicy");
+      this.$store.dispatch("requestStorage");
+    }
+  },
   methods: {
     async submit() {
       if (this.$refs.form.validate()) {
@@ -97,6 +106,11 @@ export default defineComponent({
           message: "You are logged in.",
           color: "success",
         });
+        this.$store.dispatch("requestConnector");
+        this.$store.dispatch("requestPool");
+        this.$store.dispatch("requestHost");
+        this.$store.dispatch("requestPolicy");
+        this.$store.dispatch("requestStorage");
         this.$router.push({ name: "dashboard" });
       } catch (error) {
         console.error(error);
