@@ -2,6 +2,10 @@ import axios from "axios";
 import { createStore } from "vuex";
 import router from "../router";
 
+interface Host {
+  id: string | number;
+}
+
 export default createStore({
   strict: true, // process.env.NODE_ENV !== 'production',
   state: {
@@ -27,7 +31,7 @@ export default createStore({
     resources: {
       policyList: [],
       poolList: [],
-      hostList: [],
+      hostList: [] as Host[],
       vmList: [],
       externalHookList: [],
       connectorList: [],
@@ -545,23 +549,29 @@ export default createStore({
     },
     async parseConnectors(context, { location }) {
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (data.state === "PENDING" || data.state == "STARTED") {
-        setTimeout(() => {
-          context.dispatch("parseConnectors", {
-            location: location,
-          });
-        }, 2000);
-      } else {
-        context.commit("loadingConnector", true);
-        if (data.state === "SUCCESS") {
-          context.dispatch("updateConnectorsList", data.info);
-        } else if (data.state === "FAILURE") {
-          console.error(data.status);
+      try {
+        const { data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (data.state === "PENDING" || data.state == "STARTED") {
+          setTimeout(() => {
+            context.dispatch("parseConnectors", {
+              location: location,
+            });
+          }, 2000);
+        } else {
+          context.commit("loadingConnector", true);
+          if (data.state === "SUCCESS") {
+            context.dispatch("updateConnectorsList", data.info);
+          } else if (data.state === "FAILURE") {
+            console.error(data.status);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching connectors:", error);
+        context.commit("loadingConnector", false);
+        context.dispatch("updateConnectorsList", []);
       }
     },
     async updateConnector(context, { vm, connectorValues }) {
@@ -633,6 +643,12 @@ export default createStore({
     },
     loadingHost(state, loadingState) {
       state.isHostTableReady = loadingState;
+    },
+    hostLocalDeletion(state, hostId) {
+      const index = state.resources.hostList.findIndex((h) => h.id === hostId);
+      if (index !== -1) {
+        state.resources.hostList.splice(index, 1);
+      }
     },
     vmList(state, vmList) {
       state.resources.vmList = vmList;

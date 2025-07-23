@@ -168,8 +168,9 @@
         <div class="d-flex flex-column align-start w-100">
           <va-checkbox
             v-model="forceDelete"
-            label="Force Delete"
+            label="Force delete"
             class="mt-2"
+            :style="{ color: forceDelete ? 'black' : 'gray' }"
           />
         </div>
       </template>
@@ -332,34 +333,52 @@ export default defineComponent({
         });
     },
     deleteHost() {
-      axios
-        .delete(
-          `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$store.state.token}`,
-            },
-          }
-        )
-        .then((response) => {
-          this.$store.dispatch("requestHost", {
-            token: this.$store.state.token,
-          });
-          this.$vaToast.init({
-            title: response.data.state,
-            message: "Hypervisor has been successfully deleted",
-            color: "success",
-          });
-        })
-        .catch((error) => {
-          console.error(error);
-          this.$vaToast.init({
-            title: "Unable to delete Hypervisor",
-            message: error?.response?.data?.detail ?? error,
-            color: "danger",
-          });
+      if (this.forceDelete) {
+        // local deletion
+        // const index = this.$store.state.resources.hostList.findIndex(
+        //   (h) => h.id === this.selectedHost.id
+        // );
+        // if (index !== -1) {
+        //   this.$store.state.resources.hostList.splice(index, 1);
+        // }
+
+        this.$store.commit("hostLocalDeletion", this.selectedHost.id);
+
+        this.$vaToast.init({
+          title: "Local deletion",
+          message: "Hypervisor removed from display (not deleted from server)",
+          color: "warning",
         });
+      } else {
+        axios
+          .delete(
+            `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${this.$store.state.token}`,
+              },
+            }
+          )
+          .then((response) => {
+            this.$store.dispatch("requestHost", {
+              token: this.$store.state.token,
+            });
+            this.$vaToast.init({
+              title: response.data.state,
+              message: "Hypervisor has been successfully deleted",
+              color: "success",
+            });
+          })
+          .catch((error) => {
+            console.error(error);
+            this.$vaToast.init({
+              title: "Unable to delete Hypervisor",
+              message: error?.response?.data?.detail ?? error,
+              color: "danger",
+            });
+          });
+      }
     },
   },
 });
