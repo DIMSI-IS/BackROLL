@@ -38,6 +38,7 @@ from app.cloudstack import virtual_machine as cs_manage_vm
 
 from app.patch import make_path
 from app import shell
+from app.ssh import check_ssh_agent, ConnectionException
 
 
 class borg_backup:
@@ -60,6 +61,41 @@ class borg_backup:
         self.vm_name = ''
 
         if 'ip_address' in self.info and 'username' in self.info:
+            # Start SSH agent if not already running
+            if not check_ssh_agent():
+                result = shell.subprocess_run("ssh-agent -s")
+                for line in result.splitlines():
+                    if line.startswith("SSH_AUTH_SOCK"):
+                        key, value = line.split("=", 1)
+                        os.environ[key] = value.split(";")[0]
+                    elif line.startswith("SSH_AGENT_PID"):
+                        key, value = line.split("=", 1)
+                        os.environ[key] = value.split(";")[0]
+
+            # Add private keys to SSH agent
+            local_ssh_dir = os.path.join(os.getenv("SNAP_COMMON", "/var/snap/backroll/common"), ".ssh", "local_ssh")
+            private_keys = shell.os_popen(
+                f"find \"{local_ssh_dir}\" -type f -name 'id_*' ! -name '*.pub'"
+            ).splitlines()
+            if not private_keys:
+                raise ConnectionException(f"No private keys found in {local_ssh_dir}")
+
+            result = shell.subprocess_run(
+                f"ssh-add $(find \"{local_ssh_dir}\" -type f -name 'id_*' ! -name '*.pub')"
+            )
+
+            # Verify loaded keys
+            result = shell.subprocess_run("ssh-add -l")
+            if not result.strip():
+                raise ConnectionException("No SSH keys loaded in agent")
+
+            # Test SSH connection
+            username = self.info['username']
+            ip_address = self.info['ip_address']
+            shell.subprocess_run(
+                f"ssh -o StrictHostKeyChecking=no {username}@{ip_address} exit"
+            )
+
             # Starting hypervisor host ssh access
             self.host_ssh = paramiko.SSHClient()
             self.host_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
