@@ -5,7 +5,7 @@ from app import patch
 
 
 def get_task_info(task_id):
-    response = requests.get(f"http://flower:5555/api/task/info/{task_id}")
+    response = requests.get(f"http://localhost:5555/api/task/info/{task_id}")
     return response.content
 
 
@@ -13,7 +13,7 @@ def manage_task_args(task, redis_client=None):
     is_client_local = redis_client is None
 
     if is_client_local:
-        redis_client = redis.Redis(host="redis", port=6379, db=0)
+        redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
     celery_task_bytes = redis_client.get(f"celery-task-meta-{task["uuid"]}")
     if celery_task_bytes is not None:
@@ -28,7 +28,7 @@ def manage_task_args(task, redis_client=None):
 
 
 def manage_task_dict_args(task_dict):
-    redis_client = redis.Redis(host="redis", port=6379, db=0)
+    redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
     for task in task_dict.values():
         manage_task_args(task, redis_client)

@@ -159,7 +159,7 @@ def backup_creation(info):
 
 @celery_app.task(queue='backup_tasks', name='Single_VM_Backup', soft_time_limit=5400)
 def single_vm_backup(virtual_machine_info):
-    redis_client = Redis(host='redis', port=6379)
+    redis_client = Redis(host='localhost', port=6379)
     try:
         vm_lock_key = f'vmlock-{virtual_machine_info}'
         if not redis_client.exists(vm_lock_key):

@@ -55,7 +55,7 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
     for x in info:
         print(x)
 
-    redis_client = Redis(host='redis', port=6379)
+    redis_client = Redis(host='localhost', port=6379)
     try:
         vm_lock_key = f'vmlock-{info}'
         if not redis_client.exists(vm_lock_key):
