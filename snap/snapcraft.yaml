@@ -63,6 +63,8 @@ parts:
       - libvirt-dev
     stage-packages:
       - libvirt-dev
+      - qemu-utils
+
     plugin: python
     python-requirements:
       - requirements.txt
