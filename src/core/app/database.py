@@ -66,7 +66,7 @@ class Hosts(SQLModel, table=True):
     hostname: str
     ipaddress: str
     username: Optional[str] = None
-    ssh: Optional[bool] = 0
+    ssh: Optional[int] = 0
     pool_id: Optional[UUID] = Field(default=None, foreign_key="pools.id")
     tags: Optional[str] = None
     state: Optional[bool] = 0
@@ -77,7 +77,7 @@ class Hosts(SQLModel, table=True):
             "hostname": self.hostname,
             "ipaddress": self.ipaddress,
             "username": self.username,
-            "ssh": bool(self.ssh),
+            "ssh": int(self.ssh),
             "pool_id": str(self.pool_id),
             "tags": self.tags,
             "state": bool(self.state)
