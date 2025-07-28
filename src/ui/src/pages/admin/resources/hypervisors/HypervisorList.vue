@@ -339,7 +339,6 @@ export default defineComponent({
         })
         .catch((error) => {
           console.error(error);
-
           let message;
           if (host.ssh === 0) {
             message = `SSH connection is not configured for ${host.hostname}. Please link the SSH connection.`;
