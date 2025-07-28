@@ -116,7 +116,6 @@ export default {
     updateConnector() {
       this.$store.dispatch("updateConnector", {
         vm: this,
-        token: this.$store.state.token,
         connectorValues: this.formConnector,
       });
     },
@@ -133,9 +132,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestConnector", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestConnector");
           this.$router.push("/admin/configuration/connectors");
           this.$vaToast.init({
             title: response.data.state,

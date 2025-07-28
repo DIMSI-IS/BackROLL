@@ -105,7 +105,6 @@ export default {
     updateHypervisor() {
       this.$store.dispatch("updateHost", {
         vm: this,
-        token: this.$store.state.token,
         hostValues: this.exportHypervisor(),
       });
     },

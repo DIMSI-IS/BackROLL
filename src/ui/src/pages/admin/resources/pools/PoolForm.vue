@@ -114,7 +114,6 @@ export default {
     updatePool() {
       this.$store.dispatch("updatePool", {
         vm: this,
-        token: this.$store.state.token,
         poolValues: this.exportPool(),
       });
     },

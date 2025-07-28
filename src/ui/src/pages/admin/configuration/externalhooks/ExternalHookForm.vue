@@ -109,7 +109,6 @@ export default {
     updateHook() {
       this.$store.dispatch("updateExternalHook", {
         vm: this,
-        token: this.$store.state.token,
         hookValues: this.formHook,
       });
     },
@@ -126,9 +125,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestExternalHook", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestExternalHook");
           this.$router.push("/admin/configuration/externalhooks");
           this.$vaToast.init({
             title: response.data.state,
