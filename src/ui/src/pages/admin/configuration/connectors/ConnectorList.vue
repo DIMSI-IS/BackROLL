@@ -1,17 +1,11 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader
-        title="Connectors"
-        plus-button-title="Add connector"
-        plus-button-route="/admin/configuration/connectors/new"
-      />
+      <ListHeader title="Connectors" plus-button-title="Add connector"
+        plus-button-route="/admin/configuration/connectors/new" />
     </va-card-title>
     <va-card-content>
-      <va-data-table
-        :items="$store.state.resources.connectorList"
-        :columns="columns"
-      >
+      <va-data-table :items="$store.state.resources.connectorList" :columns="columns">
         <template #cell(name)="{ value }">
           {{ value }}
         </template>
@@ -20,29 +14,20 @@
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button
-              icon="settings"
-              @click="
-                this.$router.push(
-                  `/admin/configuration/connectors/${$store.state.resources.connectorList[rowIndex].id}`
-                )
-              "
-            />
-            <va-button
-              icon="delete"
-              @click="
-                (selectedConnector =
-                  $store.state.resources.connectorList[rowIndex]),
-                  (showDeleteModal = !showDeleteModal)
-              "
-            />
+            <va-button icon="settings" @click="
+              this.$router.push(
+                `/admin/configuration/connectors/${$store.state.resources.connectorList[rowIndex].id}`
+              )
+              " />
+            <va-button icon="delete" @click="
+            (selectedConnector =
+              $store.state.resources.connectorList[rowIndex]),
+              (showDeleteModal = !showDeleteModal)
+              " />
           </va-button-group>
         </template>
       </va-data-table>
-      <div
-        v-if="!$store.state.isexternalHookTableReady"
-        class="flex-center ma-3"
-      >
+      <div v-if="!$store.state.isexternalHookTableReady" class="flex-center ma-3">
         <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
       </div>
     </va-card-content>
@@ -57,8 +42,7 @@
     <hr />
     <div>
       You are about to remove connector
-      <b>{{ JSON.parse(JSON.stringify(this.selectedConnector)).name }}</b
-      >. <br />Please confirm action.
+      <b>{{ JSON.parse(JSON.stringify(this.selectedConnector)).name }}</b>. <br />Please confirm action.
     </div>
   </va-modal>
 </template>
@@ -121,9 +105,7 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestConnector", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestConnector");
           this.$vaToast.init({
             title: response.data.state,
             message: "connector has been successfully removed",

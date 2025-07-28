@@ -202,9 +202,7 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestPolicy", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestPolicy");
           this.$vaToast.init({
             title: response.data.state,
             message: "Policy has been successfully removed",

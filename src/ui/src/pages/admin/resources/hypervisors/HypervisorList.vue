@@ -222,9 +222,7 @@ export default defineComponent({
             }
           )
           .then((response) => {
-            this.$store.dispatch("requestHost", {
-              token: this.$store.state.token,
-            });
+            this.$store.dispatch("requestHost");
             this.$vaToast.init({
               title: response.data.state,
               message: `Successfully connected to ${this.selectedHost.hostname}`,
@@ -277,9 +275,7 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestHost", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestHost");
           this.$vaToast.init({
             title: response.data.state,
             message: "Hypervisor has been successfully deleted",

@@ -110,9 +110,7 @@ export default defineComponent({
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestPool", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestPool");
           this.$vaToast.init({
             title: response.data.state,
             message: "Pool has been successfully deleted",
