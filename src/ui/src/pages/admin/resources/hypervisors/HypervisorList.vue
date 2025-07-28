@@ -74,7 +74,7 @@
                 v-if="
                   $store.state.resources.hostList[rowIndex].state !==
                     'Reachable' ||
-                  !$store.state.resources.hostList[rowIndex].ssh
+                  $store.state.resources.hostList[rowIndex].ssh != 1
                 "
                 icon="link"
                 :disabled="sshKeys.length == 0"
@@ -261,6 +261,7 @@ export default defineComponent({
     showConnectModal(newValue, oldValue) {
       if (newValue && !oldValue) {
         this.isKeyCopied = false;
+        this.user = this.selectedHost?.username || null;
       }
     },
     currentTabKey() {
@@ -312,10 +313,14 @@ export default defineComponent({
       }
     },
 
-    refreshConnectHost(host = this.selectedHost, user = this.user) {
-      const username = this.user || this.selectedHost?.username;
-
-      axios
+    refreshConnectHost(
+      host = this.selectedHost,
+      user = this.user,
+      silent = false
+    ) {
+      // const username = this.user || this.selectedHost?.username;
+      const username = this.user;
+      return axios
         .post(
           `${this.$store.state.endpoint.api}/api/v1/connect/${host.id}`,
           { ip_address: host.ipaddress, username: user },
@@ -330,29 +335,33 @@ export default defineComponent({
           this.$store.dispatch("requestHost", {
             token: this.$store.state.token,
           });
-          this.$vaToast.init({
-            title: response.data.state,
-            message: `Successfully connected to ${host.hostname} with ${user} user.`,
-            color: "success",
-          });
+          if (!silent) {
+            this.$vaToast.init({
+              title: response.data.state,
+              message: `Successfully connected to ${host.hostname} with ${user} user.`,
+              color: "success",
+            });
+          }
           this.showConnectModal = false;
         })
         .catch((error) => {
           console.error(error);
-          let message;
-          if (host.ssh === 0) {
-            message = `SSH connection is not configured for ${host.hostname}. Please link the SSH connection.`;
-          } else if (host.ssh === 2) {
-            message = `Unable to connect to ${host.hostname} with ${user} user.`;
-          } else {
-            message = `Connection error for ${host.hostname}.`;
-          }
+          if (!silent) {
+            let message;
+            if (host.ssh === 0) {
+              message = `SSH connection is not configured for ${host.hostname}. Please link the SSH connection.`;
+            } else if (host.ssh === 2) {
+              message = `Unable to connect to ${host.hostname} with ${user} user.`;
+            } else {
+              message = `Connection error for ${host.hostname}.`;
+            }
 
-          this.$vaToast.init({
-            title: "Error",
-            message,
-            color: "danger",
-          });
+            this.$vaToast.init({
+              title: "Error",
+              message,
+              color: "danger",
+            });
+          }
         });
     },
 
@@ -380,25 +389,23 @@ export default defineComponent({
         });
     },
     deleteHost() {
-      // if (this.forceDelete) {
-      //   // this.$store.commit("hostLocalDeletion", this.selectedHost.id);
-
-      //   this.$vaToast.init({
-      //     title: "Local deletion",
-      //     message: "Hypervisor removed from display (not deleted from server)",
-      //     color: "warning",
-      //   });
-      // } else {
-      axios
-        .delete(
-          `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$store.state.token}`,
-            },
-          }
-        )
+      this.refreshConnectHost(
+        this.selectedHost,
+        this.selectedHost.username,
+        true
+      )
+        .catch(() => {})
+        .then(() => {
+          return axios.delete(
+            `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${this.$store.state.token}`,
+              },
+            }
+          );
+        })
         .then((response) => {
           this.$store.dispatch("requestHost", {
             token: this.$store.state.token,
@@ -426,7 +433,6 @@ export default defineComponent({
             color: "danger",
           });
         });
-      // }
     },
   },
 });
