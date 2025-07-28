@@ -15,6 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+# THIS FILE DOESN'T SEEM TO BE USED ANYWHERE IN THE PROJECT
+
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
 from app.patch import ensure_uuid

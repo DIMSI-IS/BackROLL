@@ -69,6 +69,7 @@ export default {
       hypersivorId: this.$route.params.id,
       formHypervisor: {
         hostname: null,
+        username: null,
         ipAddress: null,
         tags: null,
       },
@@ -121,7 +122,7 @@ export default {
       if (this.selectedPool) {
         hypervisor.pool_id = this.selectedPool.value;
       }
-
+      hypervisor.username = this.formHypervisor.username || "root";
       return hypervisor;
     },
     updateHypervisor() {

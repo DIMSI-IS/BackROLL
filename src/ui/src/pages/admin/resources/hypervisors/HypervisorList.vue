@@ -33,20 +33,31 @@
               {{ value }}
             </va-chip>
           </template>
+          <template #cell(tags)="{ value }">
+            <va-chip v-if="value" size="small" square outline>
+              {{ value }}
+            </va-chip>
+          </template>
           <template #cell(ssh)="{ value }">
             <va-chip
               size="small"
               square
               outline
-              :color="value ? 'success' : 'warning'"
+              :color="
+                value == 1 ? 'success' : value == 0 ? 'danger' : 'warning'
+              "
             >
-              <va-icon v-if="!value" name="warning" />
-              {{ JSON.parse(value) ? "Configured" : "Unconfigured" }}
-            </va-chip>
-          </template>
-          <template #cell(tags)="{ value }">
-            <va-chip v-if="value" size="small" square outline>
-              {{ value }}
+              <!-- <va-icon
+                v-if="!value"
+                name="warning"
+              /> -->
+              {{
+                value == 1
+                  ? "Configured"
+                  : value == 0
+                  ? "Unconfigured"
+                  : "Unable to connect"
+              }}
             </va-chip>
           </template>
           <template #cell(state)="{ value }">
@@ -82,6 +93,15 @@
                   (selectedHost = $store.state.resources.hostList[rowIndex]),
                     (showDeleteModal = true)
                 "
+              />
+              <va-button
+                @click="
+                  refreshConnectHost(
+                    $store.state.resources.hostList[rowIndex],
+                    $store.state.resources.hostList[rowIndex].username
+                  )
+                "
+                icon="refresh"
               />
             </va-button-group>
           </template>
@@ -163,8 +183,8 @@
         <b>{{ JSON.parse(JSON.stringify(this.selectedHost)).hostname }}</b
         >. <br />Please confirm action.
       </div>
-
-      <template #footer>
+      <!-- // Currently not necessary-->
+      <!-- <template #footer>
         <div class="d-flex flex-column align-start w-100">
           <va-checkbox
             v-model="forceDelete"
@@ -173,7 +193,7 @@
             :style="{ color: forceDelete ? 'black' : 'gray' }"
           />
         </div>
-      </template>
+      </template> -->
     </va-modal>
   </div>
 </template>
@@ -197,8 +217,9 @@ export default defineComponent({
         { key: "hostname" },
         { key: "pool_id", label: "Pool", sortable: true },
         { key: "ipaddress" },
-        { key: "ssh", label: "SSH Connection" },
         { key: "tags", sortable: true },
+        { key: "ssh", label: "SSH Connection" },
+
         { key: "state", sortable: true },
         { key: "actions" },
       ],
@@ -277,38 +298,51 @@ export default defineComponent({
     },
     connectHost() {
       if (this.validation) {
-        axios
-          .post(
-            `${this.$store.state.endpoint.api}/api/v1/connect/${this.selectedHost.id}`,
-            { ip_address: this.selectedHost.ipaddress, username: this.user },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.$store.state.token}`,
-              },
-            }
-          )
-          .then((response) => {
-            this.$store.dispatch("requestHost", {
-              token: this.$store.state.token,
-            });
-            this.$vaToast.init({
-              title: response.data.state,
-              message: `Successfully connected to ${this.selectedHost.hostname}`,
-              color: "success",
-            });
-            this.showConnectModal = false;
-          })
-          .catch((error) => {
-            console.error(error);
-            this.$vaToast.init({
-              title: "Error",
-              message: error?.response?.data?.detail ?? error,
-              color: "danger",
-            });
-          });
+        this.refreshConnectHost();
+      } else {
+        this.$vaToast.init({
+          title: "Validation Error",
+          message: "Please fill in the required fields.",
+          color: "warning",
+        });
       }
     },
+
+    refreshConnectHost(host = this.selectedHost, user = this.user) {
+      const username = this.user || this.selectedHost?.username;
+
+      axios
+        .post(
+          `${this.$store.state.endpoint.api}/api/v1/connect/${host.id}`,
+          { ip_address: host.ipaddress, username: user },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.$store.state.token}`,
+            },
+          }
+        )
+        .then((response) => {
+          this.$store.dispatch("requestHost", {
+            token: this.$store.state.token,
+          });
+          this.$vaToast.init({
+            title: response.data.state,
+            message: `Successfully connected to ${host.hostname} with ${user} user.`,
+            color: "success",
+          });
+          this.showConnectModal = false;
+        })
+        .catch((error) => {
+          console.error(error);
+          this.$vaToast.init({
+            title: "Error",
+            message: `Unable to connect to ${host.hostname} with ${user} user.`,
+            color: "danger",
+          });
+        });
+    },
+
     requestKeys() {
       axios
         .get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, {
@@ -333,52 +367,53 @@ export default defineComponent({
         });
     },
     deleteHost() {
-      if (this.forceDelete) {
-        // local deletion
-        // const index = this.$store.state.resources.hostList.findIndex(
-        //   (h) => h.id === this.selectedHost.id
-        // );
-        // if (index !== -1) {
-        //   this.$store.state.resources.hostList.splice(index, 1);
-        // }
+      // if (this.forceDelete) {
+      //   // this.$store.commit("hostLocalDeletion", this.selectedHost.id);
 
-        this.$store.commit("hostLocalDeletion", this.selectedHost.id);
-
-        this.$vaToast.init({
-          title: "Local deletion",
-          message: "Hypervisor removed from display (not deleted from server)",
-          color: "warning",
-        });
-      } else {
-        axios
-          .delete(
-            `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.$store.state.token}`,
-              },
-            }
-          )
-          .then((response) => {
-            this.$store.dispatch("requestHost", {
-              token: this.$store.state.token,
-            });
-            this.$vaToast.init({
-              title: response.data.state,
-              message: "Hypervisor has been successfully deleted",
-              color: "success",
-            });
-          })
-          .catch((error) => {
-            console.error(error);
-            this.$vaToast.init({
-              title: "Unable to delete Hypervisor",
-              message: error?.response?.data?.detail ?? error,
-              color: "danger",
-            });
+      //   this.$vaToast.init({
+      //     title: "Local deletion",
+      //     message: "Hypervisor removed from display (not deleted from server)",
+      //     color: "warning",
+      //   });
+      // } else {
+      axios
+        .delete(
+          `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.$store.state.token}`,
+            },
+          }
+        )
+        .then((response) => {
+          this.$store.dispatch("requestHost", {
+            token: this.$store.state.token,
           });
-      }
+          this.$vaToast.init({
+            title: response.data.state,
+            message: "Hypervisor has been successfully deleted",
+            color: "success",
+          });
+
+          if (this.selectedHost.ssh === 2) {
+            this.$vaToast.init({
+              title: "Warning",
+              message:
+                "SSH keys may not have been removed from the hypervisor (SSH connection was in error state).",
+              color: "warning",
+            });
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          this.$vaToast.init({
+            title: "Unable to delete Hypervisor",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
+        });
+      // }
     },
   },
 });

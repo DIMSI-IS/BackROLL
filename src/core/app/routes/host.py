@@ -44,6 +44,7 @@ class items_create_host(BaseModel):
     tags: Optional[str] = None
     ip_address: str
     pool_id: UUID
+    username: str
 
     class Config:
         schema_extra = {
@@ -52,6 +53,7 @@ class items_create_host(BaseModel):
                 "tags": "production_server",
                 "ip_address": "192.168.1.200",
                 "pool_id": "679b3dd4-a39f-11ec-b909-0242ac120002",
+                "username": "root",
             }
         }
 
@@ -61,6 +63,7 @@ class items_update_host(BaseModel):
     tags: Optional[str] = None
     ip_address: Optional[str] = None
     pool_id: Optional[UUID] = None
+    username: str
 
     class Config:
         schema_extra = {
@@ -165,28 +168,29 @@ def api_update_host(host_id, hostname, tags, ipaddress, pool_id):
         print(e)
         raise ValueError(e)
 
+    
 
 @celery_app.task(name='List registered hosts')
 def retrieve_host():
     engine = database.init_db_connection()
 
     try:
-        records = []
         with Session(engine) as session:
             statement = select(Hosts)
             results = session.exec(statement)
-            for host in results:
-                records.append(host)
-        for host in records:
+            hosts = session.exec(statement).all()
+
+        for host in hosts:
             try:
                 shell.os_system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
                 host.state = 'Reachable'
             except shell.ShellException:
                 # TODO Be more precise than before and check the exit code ?
                 host.state = 'Unreachable'
-        return jsonable_encoder(records)
+        return jsonable_encoder(hosts)
     except Exception as e:
         raise ValueError(e)
+
 
 
 def api_delete_host(host_id):
