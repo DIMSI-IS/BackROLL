@@ -240,8 +240,8 @@ export default {
       }
       axios.post(url, args, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
-          this.$store.dispatch("requestBackupTask", { token: this.$store.state.token })
-          this.$store.dispatch("requestRestoreTask", { token: this.$store.state.token })
+          this.$store.dispatch("requestBackupTask")
+          this.$store.dispatch("requestRestoreTask")
           if (this.jobSelection.type === 'restore') {
             this.$router.push('/admin/tasks/restore');
           } else {
