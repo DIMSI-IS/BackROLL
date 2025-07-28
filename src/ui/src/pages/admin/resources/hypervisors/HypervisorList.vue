@@ -71,7 +71,11 @@
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
               <va-button
-                v-if="!$store.state.resources.hostList[rowIndex].ssh"
+                v-if="
+                  $store.state.resources.hostList[rowIndex].state !==
+                    'Reachable' ||
+                  !$store.state.resources.hostList[rowIndex].ssh
+                "
                 icon="link"
                 :disabled="sshKeys.length == 0"
                 @click="
@@ -335,9 +339,19 @@ export default defineComponent({
         })
         .catch((error) => {
           console.error(error);
+
+          let message;
+          if (host.ssh === 0) {
+            message = `SSH connection is not configured for ${host.hostname}. Please link the SSH connection.`;
+          } else if (host.ssh === 2) {
+            message = `Unable to connect to ${host.hostname} with ${user} user.`;
+          } else {
+            message = `Connection error for ${host.hostname}.`;
+          }
+
           this.$vaToast.init({
             title: "Error",
-            message: `Unable to connect to ${host.hostname} with ${user} user.`,
+            message,
             color: "danger",
           });
         });
