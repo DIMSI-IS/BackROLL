@@ -44,7 +44,7 @@ class items_create_host(BaseModel):
     tags: Optional[str] = None
     ip_address: str
     pool_id: UUID
-    username: str
+    # username: str
 
     class Config:
         schema_extra = {
@@ -53,7 +53,7 @@ class items_create_host(BaseModel):
                 "tags": "production_server",
                 "ip_address": "192.168.1.200",
                 "pool_id": "679b3dd4-a39f-11ec-b909-0242ac120002",
-                "username": "root",
+                # "username": "root",
             }
         }
 
@@ -63,7 +63,7 @@ class items_update_host(BaseModel):
     tags: Optional[str] = None
     ip_address: Optional[str] = None
     pool_id: Optional[UUID] = None
-    username: str
+    # username: str
 
     class Config:
         schema_extra = {
