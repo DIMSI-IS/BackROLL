@@ -9,10 +9,12 @@ export default {
     setInterval(() => {
       if (this.$store.state.token) {
         // Read-only data that can be refreshed without any conflict.
-        this.$store.dispatch("requestVirtualMachine");
+
         this.$store.dispatch("requestJob");
         this.$store.dispatch("requestBackupTask");
         this.$store.dispatch("requestRestoreTask");
+
+        this.$store.dispatch("requestVirtualMachine");
       }
     }, 10000);
   },
