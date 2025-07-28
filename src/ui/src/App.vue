@@ -7,14 +7,8 @@ export default {
   props: ["refreshPool"],
   mounted() {
     setInterval(() => {
-      //this.$store.dispatch("requestConnector")
-      //this.$store.dispatch("requestPool")
-      //this.$store.dispatch("requestHost")
-      //this.$store.dispatch("requestPolicy")
-
-      //this.$store.dispatch("requestStorage");
-      //this.$store.dispatch("requestExternalHook");
       if (this.$store.state.token) {
+        // Read-only data that can be refreshed without any conflict.
         this.$store.dispatch("requestVirtualMachine");
         this.$store.dispatch("requestJob");
         this.$store.dispatch("requestBackupTask");

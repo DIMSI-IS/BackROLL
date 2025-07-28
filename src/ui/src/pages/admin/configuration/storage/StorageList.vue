@@ -118,7 +118,10 @@ export default defineComponent({
       } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
       return bytes.toFixed(dp) + ' ' + units[u];
     }
-  }
+  },
+  mounted() {
+    this.$store.dispatch("requestStorage");
+  },
 })
 </script>
 <style scoped>

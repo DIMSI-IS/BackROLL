@@ -72,6 +72,9 @@ export default defineComponent({
   mounted() {
     this.lineChartData = getLineChartData(this.theme)
     this.donutChartData = getDonutChartData(this.theme, this.poolListName, this.vmListCountperPool)
+
+    // TODO Add all dependecies.
+    this.$store.dispatch("requestBackupTask");
   },
   watch: {
     '$themes.success'() {

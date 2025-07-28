@@ -1,36 +1,18 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader
-        title="Virtual machines"
-        :dependencies-resolved="areDependenciesResolved"
-        dependencies-message="You need to add an hypervisor."
-        go-button-title="Go to hypervisors"
-        go-button-route="/admin/resources/hypervisors"
-      />
+      <ListHeader title="Virtual machines" :dependencies-resolved="areDependenciesResolved"
+        dependencies-message="You need to add an hypervisor." go-button-title="Go to hypervisors"
+        go-button-route="/admin/resources/hypervisors" />
     </va-card-title>
     <va-card-content>
       <div class="row">
-        <va-input
-          class="flex mb-2 md6"
-          placeholder="Filter..."
-          v-model="filter"
-        />
-        <va-checkbox
-          class="flex mb-2 md6"
-          label="Look for an exact match"
-          v-model="useCustomFilteringFn"
-        />
+        <va-input class="flex mb-2 md6" placeholder="Filter..." v-model="filter" />
+        <va-checkbox class="flex mb-2 md6" label="Look for an exact match" v-model="useCustomFilteringFn" />
       </div>
-      <va-data-table
-        :current-page="currentPage"
-        :per-page="perPage"
-        :items="$store.state.resources.vmList"
-        :columns="columns"
-        :filter="filter"
-        :filter-method="customFilteringFn"
-        @filtered="filteredCount = $event.items.length"
-      >
+      <va-data-table :current-page="currentPage" :per-page="perPage" :items="$store.state.resources.vmList"
+        :columns="columns" :filter="filter" :filter-method="customFilteringFn"
+        @filtered="filteredCount = $event.items.length">
         <template #header(cpus)>CPU</template>
         <template #header(mem)>Memory</template>
         <template #header(host)>Hypervisor</template>
@@ -46,12 +28,7 @@
           </va-chip>
         </template>
         <template #cell(host)="{ value }">
-          <va-chip
-            v-if="value"
-            size="small"
-            square
-            @click="this.$router.push('/admin/resources/hypervisors')"
-          >
+          <va-chip v-if="value" size="small" square @click="this.$router.push('/admin/resources/hypervisors')">
             {{ getHost(value).hostname }}
           </va-chip>
         </template>
@@ -61,10 +38,7 @@
           </va-chip>
         </template>
         <template #cell(state)="{ value }">
-          <va-chip
-            size="small"
-            :color="value === 'Running' ? 'success' : 'dark'"
-          >
+          <va-chip size="small" :color="value === 'Running' ? 'success' : 'dark'">
             <va-icon :name="value === 'Running' ? 'bolt' : 'power_off'" />
             <span style="padding-left: 5px">
               {{ value }}
@@ -73,26 +47,17 @@
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button
-              icon="info"
-              @click="
-                this.$router.push(
-                  `/resources/virtualmachines/${$store.state.resources.vmList[rowIndex].uuid}`
-                )
-              "
-            />
+            <va-button icon="info" @click="
+              this.$router.push(
+                `/resources/virtualmachines/${$store.state.resources.vmList[rowIndex].uuid}`
+              )
+              " />
           </va-button-group>
         </template>
         <template #bodyAppend>
           <tr>
             <td colspan="8" class="table-example--pagination">
-              <va-pagination
-                v-model="currentPage"
-                input
-                :pages="pages"
-                size="small"
-                flat
-              />
+              <va-pagination v-model="currentPage" input :pages="pages" size="small" flat />
             </td>
           </tr>
         </template>
@@ -166,6 +131,9 @@ export default defineComponent({
       });
       return result[0];
     },
+  },
+  mounted() {
+    this.$store.dispatch("requestVirtualMachine");
   },
 });
 </script>
