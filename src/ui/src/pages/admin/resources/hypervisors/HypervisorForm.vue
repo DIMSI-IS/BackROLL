@@ -121,6 +121,7 @@ export default {
       if (this.selectedPool) {
         hypervisor.pool_id = this.selectedPool.value;
       }
+
       return hypervisor;
     },
     updateHypervisor() {

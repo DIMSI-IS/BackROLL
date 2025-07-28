@@ -61,7 +61,6 @@ class items_update_host(BaseModel):
     tags: Optional[str] = None
     ip_address: Optional[str] = None
     pool_id: Optional[UUID] = None
-    # username: str
 
     class Config:
         schema_extra = {
@@ -187,7 +186,6 @@ def retrieve_host():
         return jsonable_encoder(hosts)
     except Exception as e:
         raise ValueError(e)
-
 
 
 def api_delete_host(host_id):

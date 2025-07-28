@@ -114,7 +114,6 @@ class ConnectionException(Exception):
 def init_ssh_connection(host_id, ip_address, username):
     shell.subprocess_run(f"ls -al {__get_local_ssh_directory().as_posix()}")
 
-    
     engine = database.init_db_connection()
     with Session(engine) as session:
         statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
