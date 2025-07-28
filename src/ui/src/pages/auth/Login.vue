@@ -10,8 +10,7 @@
       <va-card-content>
         <va-form ref="form" @submit.prevent="submit">
           <va-input class="mb-3" label="Username" v-model="username" />
-          <va-input class="mb-3" label="Password" v-model="password" type="password"
-            @keydown.enter.prevent="submitOnEnter" />
+          <va-input class="mb-3" label="Password" v-model="password" type="password" @keydown.enter.prevent="submit" />
         </va-form>
         <va-button class="mb-3" @click="submit">
           {{ "Login" }}
