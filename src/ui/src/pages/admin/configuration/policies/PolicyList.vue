@@ -148,7 +148,6 @@ export default defineComponent({
       policy.state = 0
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$store.state.token,
         policyValues: policy,
       })
     },
@@ -157,7 +156,6 @@ export default defineComponent({
       policy.state = 1
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$store.state.token,
         policyValues: policy,
       })
     }

@@ -120,7 +120,6 @@ export default {
       const { id, name, path } = this.formStorage;
       this.$store.dispatch("updateStorage", {
         vm: this,
-        token: this.$store.state.token,
         storageId: id,
         name,
         path,
@@ -140,9 +139,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestStorage", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestStorage");
           this.$router.push("/admin/configuration/storage");
           this.$vaToast.init({
             title: response.data.state,

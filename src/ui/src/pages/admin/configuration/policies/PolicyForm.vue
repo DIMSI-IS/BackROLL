@@ -199,7 +199,6 @@ export default {
     updatePolicy() {
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$store.state.token,
         policyValues: this.exportPolicy(),
       });
     },
@@ -216,9 +215,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestPolicy", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestPolicy");
           this.$router.push("/admin/configuration/policies");
           this.$vaToast.init({
             title: response.data.state,
