@@ -66,32 +66,7 @@ export default defineComponent({
       selectedConnector: null,
     };
   },
-  mounted() {
-    this.$store.dispatch("requestConnector", {
-      token: this.$store.state.token,
-    });
-  },
-  computed: {},
   methods: {
-    // async onSubmit() {
-    //   const result = await this.$store.dispatch("updateConnector", {
-    //     connectorValues: this.connectorValues,
-    //   });
-
-    //   if (result.success) {
-    //     this.$router.push("/admin/configuration/connectors");
-    //     this.$vaToast.init({
-    //       message: "Connector has been successfully updated",
-    //       color: "success",
-    //     });
-    //   } else {
-    //     this.$vaToast.init({
-    //       title: "Error!",
-    //       message: result.message,
-    //       color: "danger",
-    //     });
-    //   }
-    // },
     deleteConnector() {
       const connector = { ...this.selectedConnector };
       axios
@@ -121,6 +96,9 @@ export default defineComponent({
           });
         });
     },
+  },
+  mounted() {
+    this.$store.dispatch("requestConnector");
   },
 });
 </script>
