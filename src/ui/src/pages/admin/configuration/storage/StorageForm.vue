@@ -1,13 +1,10 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader
-        :title="
-          storageId
-            ? `Updating storage ${stateStorage?.name ?? ''}`
-            : 'Adding storage'
-        "
-      />
+      <FormHeader :title="storageId
+        ? `Updating storage ${stateStorage?.name ?? ''}`
+        : 'Adding storage'
+        " />
     </va-card-title>
     <va-card-content v-if="!storageId || stateStorage">
       <va-alert border="top" class="mb-4">
@@ -18,33 +15,22 @@
         containers.<br />
         To do this, update the following portion in the docker-compose:
         <code class="consoleStyle">
-          volumes:<br />
-          - /mnt:/mnt
-        </code>
+  volumes:<br />
+  - /mnt:/mnt
+</code>
         This example gives access to the /mnt directory where NFS shares
         dedicated to backup storage can be mounted.
       </va-alert>
       <va-form ref="form">
-        <va-input
-          label="Name"
-          v-model="formStorage.name"
-          :rules="storageNameRules"
-        />
+        <va-input label="Name" v-model="formStorage.name" :rules="storageNameRules" />
         <br />
-        <va-input
-          label="Path"
-          placeholder="eg. /mnt/myNFSbackend"
-          v-model="formStorage.path"
-          :rules="storagePathRules"
-        />
+        <va-input label="Path" placeholder="eg. /mnt/myNFSbackend" v-model="formStorage.path"
+          :rules="storagePathRules" />
         <br />
-        <va-button
-          class="mb-3"
-          @click="
-            $refs.form.validate() &&
-              (storageId ? updateStorage() : addStorage())
-          "
-        >
+        <va-button class="mb-3" @click="
+          $refs.form.validate() &&
+          (storageId ? updateStorage() : addStorage())
+          ">
           {{ storageId ? "Update" : "Add" }}
         </va-button>
       </va-form>
@@ -102,9 +88,6 @@ export default {
       ],
     };
   },
-  mounted() {
-    this.$store.dispatch("requestStorage");
-  },
   computed: {
     otherStorageList() {
       return this.$store.state.storageList.filter(
@@ -129,11 +112,6 @@ export default {
     stateStorage: function () {
       this.propagateStateStorage();
     },
-  },
-  mounted() {
-    if (this.stateStorage) {
-      this.propagateStateStorage();
-    }
   },
   methods: {
     propagateStateStorage() {
@@ -179,6 +157,13 @@ export default {
           });
         });
     },
+  },
+  mounted() {
+    // TODO Wait for the refreshed data ?
+    this.$store.dispatch("requestStorage");
+    if (this.stateStorage) {
+      this.propagateStateStorage();
+    }
   },
 };
 </script>

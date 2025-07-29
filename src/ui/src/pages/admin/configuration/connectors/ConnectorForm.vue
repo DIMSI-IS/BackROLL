@@ -1,13 +1,10 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader
-        :title="
-          connectorId
-            ? `Updating connector ${stateConnector?.name ?? ''}`
-            : 'Adding connector'
-        "
-      />
+      <FormHeader :title="connectorId
+        ? `Updating connector ${stateConnector?.name ?? ''}`
+        : 'Adding connector'
+        " />
     </va-card-title>
     <va-card-content v-if="!connectorId || stateConnector">
       <va-alert color="info" icon="info" dense>
@@ -15,48 +12,28 @@
       </va-alert>
       <br />
       <va-form ref="form">
-        <va-input
-          label="Name"
-          v-model="formConnector.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+        <va-input label="Name" v-model="formConnector.name"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          label="Endpoint URL"
-          v-model="formConnector.url"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+        <va-input label="Endpoint URL" v-model="formConnector.url"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          label="Login"
-          v-model="formConnector.login"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        />
+        <va-input label="Login" v-model="formConnector.login"
+          :rules="[(value) => value?.length > 0 || 'Field is required']" />
         <br />
-        <va-input
-          v-model="formConnector.password"
-          :type="isPasswordVisible ? 'text' : 'password'"
-          label="Password"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
-        >
+        <va-input v-model="formConnector.password" :type="isPasswordVisible ? 'text' : 'password'" label="Password"
+          :rules="[(value) => value?.length > 0 || 'Field is required']">
           <template #appendInner>
-            <va-icon
-              :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
-              size="small"
-              color="--va-primary"
-              @click="isPasswordVisible = !isPasswordVisible"
-            />
+            <va-icon :name="isPasswordVisible ? 'visibility_off' : 'visibility'" size="small" color="--va-primary"
+              @click="isPasswordVisible = !isPasswordVisible" />
           </template>
         </va-input>
       </va-form>
       <br />
-      <va-button
-        class="mb-3"
-        @click="
-          $refs.form.validate() &&
-            (connectorId ? updateConnector() : addConnector())
-        "
-      >
+      <va-button class="mb-3" @click="
+        $refs.form.validate() &&
+        (connectorId ? updateConnector() : addConnector())
+        ">
         {{ connectorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -89,9 +66,6 @@ export default {
       isPasswordVisible: false,
     };
   },
-  mounted() {
-    this.$store.dispatch("requestConnector");
-  },
   computed: {
     stateConnector() {
       return this.$store.state.resources.connectorList.find(
@@ -103,11 +77,6 @@ export default {
     stateConnector: function () {
       this.propagateStateConnector();
     },
-  },
-  mounted() {
-    if (this.stateConnector) {
-      this.propagateStateConnector();
-    }
   },
   methods: {
     propagateStateConnector() {
@@ -149,6 +118,13 @@ export default {
           });
         });
     },
+  },
+  mounted() {
+    // TODO Wait ?
+    this.$store.dispatch("requestConnector");
+    if (this.stateConnector) {
+      this.propagateStateConnector();
+    }
   },
 };
 </script>
