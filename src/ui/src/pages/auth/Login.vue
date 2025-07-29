@@ -1,13 +1,8 @@
 <template>
   <div class="login-wrapper">
     <h1 class="login-title">Welcome to</h1>
-    <img
-      class="va-icon-vuestic logo"
-      height="80"
-      style="margin-bottom: 2rem"
-      src="/img/logo2-deg-backroll-cropped.9feb6084.svg"
-      data-v-45c0bfaf=""
-    />
+    <img class="va-icon-vuestic logo" height="80" style="margin-bottom: 2rem"
+      src="/img/logo2-deg-backroll-cropped.9feb6084.svg" data-v-45c0bfaf="" />
     <va-card class="login-form">
       <va-card-title>
         <h1>Please login to continue</h1>
@@ -15,20 +10,13 @@
       <va-card-content>
         <va-form ref="form" @submit.prevent="submit">
           <va-input class="mb-3" label="Username" v-model="username" />
-          <va-input
-            class="mb-3"
-            label="Password"
-            v-model="password"
-            type="password"
-            @keydown.enter.prevent="submitOnEnter"
-          />
+          <va-input class="mb-3" label="Password" v-model="password" type="password" @keydown.enter.prevent="submit" />
         </va-form>
         <va-button class="mb-3" @click="submit">
           {{ "Login" }}
         </va-button>
         <div class="links">
-          <a href="#">Forgot password?</a
-          ><!-- TODO -->
+          <a href="#">Forgot password?</a><!-- TODO -->
         </div>
       </va-card-content>
     </va-card>

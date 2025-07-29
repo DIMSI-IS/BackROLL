@@ -131,7 +131,7 @@ export default defineComponent({
       const policy = { ...this.selectedPolicy }
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/backup_policies/${policy.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
-          this.$store.dispatch("requestPolicy", { token: this.$store.state.token })
+          this.$store.dispatch("requestPolicy")
           this.$vaToast.init({ title: response.data.state, message: 'Policy has been successfully removed', color: 'success' })
         })
         .catch(error => {
@@ -148,7 +148,6 @@ export default defineComponent({
       policy.state = 0
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$store.state.token,
         policyValues: policy,
       })
     },
@@ -157,7 +156,6 @@ export default defineComponent({
       policy.state = 1
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$store.state.token,
         policyValues: policy,
       })
     }
