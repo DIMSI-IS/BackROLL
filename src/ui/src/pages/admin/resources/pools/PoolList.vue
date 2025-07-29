@@ -21,10 +21,15 @@
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings"
-              @click="this.$router.push(`/admin/resources/pools/${$store.state.resources.poolList[rowIndex].id}`)" />
-            <va-button icon="delete"
-              @click="selectedPool = $store.state.resources.poolList[rowIndex], showDeleteModal = !showDeleteModal" />
+            <va-button icon="settings" @click="
+              this.$router.push(
+                `/admin/resources/pools/${$store.state.resources.poolList[rowIndex].id}`
+              )
+              " />
+            <va-button icon="delete" @click="
+              (selectedPool = $store.state.resources.poolList[rowIndex]),
+              (showDeleteModal = !showDeleteModal)
+              " />
           </va-button-group>
         </template>
       </va-data-table>
@@ -40,23 +45,23 @@
         Removing Pool
       </h2>
     </template>
-    <hr>
+    <hr />
     <div>
-      You are about to remove Pool <b>{{ JSON.parse(JSON.stringify(this.selectedPool)).name }}</b>.
-      <br>Please confirm action.
+      You are about to remove Pool
+      <b>{{ JSON.parse(JSON.stringify(this.selectedPool)).name }}</b>. <br />Please confirm action.
     </div>
   </va-modal>
 </template>
 
 <script>
-import axios from 'axios'
-import { defineComponent } from 'vue'
-import * as spinners from 'epic-spinners'
+import axios from "axios";
+import { defineComponent } from "vue";
+import * as spinners from "epic-spinners";
 
-import ListHeader from "@/components/lists/ListHeader.vue"
+import ListHeader from "@/components/lists/ListHeader.vue";
 
 export default defineComponent({
-  name: 'PoolsTable',
+  name: "PoolsTable",
   components: {
     ...spinners,
     ListHeader,
@@ -64,69 +69,93 @@ export default defineComponent({
   data() {
     return {
       columns: [
-        { key: 'name' },
-        { key: 'policy_id', label: "Assigned policy" },
-        { key: 'connector_id', label: "Connector" },
-        { key: 'actions' }
+        { key: "name" },
+        { key: "policy_id", label: "Assigned policy" },
+        { key: "connector_id", label: "Connector" },
+        { key: "actions" },
       ],
       showDeleteModal: false,
-      selectedPool: null
-    }
+      selectedPool: null,
+    };
   },
   computed: {
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
-      return !this.$store.state.isPolicyTableReady || this.$store.state.resources.policyList.length > 0;
-    }
+      return (
+        !this.$store.state.isPolicyTableReady ||
+        this.$store.state.resources.policyList.length > 0
+      );
+    },
   },
   methods: {
     getConnector(id) {
-      const result = this.$store.state.resources.connectorList.find(item => item.id === id)
+      const result = this.$store.state.resources.connectorList.find(
+        (item) => item.id === id
+      );
       if (result) {
-        return result.name.toUpperCase()
+        return result.name.toUpperCase();
       } else {
-        return null
+        return null;
       }
     },
     deletePool() {
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/pools/${this.selectedPool.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
-        .then(response => {
-          this.$store.dispatch("requestPool")
-          this.$vaToast.init({ title: response.data.state, message: 'Pool has been successfully deleted', color: 'success' })
-        })
-        .catch(error => {
-          console.error(error)
+      axios
+        .delete(
+          `${this.$store.state.endpoint.api}/api/v1/pools/${this.selectedPool.id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.$store.state.token}`,
+            },
+          }
+        )
+        .then((response) => {
+          this.$store.dispatch("requestPool");
           this.$vaToast.init({
-            title: 'Unable to delete pool',
-            message: error?.response?.data?.detail ?? error,
-            color: 'danger'
-          })
+            title: response.data.state,
+            message: "Pool has been successfully deleted",
+            color: "success",
+          });
         })
+        .catch((error) => {
+          console.error(error);
+          this.$vaToast.init({
+            title: "Unable to delete pool",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
+        });
     },
     humanPoolsSize(bytes, si = false, dp = 1) {
       const thresh = si ? 1000 : 1024;
       if (Math.abs(bytes) < thresh) {
-        return bytes + ' B';
+        return bytes + " B";
       }
       const units = si
-        ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-        : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+        ? ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+        : ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
       let u = -1;
       const r = 10 ** dp;
       do {
         bytes /= thresh;
         ++u;
-      } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
-      return bytes.toFixed(dp) + ' ' + units[u];
+      } while (
+        Math.round(Math.abs(bytes) * r) / r >= thresh &&
+        u < units.length - 1
+      );
+      return bytes.toFixed(dp) + " " + units[u];
     },
     getBackupPolicy(id) {
       const result = this.$store.state.resources.policyList.filter((item) => {
-        return item.id == id
-      })
-      return result[0]
-    }
-  }
-})
+        return item.id == id;
+      });
+      return result[0];
+    },
+  },
+  mounted() {
+    this.$store.dispatch("requestPool");
+  },
+});
 </script>
 <style scoped>
 .text-right {

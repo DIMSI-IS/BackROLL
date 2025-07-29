@@ -1,7 +1,10 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="storageId ? `Updating storage ${stateStorage?.name ?? ''}` : 'Adding storage'" />
+      <FormHeader :title="storageId
+        ? `Updating storage ${stateStorage?.name ?? ''}`
+        : 'Adding storage'
+        " />
     </va-card-title>
     <va-card-content v-if="!storageId || stateStorage">
       <va-alert border="top" class="mb-4">
@@ -24,7 +27,10 @@
         <va-input label="Path" placeholder="eg. /mnt/myNFSbackend" v-model="formStorage.path"
           :rules="storagePathRules" />
         <br />
-        <va-button class="mb-3" @click="$refs.form.validate() && (storageId ? updateStorage() : addStorage())">
+        <va-button class="mb-3" @click="
+          $refs.form.validate() &&
+          (storageId ? updateStorage() : addStorage())
+          ">
           {{ storageId ? "Update" : "Add" }}
         </va-button>
       </va-form>
@@ -49,7 +55,7 @@ export default {
   name: "updateStorage",
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -107,11 +113,6 @@ export default {
       this.propagateStateStorage();
     },
   },
-  mounted() {
-    if (this.stateStorage) {
-      this.propagateStateStorage();
-    }
-  },
   methods: {
     propagateStateStorage() {
       this.formStorage = { ...this.stateStorage };
@@ -147,8 +148,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add storage",
             message: error?.response?.data?.detail ?? error,
@@ -156,6 +157,13 @@ export default {
           });
         });
     },
+  },
+  mounted() {
+    // TODO Wait for the refreshed data ?
+    this.$store.dispatch("requestStorage");
+    if (this.stateStorage) {
+      this.propagateStateStorage();
+    }
   },
 };
 </script>

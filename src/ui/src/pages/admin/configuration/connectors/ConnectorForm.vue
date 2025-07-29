@@ -1,7 +1,10 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="connectorId ? `Updating connector ${stateConnector?.name ?? ''}` : 'Adding connector'" />
+      <FormHeader :title="connectorId
+        ? `Updating connector ${stateConnector?.name ?? ''}`
+        : 'Adding connector'
+        " />
     </va-card-title>
     <va-card-content v-if="!connectorId || stateConnector">
       <va-alert color="info" icon="info" dense>
@@ -27,7 +30,10 @@
         </va-input>
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate() && (connectorId ? updateConnector() : addConnector())">
+      <va-button class="mb-3" @click="
+        $refs.form.validate() &&
+        (connectorId ? updateConnector() : addConnector())
+        ">
         {{ connectorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -46,7 +52,7 @@ import FormHeader from "@/components/forms/FormHeader.vue";
 export default {
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -71,11 +77,6 @@ export default {
     stateConnector: function () {
       this.propagateStateConnector();
     },
-  },
-  mounted() {
-    if (this.stateConnector) {
-      this.propagateStateConnector();
-    }
   },
   methods: {
     propagateStateConnector() {
@@ -108,8 +109,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add connector",
             message: error?.response?.data?.detail ?? error,
@@ -117,6 +118,13 @@ export default {
           });
         });
     },
+  },
+  mounted() {
+    // TODO Wait ?
+    this.$store.dispatch("requestConnector");
+    if (this.stateConnector) {
+      this.propagateStateConnector();
+    }
   },
 };
 </script>

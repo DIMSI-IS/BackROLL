@@ -39,5 +39,8 @@ export default defineComponent({
       }
     },
   },
+  mounted() {
+    this.$store.dispatch("requestRestoreTask");
+  },
 })
 </script>
