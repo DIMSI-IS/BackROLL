@@ -201,9 +201,6 @@ export default defineComponent({
       selectedHost: null,
     };
   },
-  mounted() {
-    this.requestKeys();
-  },
   computed: {
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
@@ -355,6 +352,10 @@ export default defineComponent({
           });
         });
     },
+  },
+  mounted() {
+    this.requestKeys();
+    this.$store.dispatch("requestHost");
   },
 });
 </script>
