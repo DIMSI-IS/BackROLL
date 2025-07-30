@@ -199,21 +199,31 @@ def api_delete_host(host_id):
         if not host:
             raise ValueError(f'Host with id {host_id} not found')
 
+        warnings = []
         is_host_up = False
         try:
             shell.os_system(
                 f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
             is_host_up = True
         except shell.ShellException:
+            warnings.append(f"Host {host.ipaddress} seems unreachable on port 22. ")
             # TODO Be more precise than before and check the exit code ?
             pass
 
-        if (host.ssh == 1) and is_host_up:
-            ssh.remove_key(host.ipaddress, host.username)
-        session.delete(host)
-        session.commit()
-    return {'state': 'SUCCESS'}
 
+        if is_host_up:
+            try:
+                ssh.remove_key(host.ipaddress, host.username)
+            except Exception as e:
+                warnings.append(f"SSH key removal failed for host {host.hostname}.")
+
+        try:
+            session.delete(host)
+            session.commit()
+        except Exception as e:
+            warnings.append(f"Failed to delete host {host.hostname} from database.")
+
+        return {'state': 'SUCCESS', 'warnings': warnings or None, 'info': f'Host {host.hostname} deleted successfully'}
 
 @fastapi_app.post("/api/v1/hosts", status_code=201)
 def create_host(item: items_create_host, identity: Json = Depends(auth.verify_token)):
