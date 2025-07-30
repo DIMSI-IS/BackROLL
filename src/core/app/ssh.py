@@ -114,31 +114,39 @@ class ConnectionException(Exception):
 def init_ssh_connection(host_id, ip_address, username):
     shell.subprocess_run(f"ls -al {__get_local_ssh_directory().as_posix()}")
 
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    try:
-        client.connect(
-            hostname=ip_address,
-            username=username,
-        )
-        client.close()
-    except OSError:
-        raise ConnectionException(
-            "The hypervisor is unreachable.")
-    except paramiko.ssh_exception.AuthenticationException:
-        raise ConnectionException(
-            "Authentication to the hypervisor has failed.")
-
-    host.filter_host_by_id(host_id)
     engine = database.init_db_connection()
-
     with Session(engine) as session:
         statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
         results = session.exec(statement)
         data_host = results.one()
-        data_host.ssh = 1
         data_host.username = username
+     
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            client.connect(
+                hostname=ip_address,
+                username=username,
+            )
+            client.close()
+            data_host.ssh = 1
+        except OSError:
+            data_host.ssh = 2
+            session.add(data_host)
+            session.commit()
+            session.refresh(data_host)
+            raise ConnectionException(
+                "The hypervisor is unreachable.")
+        except paramiko.ssh_exception.AuthenticationException:
+            data_host.ssh = 2
+            session.add(data_host)
+            session.commit()
+            session.refresh(data_host)
+            raise ConnectionException(
+                "Authentication to the hypervisor has failed.")
+
+        host.filter_host_by_id(host_id)
+        
         session.add(data_host)
         session.commit()
         session.refresh(data_host)

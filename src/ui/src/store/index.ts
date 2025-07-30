@@ -2,6 +2,10 @@ import axios from "axios";
 import { createStore } from "vuex";
 import router from "../router";
 
+interface Host {
+  id: string | number;
+}
+
 export default createStore({
   strict: true, // process.env.NODE_ENV !== 'production',
   state: {
@@ -27,7 +31,7 @@ export default createStore({
     resources: {
       policyList: [],
       poolList: [],
-      hostList: [],
+      hostList: [] as Host[],
       vmList: [],
       externalHookList: [],
       connectorList: [],
@@ -639,6 +643,12 @@ export default createStore({
     },
     loadingHost(state, loadingState) {
       state.isHostTableReady = loadingState;
+    },
+    hostLocalDeletion(state, hostId) {
+      const index = state.resources.hostList.findIndex((h) => h.id === hostId);
+      if (index !== -1) {
+        state.resources.hostList.splice(index, 1);
+      }
     },
     vmList(state, vmList) {
       state.resources.vmList = vmList;

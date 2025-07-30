@@ -2,16 +2,29 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="Hypervisors" plus-button-title="Add hypervisor"
-          plus-button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
-          dependencies-message="You need to create a pool." go-button-title="Go to pools"
-          go-button-route="/admin/resources/pools" />
+        <ListHeader
+          title="Hypervisors"
+          plus-button-title="Add hypervisor"
+          plus-button-route="/admin/resources/hypervisors/new"
+          :dependencies-resolved="areDependenciesResolved"
+          dependencies-message="You need to create a pool."
+          go-button-title="Go to pools"
+          go-button-route="/admin/resources/pools"
+        />
       </va-card-title>
       <va-card-content>
-        <va-data-table :items="$store.state.resources.hostList" :columns="columns">
+        <va-data-table
+          :items="$store.state.resources.hostList"
+          :columns="columns"
+        >
           <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
           <template #cell(pool_id)="{ value }">
-            <va-chip v-if="getPool(value)" size="small" square @click="this.$router.push('/admin/resources/pools')">
+            <va-chip
+              v-if="getPool(value)"
+              size="small"
+              square
+              @click="this.$router.push('/admin/resources/pools')"
+            >
               {{ getPool(value) }}
             </va-chip>
           </template>
@@ -20,43 +33,87 @@
               {{ value }}
             </va-chip>
           </template>
-          <template #cell(ssh)="{ value }">
-            <va-chip size="small" square outline :color="value ? 'success' : 'warning'">
-              <va-icon v-if="!value" name="warning" />
-              {{ JSON.parse(value) ? "Configured" : "Unconfigured" }}
-            </va-chip>
-          </template>
           <template #cell(tags)="{ value }">
             <va-chip v-if="value" size="small" square outline>
               {{ value }}
             </va-chip>
           </template>
+          <template #cell(ssh)="{ value }">
+            <va-chip
+              size="small"
+              square
+              outline
+              :color="value == 1 ? 'success' : 'danger'"
+            >
+              <!-- <va-icon
+                v-if="!value"
+                name="warning"
+              /> -->
+              {{
+                value == 1
+                  ? "Configured"
+                  : value == 0
+                  ? "Unconfigured"
+                  : "Configured but disconnected"
+              }}
+            </va-chip>
+          </template>
           <template #cell(state)="{ value }">
-            <va-chip size="small" :color="value === 'Reachable' ? 'success' : 'danger'">
+            <va-chip
+              size="small"
+              :color="value === 'Reachable' ? 'success' : 'danger'"
+            >
               {{ value === "Reachable" ? "Reachable" : "Unreachable" }}
             </va-chip>
           </template>
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
-              <va-button v-if="!$store.state.resources.hostList[rowIndex].ssh" icon="link"
-                :disabled="sshKeys.length == 0" @click="
+              <va-button
+                v-if="
+                  $store.state.resources.hostList[rowIndex].state !==
+                    'Reachable' ||
+                  $store.state.resources.hostList[rowIndex].ssh != 1
+                "
+                icon="link"
+                :disabled="sshKeys.length == 0"
+                @click="
                   (selectedHost = $store.state.resources.hostList[rowIndex]),
-                  (showConnectModal = true)
-                  " />
-              <va-button icon="settings" @click="
-                this.$router.push(
-                  `/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`
-                )
-                " />
-              <va-button icon="delete" @click="
-                (selectedHost = $store.state.resources.hostList[rowIndex]),
-                (showDeleteModal = true)
-                " />
+                    (showConnectModal = true)
+                "
+              />
+              <va-button
+                icon="settings"
+                @click="
+                  this.$router.push(
+                    `/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`
+                  )
+                "
+              />
+              <va-button
+                icon="delete"
+                @click="
+                  (selectedHost = $store.state.resources.hostList[rowIndex]),
+                    (showDeleteModal = true)
+                "
+              />
+              <!-- <va-button
+                @click="
+                  refreshConnectHost(
+                    $store.state.resources.hostList[rowIndex],
+                    $store.state.resources.hostList[rowIndex].username
+                  )
+                "
+                icon="refresh"
+              /> -->
             </va-button-group>
           </template>
         </va-data-table>
         <div v-if="!$store.state.isHostTableReady" class="flex-center ma-3">
-          <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
+          <spring-spinner
+            :animation-duration="2000"
+            :size="30"
+            color="#2c82e0"
+          />
         </div>
       </va-card-content>
     </va-card>
@@ -69,9 +126,14 @@
       </template>
       <hr class="mb-4" />
       <va-form ref="form" @validation="(validation = $event), connectHost()">
-        <va-input label="Specify the user on the server" messages="The user must have the access rights to KVM."
-          v-model="user" type="text" :rules="[(value) => value?.trim().length > 0 || 'Field is required']"
-          class="mb-3" />
+        <va-input
+          label="Specify the user on the server"
+          messages="The user must have the access rights to KVM."
+          v-model="user"
+          type="text"
+          :rules="[(value) => value?.trim().length > 0 || 'Field is required']"
+          class="mb-3"
+        />
         <va-tabs v-model="currentTabKey">
           <template #tabs>
             <va-tab v-for="{ name } in sshKeys" :key="name" :name="name">
@@ -79,17 +141,28 @@
             </va-tab>
           </template>
           <div style="position: relative">
-            <va-input label="BackROLL SSH key"
+            <va-input
+              label="BackROLL SSH key"
               messages="Copy-paste one of the keys into the ~/.ssh/authorized_keys file on the server."
-              v-model="currentSshKey" type="textarea" :autosize="true" :min-rows="2" readonly class="mb-4" />
-            <va-icon :name="isKeyCopied ? 'check' : 'content_copy'" :size="20" @click="copyToClipboard(currentSshKey)"
+              v-model="currentSshKey"
+              type="textarea"
+              :autosize="true"
+              :min-rows="2"
+              readonly
+              class="mb-4"
+            />
+            <va-icon
+              :name="isKeyCopied ? 'check' : 'content_copy'"
+              :size="20"
+              @click="copyToClipboard(currentSshKey)"
               style="
                 position: absolute;
                 top: 0;
                 right: 0;
                 margin-top: 6px;
                 margin-right: 4px;
-              " />
+              "
+            />
           </div>
         </va-tabs>
         <div class="d-flex">
@@ -109,8 +182,20 @@
       <hr />
       <div>
         You are about to remove hypervisor
-        <b>{{ JSON.parse(JSON.stringify(this.selectedHost)).hostname }}</b>. <br />Please confirm action.
+        <b>{{ JSON.parse(JSON.stringify(this.selectedHost)).hostname }}</b
+        >. <br />Please confirm action.
       </div>
+      <!-- // Currently not necessary-->
+      <!-- <template #footer>
+        <div class="d-flex flex-column align-start w-100">
+          <va-checkbox
+            v-model="forceDelete"
+            label="Force delete"
+            class="mt-2"
+            :style="{ color: forceDelete ? 'black' : 'gray' }"
+          />
+        </div>
+      </template> -->
     </va-modal>
   </div>
 </template>
@@ -134,8 +219,9 @@ export default defineComponent({
         { key: "hostname" },
         { key: "pool_id", label: "Pool", sortable: true },
         { key: "ipaddress" },
-        { key: "ssh", label: "SSH Connection" },
         { key: "tags", sortable: true },
+        { key: "ssh", label: "SSH Connection" },
+
         { key: "state", sortable: true },
         { key: "actions" },
       ],
@@ -147,7 +233,17 @@ export default defineComponent({
       showConnectModal: false,
       showDeleteModal: false,
       selectedHost: null,
+      forceDelete: false,
+      refreshInterval: null,
     };
+  },
+  mounted() {
+    this.requestKeys();
+    this.$store.dispatch("requestHost");
+    this.startRefreshing();
+  },
+  beforeUnmount() {
+    this.stopRefreshing();
   },
   computed: {
     areDependenciesResolved() {
@@ -169,6 +265,7 @@ export default defineComponent({
     showConnectModal(newValue, oldValue) {
       if (newValue && !oldValue) {
         this.isKeyCopied = false;
+        this.user = this.selectedHost?.username || null;
       }
     },
     currentTabKey() {
@@ -210,36 +307,68 @@ export default defineComponent({
     },
     connectHost() {
       if (this.validation) {
-        axios
-          .post(
-            `${this.$store.state.endpoint.api}/api/v1/connect/${this.selectedHost.id}`,
-            { ip_address: this.selectedHost.ipaddress, username: this.user },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.$store.state.token}`,
-              },
-            }
-          )
-          .then((response) => {
-            this.$store.dispatch("requestHost");
-            this.$vaToast.init({
-              title: response.data.state,
-              message: `Successfully connected to ${this.selectedHost.hostname}`,
-              color: "success",
-            });
-            this.showConnectModal = false;
-          })
-          .catch((error) => {
-            console.error(error);
-            this.$vaToast.init({
-              title: "Error",
-              message: error?.response?.data?.detail ?? error,
-              color: "danger",
-            });
-          });
+        this.refreshConnectHost();
+      } else {
+        this.$vaToast.init({
+          title: "Validation Error",
+          message: "Please fill in the required fields.",
+          color: "warning",
+        });
       }
     },
+
+    refreshConnectHost(
+      host = this.selectedHost,
+      user = this.user,
+      silent = false
+    ) {
+      // const username = this.user || this.selectedHost?.username;
+      const username = this.user;
+      return axios
+        .post(
+          `${this.$store.state.endpoint.api}/api/v1/connect/${host.id}`,
+          { ip_address: host.ipaddress, username: user },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.$store.state.token}`,
+            },
+          }
+        )
+        .then((response) => {
+          this.$store.dispatch("requestHost", {
+            token: this.$store.state.token,
+          });
+          if (!silent) {
+            this.$vaToast.init({
+              title: response.data.state,
+              message: `Successfully connected to ${host.hostname} with ${user} user.`,
+              color: "success",
+            });
+          }
+          this.showConnectModal = false;
+        })
+        .catch((error) => {
+          console.error(error);
+          if (!silent) {
+            let message;
+            if (host.ssh === 0) {
+              message = `SSH connection is not configured for ${host.hostname}. Please link the SSH connection.`;
+            } else if (host.ssh === 2) {
+              message = `Unable to connect to ${host.hostname} with ${user} user.`;
+            } else {
+              message = `Connection error for ${host.hostname}.`;
+            }
+
+            this.$vaToast.init({
+              title: "Error",
+              message,
+              color: "danger",
+            });
+          }
+        });
+    },
+
     requestKeys() {
       axios
         .get(`${this.$store.state.endpoint.api}/api/v1/publickeys`, {
@@ -264,16 +393,23 @@ export default defineComponent({
         });
     },
     deleteHost() {
-      axios
-        .delete(
-          `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${this.$store.state.token}`,
-            },
-          }
-        )
+      this.refreshConnectHost(
+        this.selectedHost,
+        this.selectedHost.username,
+        true
+      )
+        .catch(() => {})
+        .then(() => {
+          return axios.delete(
+            `${this.$store.state.endpoint.api}/api/v1/hosts/${this.selectedHost.id}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${this.$store.state.token}`,
+              },
+            }
+          );
+        })
         .then((response) => {
           this.$store.dispatch("requestHost");
           this.$vaToast.init({
@@ -281,6 +417,15 @@ export default defineComponent({
             message: "Hypervisor has been successfully deleted",
             color: "success",
           });
+
+          if (this.selectedHost.ssh === 2) {
+            this.$vaToast.init({
+              title: "Warning",
+              message:
+                "SSH keys may not have been removed from the hypervisor (SSH connection was in error state).",
+              color: "warning",
+            });
+          }
         })
         .catch((error) => {
           console.error(error);
@@ -291,10 +436,26 @@ export default defineComponent({
           });
         });
     },
-  },
-  mounted() {
-    this.requestKeys();
-    this.$store.dispatch("requestHost");
+    startRefreshing() {
+      this.refreshInterval = setInterval(() => {
+        this.refreshAllHosts();
+      }, 5000);
+    },
+    stopRefreshing() {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+        this.refreshInterval = null;
+      }
+    },
+    refreshAllHosts() {
+      const hosts = this.$store.state.resources.hostList;
+      if (!hosts || hosts.length === 0) return;
+
+      hosts.forEach((host) => {
+        const username = host.username;
+        this.refreshConnectHost(host, username, true);
+      });
+    },
   },
 });
 </script>

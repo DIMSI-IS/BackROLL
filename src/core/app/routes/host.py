@@ -171,20 +171,19 @@ def retrieve_host():
     engine = database.init_db_connection()
 
     try:
-        records = []
         with Session(engine) as session:
             statement = select(Hosts)
             results = session.exec(statement)
-            for host in results:
-                records.append(host)
-        for host in records:
+            hosts = session.exec(statement).all()
+
+        for host in hosts:
             try:
                 shell.os_system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
                 host.state = 'Reachable'
             except shell.ShellException:
                 # TODO Be more precise than before and check the exit code ?
                 host.state = 'Unreachable'
-        return jsonable_encoder(records)
+        return jsonable_encoder(hosts)
     except Exception as e:
         raise ValueError(e)
 
