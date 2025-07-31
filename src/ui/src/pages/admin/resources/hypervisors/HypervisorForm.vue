@@ -3,7 +3,7 @@
     <va-card-title>
       <FormHeader
         :title="
-          hypersivorId
+          hypervisorId
             ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}`
             : 'Adding hypervisor'
         "
@@ -37,7 +37,7 @@
         class="mb-3"
         @click="
           $refs.form.validate() &&
-            (hypersivorId ? updateHypervisor() : addHypervisor())
+            (hypervisorId ? updateHypervisor() : addHypervisor())
         "
       >
         {{ hypervisorId ? "Update" : "Add" }}
@@ -88,7 +88,7 @@ export default {
   computed: {
     stateHypervisor() {
       return this.$store.state.resources.hostList.find(
-        (item) => item.id == this.hypersivorId
+        (item) => item.id == this.hypervisorId
       );
     },
     poolOptions() {
