@@ -10,10 +10,17 @@
           >
             <va-card-content>
               <div class="icon-text-row">
-                <va-icon v-if="info.icon" :name="info.icon" :size="50" />
+                <va-icon
+                  v-if="info.icon"
+                  :name="info.icon"
+                  :size="50"
+                  class="card-hover"
+                />
                 <div>
-                  <p class="display-2 mb-0">{{ info.value }}</p>
-                  <p>{{ $t("dashboard.info." + info.text) }}</p>
+                  <p class="display-2 mb-0 card-hover">{{ info.value }}</p>
+                  <p class="card-hover">
+                    {{ $t("dashboard.info." + info.text) }}
+                  </p>
                 </div>
               </div>
             </va-card-content>
@@ -116,54 +123,74 @@
               to="/admin/configuration/storage"
             >
               <va-list-item-section>
-                <va-list-item-label>
-                  <b>{{ storage.name.toUpperCase() }}</b>
-                </va-list-item-label>
-                <va-list-item-label caption>
-                  <div v-if="storage.info">
-                    {{ humanStorageSize(storage.info.used) }} /
-                    {{ humanStorageSize(storage.info.total) }}
-                  </div>
-                  <div v-else>No information</div>
-                </va-list-item-label>
-              </va-list-item-section>
-              <va-list-item-section icon>
-                <div v-if="storage.info">
-                  <va-chip
-                    size="small"
-                    outline
-                    square
-                    :color="
-                      (
-                        100 -
-                        (storage.info.free / storage.info.total) * 100
-                      ).toFixed(1) < 75
-                        ? 'success'
-                        : 'danger'
-                    "
-                  >
-                    <va-icon
-                      v-if="
+                <div
+                  v-if="storage.info"
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    width: 100%;
+                  "
+                >
+                  <div style="display: flex; flex-direction: column">
+                    <va-list-item-label>
+                      <b>{{ storage.name.toUpperCase() }}</b>
+                    </va-list-item-label>
+
+                    <va-list-item-label caption>
+                      {{ humanStorageSize(storage.info.used) }} /
+                      {{ humanStorageSize(storage.info.total) }}
+                    </va-list-item-label>
+
+                    <va-chip
+                      size="small"
+                      outline
+                      square
+                      :color="
                         (
                           100 -
                           (storage.info.free / storage.info.total) * 100
-                        ).toFixed(1) >= 75
+                        ).toFixed(1) < 75
+                          ? 'success'
+                          : 'danger'
                       "
-                      name="warning"
-                      color="danger"
-                    />
-                    <span style="margin-right: 2px"
-                      ><b
-                        >{{
+                    >
+                      <va-icon
+                        v-if="
                           (
                             100 -
                             (storage.info.free / storage.info.total) * 100
-                          ).toFixed(1)
-                        }}% Used</b
-                      ></span
-                    >
-                    ({{ humanStorageSize(storage.info.free) }} free)
-                  </va-chip>
+                          ).toFixed(1) >= 75
+                        "
+                        name="warning"
+                        color="danger"
+                      />
+                      <span style="margin-right: 2px"
+                        ><b
+                          >{{
+                            (
+                              100 -
+                              (storage.info.free / storage.info.total) * 100
+                            ).toFixed(1)
+                          }}% Used</b
+                        ></span
+                      >
+                      ({{ humanStorageSize(storage.info.free) }} free)
+                    </va-chip>
+                  </div>
+                  <div
+                    style="
+                      max-width: 100px;
+                      width: 100%;
+                      margin-left: auto;
+                      margin-right: auto;
+                    "
+                  >
+                    <va-chart
+                      class="chart chart--donut"
+                      type="donut"
+                      :data="getStorageDonutChart(storage)"
+                    />
+                  </div>
                 </div>
                 <div v-else>
                   <va-chip size="small" outline square color="danger">
@@ -209,10 +236,11 @@
 <script>
 import { useGlobalConfig } from "vuestic-ui";
 import * as spinners from "epic-spinners";
+import VaChart from "@/components/va-charts/VaChart.vue";
 
 export default {
   name: "DashboardInfoBlock",
-  components: { ...spinners },
+  components: { ...spinners, VaChart },
   data() {
     return {
       backrollVersion: process.env.VUE_APP_BACKROLL_VERSION,
@@ -269,6 +297,35 @@ export default {
     },
   },
   methods: {
+    getStorageDonutChart(storage) {
+      const used = storage.info.used || 0;
+      const total = storage.info.total || 1;
+      const free = total - used;
+      const percentUsed = ((used / total) * 100).toFixed(1);
+      const usedColor =
+        percentUsed < 75 ? this.theme.success : this.theme.danger;
+      return {
+        //labels: ["Used", "Free"],
+        datasets: [
+          {
+            backgroundColor: [usedColor, "#e0e0e0"],
+            data: [used, free],
+          },
+        ],
+
+        options: {
+          plugins: {
+            legend: {
+              display: false,
+            },
+            title: {
+              display: false,
+            },
+          },
+        },
+      };
+    },
+
     humanStorageSize(bytes, si = false, dp = 1) {
       const thresh = si ? 1000 : 1024;
       if (Math.abs(bytes) < thresh) {
@@ -382,10 +439,22 @@ export default {
 .clickable:hover {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
+
+.clickable:hover .card-hover {
+  color: var(--va-primary);
+}
+
+.card-hover {
+  transition: color 0.2s ease;
+}
 .icon-text-row {
   display: flex;
   align-items: center;
   gap: 30px;
+}
+.chart.chart--donut {
+  width: auto;
+  height: 100%;
 }
 // .dashboard {
 //   .va-card__header--over {
