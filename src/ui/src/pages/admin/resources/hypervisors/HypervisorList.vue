@@ -333,14 +333,14 @@ export default defineComponent({
             message: "Hypervisor has been successfully deleted",
             color: "success",
           });
-          if (response.data.warnings && response.data.warnings.length > 0) {
-            response.data.warnings.forEach((warning) => {
+          if (response.data.warnings?.length > 0) {
+            for (const warning of response.data.warnings) {
               this.$vaToast.init({
                 title: "Warning",
                 message: warning,
                 color: "warning",
               });
-            });
+            }
           }
         })
         .catch((error) => {
