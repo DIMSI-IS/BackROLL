@@ -14,13 +14,24 @@
         <va-input
           label="Hostname"
           v-model="formHypervisor.hostname"
-          :rules="hostnameRules"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              isHypervisorNameUnique(value) || 'This hostname is already used',
+          ]"
         />
         <br />
         <va-input
           label="IP Address or Domain Name"
           v-model="formHypervisor.ipAddress"
-          :rules="ipAddressRules"
+          :rules="[
+            (value) =>
+              /^[0-9a-zA-Z.-]+$/.test(value) ||
+              'Field is required and must be a valid IP address or domain name.',
+            (value) =>
+              isHypervisorAddressUnique(value) ||
+              'This IP address or domain name is already used',
+          ]"
         />
         <br />
         <va-select
@@ -54,6 +65,7 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   components: {
@@ -104,10 +116,10 @@ export default {
     },
   },
   watch: {
-    stateHypervisor: function () {
+    stateHypervisor() {
       this.propagateStateHypervisor();
     },
-    poolOptions: function () {
+    poolOptions() {
       if (this.selectedPool != null) {
         this.updatePool(this.selectedPool.value);
       }
@@ -119,6 +131,18 @@ export default {
     }
   },
   methods: {
+    isHypervisorNameUnique(value) {
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.hostList.find(
+        ({ id, hostname }) =>
+          id != this.hypervisorId && canonicalName(hostname) == canonical
+      );
+    },
+    isHypervisorAddressUnique(value) {
+      return !this.$store.state.resources.hostList.find(
+        ({ id, ipaddress }) => id != this.hypervisorId && ipaddress == value
+      );
+    },
     propagateStateHypervisor() {
       this.formHypervisor = { ...this.stateHypervisor };
 
