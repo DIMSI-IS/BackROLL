@@ -117,6 +117,7 @@ import cronParser from "cron-parser";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 import dayOfWeek from "./dayOfWeek";
 
 export default {
@@ -147,11 +148,6 @@ export default {
     };
   },
   computed: {
-    otherPolicies() {
-      return this.$store.state.resources.policyList.filter(
-        (p) => p.id != this.policyId
-      );
-    },
     statePolicy() {
       return this.$store.state.resources.policyList.find(
         (item) => item.id == this.policyId
@@ -192,8 +188,10 @@ export default {
   },
   methods: {
     isPolicyNameUnique(value) {
-      return !this.otherPolicies.find(
-        (p) => p.name?.toLowerCase() === value?.toLowerCase()
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.policyList.find(
+        ({ id, name }) =>
+          id != this.policyId && canonicalName(name) == canonical
       );
     },
     propagateStatePolicy() {

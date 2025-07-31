@@ -76,6 +76,7 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   components: {
@@ -100,11 +101,6 @@ export default {
         (item) => item.id == this.connectorId
       );
     },
-    otherConnectors() {
-      return this.$store.state.resources.connectorList.filter(
-        (c) => c.id != this.connectorId
-      );
-    },
   },
   watch: {
     stateConnector: function () {
@@ -113,8 +109,10 @@ export default {
   },
   methods: {
     isConnectorNameUnique(value) {
-      return !this.otherConnectors.find(
-        (c) => c.name?.toLowerCase() === value?.toLowerCase()
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.connectorList.find(
+        ({ id, name }) =>
+          id != this.connectorId && canonicalName(name) == canonical
       );
     },
     propagateStateConnector() {

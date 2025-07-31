@@ -55,6 +55,7 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   components: {
@@ -72,11 +73,6 @@ export default {
     };
   },
   computed: {
-    otherPools() {
-      return this.$store.state.resources.poolList.filter(
-        (p) => p.id != this.poolId
-      );
-    },
     statePool() {
       return this.$store.state.resources.poolList.find(
         (e) => e.id == this.poolId
@@ -117,8 +113,9 @@ export default {
   },
   methods: {
     isPoolNameUnique(value) {
-      return !this.otherPools.find(
-        (p) => p.name?.toLowerCase() === value?.toLowerCase()
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.poolList.find(
+        ({ id, name }) => id != this.poolId && canonicalName(name) == canonical
       );
     },
     propagateStatePool() {

@@ -67,6 +67,7 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   components: {
@@ -90,11 +91,6 @@ export default {
         (item) => item.id == this.hookId
       );
     },
-    otherHooks() {
-      return this.$store.state.resources.externalHookList.filter(
-        (h) => h.id != this.hookId
-      );
-    },
   },
   watch: {
     stateHook: function () {
@@ -103,8 +99,9 @@ export default {
   },
   methods: {
     isHookNameUnique(value) {
-      return !this.otherHooks.find(
-        (h) => h.name?.toLowerCase() === value?.toLowerCase()
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.externalHookList.find(
+        ({ id, name }) => id != this.hookId && canonicalName(name) == canonical
       );
     },
     propagateStateHook() {

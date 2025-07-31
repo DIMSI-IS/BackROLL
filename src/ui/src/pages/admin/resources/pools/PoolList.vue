@@ -1,35 +1,59 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="pools" plus-button-title="Create pool" plus-button-route="/admin/resources/pools/new"
-        :dependencies-resolved="areDependenciesResolved" dependencies-message="You need to create a backup policy."
-        go-button-title="Go to policies" go-button-route="/admin/configuration/policies" />
+      <ListHeader
+        title="pools"
+        plus-button-title="Create pool"
+        plus-button-route="/admin/resources/pools/new"
+        :dependencies-resolved="areDependenciesResolved"
+        dependencies-message="You need to create a backup policy."
+        go-button-title="Go to policies"
+        go-button-route="/admin/configuration/policies"
+      />
     </va-card-title>
     <va-card-content>
-      <va-data-table :items="$store.state.resources.poolList" :columns="columns">
+      <va-data-table
+        :items="$store.state.resources.poolList"
+        :columns="columns"
+      >
         <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
         <template #cell(policy_id)="{ value }">
-          <va-chip size="small" square @click="this.$router.push('/admin/configuration/policies')">
-            {{ getBackupPolicy(value).name.toUpperCase() }}
+          <va-chip
+            size="small"
+            square
+            @click="this.$router.push('/admin/configuration/policies')"
+          >
+            {{ getBackupPolicy(value)?.name?.toUpperCase() }}
           </va-chip>
         </template>
         <template #cell(connector_id)="{ value }">
-          <va-chip v-if="getConnector(value)" size="small" color="#7f1f90" square
-            @click="this.$router.push('/admin/configuration/connectors')">
+          <va-chip
+            v-if="getConnector(value)"
+            size="small"
+            color="#7f1f90"
+            square
+            @click="this.$router.push('/admin/configuration/connectors')"
+          >
             {{ getConnector(value) }}
           </va-chip>
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings" @click="
-              this.$router.push(
-                `/admin/resources/pools/${$store.state.resources.poolList[rowIndex].id}`
-              )
-              " />
-            <va-button icon="delete" @click="
-              (selectedPool = $store.state.resources.poolList[rowIndex]),
-              (showDeleteModal = !showDeleteModal)
-              " />
+            <va-button
+              icon="settings"
+              @click="
+                this.$router.push(
+                  `/admin/resources/pools/${$store.state.resources.poolList[rowIndex].id}`
+                )
+              "
+            />
+            <va-button
+              icon="delete"
+              @click="
+                (selectedPool = $store.state.resources.poolList[rowIndex]),
+                  (showDeleteModal = !showDeleteModal)
+              "
+            />
           </va-button-group>
         </template>
       </va-data-table>
@@ -48,7 +72,8 @@
     <hr />
     <div>
       You are about to remove Pool
-      <b>{{ JSON.parse(JSON.stringify(this.selectedPool)).name }}</b>. <br />Please confirm action.
+      <b>{{ JSON.parse(JSON.stringify(this.selectedPool)).name }}</b
+      >. <br />Please confirm action.
     </div>
   </va-modal>
 </template>
@@ -145,14 +170,14 @@ export default defineComponent({
       );
       return bytes.toFixed(dp) + " " + units[u];
     },
-    getBackupPolicy(id) {
-      const result = this.$store.state.resources.policyList.filter((item) => {
-        return item.id == id;
-      });
-      return result[0];
+    getBackupPolicy(policyId) {
+      return this.$store.state.resources.policyList.find(
+        ({ id }) => id == policyId
+      );
     },
   },
   mounted() {
+    this.$store.dispatch("requestPolicy");
     this.$store.dispatch("requestPool");
   },
 });
