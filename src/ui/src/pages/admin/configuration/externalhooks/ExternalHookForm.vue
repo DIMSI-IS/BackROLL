@@ -1,7 +1,10 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="hookId ? `Updating hook ${stateHook?.name ?? ''}` : 'Adding external hook'" />
+      <FormHeader :title="hookId
+        ? `Updating hook ${stateHook?.name ?? ''}`
+        : 'Adding external hook'
+        " />
     </va-card-title>
     <va-card-content v-if="!hookId || stateHook">
       <va-alert color="info" icon="info" dense>
@@ -42,7 +45,7 @@ import FormHeader from "@/components/forms/FormHeader.vue";
 export default {
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -67,11 +70,6 @@ export default {
       this.propagateStateHook();
     },
   },
-  mounted() {
-    if (this.stateHook) {
-      this.propagateStateHook();
-    }
-  },
   methods: {
     propagateStateHook() {
       this.formHook = { ...this.stateHook };
@@ -81,7 +79,6 @@ export default {
     updateHook() {
       this.$store.dispatch("updateExternalHook", {
         vm: this,
-        token: this.$store.state.token,
         hookValues: this.formHook,
       });
     },
@@ -98,9 +95,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestExternalHook", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestExternalHook");
           this.$router.push("/admin/configuration/externalhooks");
           this.$vaToast.init({
             title: response.data.state,
@@ -108,8 +103,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add external hook",
             message: error?.response?.data?.detail ?? error,
@@ -117,6 +112,13 @@ export default {
           });
         });
     },
+  },
+  mounted() {
+    // TODO Wait ?
+    this.$store.dispatch("requestExternalHook");
+    if (this.stateHook) {
+      this.propagateStateHook();
+    }
   },
 };
 </script>

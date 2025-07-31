@@ -20,7 +20,7 @@
             </va-chip>
           </template>
           <template #cell(enabled)="{ value }"><va-chip size="small" :color="JSON.parse(value) ? 'success' : 'danger'">
-              {{ JSON.parse(value) ? 'Enabled' : 'Disabled' }}
+              {{ JSON.parse(value) ? "Enabled" : "Disabled" }}
             </va-chip>
           </template>
           <template #cell(storage)="{ value }">
@@ -30,13 +30,28 @@
           </template>
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
-              <va-button v-if="JSON.parse($store.state.resources.policyList[rowIndex].enabled)" icon="block"
-                @click="selectedPolicy = $store.state.resources.policyList[rowIndex], showDisableModal = !showDisableModal" />
-              <va-button v-else icon="start" @click="enablePolicy($store.state.resources.policyList[rowIndex])" />
-              <va-button icon="settings"
-                @click="this.$router.push(`/admin/configuration/policy/${$store.state.resources.policyList[rowIndex].id}`)" />
-              <va-button icon="delete"
-                @click="selectedPolicy = $store.state.resources.policyList[rowIndex], showDeleteModal = !showDeleteModal" />
+              <va-button v-if="
+                JSON.parse(
+                  $store.state.resources.policyList[rowIndex].enabled
+                )
+              " icon="block" @click="
+                (selectedPolicy =
+                  $store.state.resources.policyList[rowIndex]),
+                  (showDisableModal = !showDisableModal)
+                  " />
+              <va-button v-else icon="start" @click="
+                enablePolicy($store.state.resources.policyList[rowIndex])
+                " />
+              <va-button icon="settings" @click="
+                this.$router.push(
+                  `/admin/configuration/policy/${$store.state.resources.policyList[rowIndex].id}`
+                )
+                " />
+              <va-button icon="delete" @click="
+              (selectedPolicy =
+                $store.state.resources.policyList[rowIndex]),
+                (showDeleteModal = !showDeleteModal)
+                " />
             </va-button-group>
           </template>
         </va-data-table>
@@ -52,10 +67,10 @@
           Disabling Backup Policy
         </h2>
       </template>
-      <hr>
+      <hr />
       <div>
-        You are about to disable policy <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>.
-        <br>Please confirm action.
+        You are about to disable policy
+        <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>. <br />Please confirm action.
       </div>
     </va-modal>
     <va-modal v-model="showDeleteModal" @ok="deletePolicy()">
@@ -65,25 +80,25 @@
           Removing Backup Policy
         </h2>
       </template>
-      <hr>
+      <hr />
       <div>
-        You are about to remove policy <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>.
-        <br>Please confirm action.
+        You are about to remove policy
+        <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>. <br />Please confirm action.
       </div>
     </va-modal>
   </div>
 </template>
 
 <script>
-import axios from 'axios'
-import { defineComponent } from 'vue'
-import cronstrue from 'cronstrue'
-import * as spinners from 'epic-spinners'
+import axios from "axios";
+import { defineComponent } from "vue";
+import cronstrue from "cronstrue";
+import * as spinners from "epic-spinners";
 
-import ListHeader from "@/components/lists/ListHeader.vue"
+import ListHeader from "@/components/lists/ListHeader.vue";
 
 export default defineComponent({
-  name: 'PoliciesTable',
+  name: "PoliciesTable",
   components: {
     ...spinners,
     ListHeader,
@@ -91,78 +106,95 @@ export default defineComponent({
   data() {
     return {
       columns: [
-        { key: 'name' },
-        { key: 'schedule' },
-        { key: 'storage' },
-        { key: 'enabled', label: "auto-start" },
-        { key: 'actions' }
+        { key: "name" },
+        { key: "schedule" },
+        { key: "storage" },
+        { key: "enabled", label: "auto-start" },
+        { key: "actions" },
       ],
       showDeleteModal: false,
       showDisableModal: false,
-      selectedPolicy: null
-    }
+      selectedPolicy: null,
+    };
+  },
+  mounted() {
+    this.$store.dispatch("requestPolicy");
   },
   computed: {
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
-      return !this.$store.state.isStorageTableReady || this.$store.state.storageList.length > 0;
-    }
+      return (
+        !this.$store.state.isStorageTableReady ||
+        this.$store.state.storageList.length > 0
+      );
+    },
   },
   methods: {
     humanCron(value) {
       // Let the other rows render by catching the error.
       try {
-        return cronstrue.toString(value)
+        return cronstrue.toString(value);
       } catch {
-        return "Invalid – Please update the schedule."
+        return "Invalid – Please update the schedule.";
       }
     },
     getStorage(id) {
       if (this.$store.state.isStorageTableReady) {
         const result = this.$store.state.storageList.filter((item) => {
-          return item.id == id
-        })
-        return result[0].name.toUpperCase()
+          return item.id == id;
+        });
+        return result[0].name.toUpperCase();
       } else {
-        return "loading..."
+        return "loading...";
       }
     },
     deletePolicy() {
-      const policy = { ...this.selectedPolicy }
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/backup_policies/${policy.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
-        .then(response => {
-          this.$store.dispatch("requestPolicy", { token: this.$store.state.token })
-          this.$vaToast.init({ title: response.data.state, message: 'Policy has been successfully removed', color: 'success' })
-        })
-        .catch(error => {
-          console.error(error)
+      const policy = { ...this.selectedPolicy };
+      axios
+        .delete(
+          `${this.$store.state.endpoint.api}/api/v1/backup_policies/${policy.id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.$store.state.token}`,
+            },
+          }
+        )
+        .then((response) => {
+          this.$store.dispatch("requestPolicy");
           this.$vaToast.init({
-            title: 'Unable to remove policy',
-            message: error?.response?.data?.detail ?? error,
-            color: 'danger'
-          })
+            title: response.data.state,
+            message: "Policy has been successfully removed",
+            color: "success",
+          });
         })
+        .catch((error) => {
+          console.error(error);
+          this.$vaToast.init({
+            title: "Unable to remove policy",
+            message: error?.response?.data?.detail ?? error,
+            color: "danger",
+          });
+        });
     },
     disablePolicy() {
-      const policy = { ...this.selectedPolicy }
-      policy.state = 0
+      const policy = { ...this.selectedPolicy };
+      policy.state = 0;
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$store.state.token,
         policyValues: policy,
-      })
+      });
     },
     enablePolicy(object) {
-      const policy = { ...object }
-      policy.state = 1
+      const policy = { ...object };
+      policy.state = 1;
       this.$store.dispatch("updatePolicy", {
         vm: this,
-        token: this.$store.state.token,
         policyValues: policy,
-      })
-    }
-  }
-})
+      });
+    },
+  },
+});
 </script>
 <style scoped>
 .text-right {

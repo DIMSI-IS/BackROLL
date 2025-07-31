@@ -14,10 +14,16 @@
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings"
-              @click="this.$router.push(`/admin/configuration/connectors/${$store.state.resources.connectorList[rowIndex].id}`)" />
-            <va-button icon="delete"
-              @click="selectedConnector = $store.state.resources.connectorList[rowIndex], showDeleteModal = !showDeleteModal" />
+            <va-button icon="settings" @click="
+              this.$router.push(
+                `/admin/configuration/connectors/${$store.state.resources.connectorList[rowIndex].id}`
+              )
+              " />
+            <va-button icon="delete" @click="
+            (selectedConnector =
+              $store.state.resources.connectorList[rowIndex]),
+              (showDeleteModal = !showDeleteModal)
+              " />
           </va-button-group>
         </template>
       </va-data-table>
@@ -33,58 +39,68 @@
         Removing connector
       </h2>
     </template>
-    <hr>
+    <hr />
     <div>
-      You are about to remove connector <b>{{ JSON.parse(JSON.stringify(this.selectedConnector)).name }}</b>.
-      <br>Please confirm action.
+      You are about to remove connector
+      <b>{{ JSON.parse(JSON.stringify(this.selectedConnector)).name }}</b>. <br />Please confirm action.
     </div>
   </va-modal>
 </template>
 <script>
-import axios from 'axios'
-import { defineComponent } from 'vue'
-import * as spinners from 'epic-spinners'
+import axios from "axios";
+import { defineComponent } from "vue";
+import * as spinners from "epic-spinners";
 
-import ListHeader from '@/components/lists/ListHeader.vue'
+import ListHeader from "@/components/lists/ListHeader.vue";
 
 export default defineComponent({
-  name: 'PoliciesTable',
+  name: "PoliciesTable",
   components: {
     ...spinners,
-    ListHeader
+    ListHeader,
   },
   data() {
     return {
-      columns: [
-        { key: 'name' },
-        { key: 'url' },
-        { key: 'actions' }
-      ],
+      columns: [{ key: "name" }, { key: "url" }, { key: "actions" }],
       showDeleteModal: false,
-      selectedConnector: null
-    }
-  },
-  computed: {
+      selectedConnector: null,
+    };
   },
   methods: {
     deleteConnector() {
-      const connector = { ...this.selectedConnector }
-      axios.delete(`${this.$store.state.endpoint.api}/api/v1/connectors/${connector.id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
-        .then(response => {
-          this.$store.dispatch("requestConnector", { token: this.$store.state.token })
-          this.$vaToast.init({ title: response.data.state, message: 'connector has been successfully removed', color: 'success' })
-        })
-        .catch(error => {
-          console.error(error)
+      const connector = { ...this.selectedConnector };
+      axios
+        .delete(
+          `${this.$store.state.endpoint.api}/api/v1/connectors/${connector.id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${this.$store.state.token}`,
+            },
+          }
+        )
+        .then((response) => {
+          this.$store.dispatch("requestConnector");
           this.$vaToast.init({
-            title: 'Unable to remove connector',
-            message: error?.message ?? error,
-            color: 'danger'
-          })
+            title: response.data.state,
+            message: "connector has been successfully removed",
+            color: "success",
+          });
         })
-    }
-  }
-})
+        .catch((error) => {
+          console.error(error);
+          this.$vaToast.init({
+            title: "Unable to remove connector",
+            message: error?.message ?? error,
+            color: "danger",
+          });
+        });
+    },
+  },
+  mounted() {
+    this.$store.dispatch("requestConnector");
+  },
+});
 </script>
 <style scoped>
 .text-right {

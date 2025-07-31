@@ -41,5 +41,8 @@ export default defineComponent({
       }
     }
   },
+  mounted() {
+    this.$store.dispatch("requestBackupTask");
+  },
 })
 </script>

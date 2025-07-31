@@ -85,7 +85,7 @@ export default defineComponent({
     deleteHook() {
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${this.selectedHookId}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
-          this.$store.dispatch("requestExternalHook", { token: this.$store.state.token })
+          this.$store.dispatch("requestExternalHook")
           this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully removed', color: 'success' })
         })
         .catch(error => {
@@ -97,7 +97,10 @@ export default defineComponent({
           })
         })
     }
-  }
+  },
+  mounted() {
+    this.$store.dispatch("requestExternalHook");
+  },
 })
 </script>
 <style scoped>

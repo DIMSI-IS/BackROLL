@@ -114,7 +114,6 @@ export default {
     updatePool() {
       this.$store.dispatch("updatePool", {
         vm: this,
-        token: this.$store.state.token,
         poolValues: this.exportPool(),
       });
     },
@@ -131,7 +130,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestPool", { token: this.$store.state.token });
+          this.$store.dispatch("requestPool");
           this.$router.push("/admin/resources/pools");
           this.$vaToast.init({
             title: response.data.state,

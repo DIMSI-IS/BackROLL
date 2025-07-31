@@ -105,7 +105,6 @@ export default {
     updateHypervisor() {
       this.$store.dispatch("updateHost", {
         vm: this,
-        token: this.$store.state.token,
         hostValues: this.exportHypervisor(),
       });
     },
@@ -122,7 +121,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestHost", { token: this.$store.state.token });
+          this.$store.dispatch("requestHost");
           this.$router.push("/admin/resources/hypervisors");
           this.$vaToast.init({
             title: response.data.state,
