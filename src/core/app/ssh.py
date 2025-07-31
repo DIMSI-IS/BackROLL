@@ -144,7 +144,7 @@ def init_ssh_connection(host_id, ip_address, username):
         session.refresh(data_host)
 
 
-def remove_key(ip_address, username):
+def remove_keys(ip_address, username):
     try:
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
