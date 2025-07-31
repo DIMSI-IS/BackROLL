@@ -38,9 +38,9 @@
               size="small"
               square
               outline
-              :color="value ? 'success' : 'warning'"
+              :color="JSON.parse(value) ? 'success' : 'danger'"
             >
-              <va-icon v-if="!value" name="warning" />
+              <va-icon v-if="!JSON.parse(value)" name="warning" />
               {{ JSON.parse(value) ? "Configured" : "Unconfigured" }}
             </va-chip>
           </template>
