@@ -2,16 +2,29 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="Hypervisors" plus-button-title="Add hypervisor"
-          plus-button-route="/admin/resources/hypervisors/new" :dependencies-resolved="areDependenciesResolved"
-          dependencies-message="You need to create a pool." go-button-title="Go to pools"
-          go-button-route="/admin/resources/pools" />
+        <ListHeader
+          title="Hypervisors"
+          plus-button-title="Add hypervisor"
+          plus-button-route="/admin/resources/hypervisors/new"
+          :dependencies-resolved="areDependenciesResolved"
+          dependencies-message="You need to create a pool."
+          go-button-title="Go to pools"
+          go-button-route="/admin/resources/pools"
+        />
       </va-card-title>
       <va-card-content>
-        <va-data-table :items="$store.state.resources.hostList" :columns="columns">
+        <va-data-table
+          :items="$store.state.resources.hostList"
+          :columns="columns"
+        >
           <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
           <template #cell(pool_id)="{ value }">
-            <va-chip v-if="getPool(value)" size="small" square @click="this.$router.push('/admin/resources/pools')">
+            <va-chip
+              v-if="getPool(value)"
+              size="small"
+              square
+              @click="this.$router.push('/admin/resources/pools')"
+            >
               {{ getPool(value) }}
             </va-chip>
           </template>
@@ -21,8 +34,13 @@
             </va-chip>
           </template>
           <template #cell(ssh)="{ value }">
-            <va-chip size="small" square outline :color="value ? 'success' : 'warning'">
-              <va-icon v-if="!value" name="warning" />
+            <va-chip
+              size="small"
+              square
+              outline
+              :color="JSON.parse(value) ? 'success' : 'danger'"
+            >
+              <va-icon v-if="!JSON.parse(value)" name="warning" />
               {{ JSON.parse(value) ? "Configured" : "Unconfigured" }}
             </va-chip>
           </template>
@@ -32,31 +50,48 @@
             </va-chip>
           </template>
           <template #cell(state)="{ value }">
-            <va-chip size="small" :color="value === 'Reachable' ? 'success' : 'danger'">
+            <va-chip
+              size="small"
+              :color="value === 'Reachable' ? 'success' : 'danger'"
+            >
               {{ value === "Reachable" ? "Reachable" : "Unreachable" }}
             </va-chip>
           </template>
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
-              <va-button v-if="!$store.state.resources.hostList[rowIndex].ssh" icon="link"
-                :disabled="sshKeys.length == 0" @click="
+              <va-button
+                v-if="!$store.state.resources.hostList[rowIndex].ssh"
+                icon="link"
+                :disabled="sshKeys.length == 0"
+                @click="
                   (selectedHost = $store.state.resources.hostList[rowIndex]),
-                  (showConnectModal = true)
-                  " />
-              <va-button icon="settings" @click="
-                this.$router.push(
-                  `/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`
-                )
-                " />
-              <va-button icon="delete" @click="
-                (selectedHost = $store.state.resources.hostList[rowIndex]),
-                (showDeleteModal = true)
-                " />
+                    (showConnectModal = true)
+                "
+              />
+              <va-button
+                icon="settings"
+                @click="
+                  this.$router.push(
+                    `/admin/resources/hypervisors/${$store.state.resources.hostList[rowIndex].id}`
+                  )
+                "
+              />
+              <va-button
+                icon="delete"
+                @click="
+                  (selectedHost = $store.state.resources.hostList[rowIndex]),
+                    (showDeleteModal = true)
+                "
+              />
             </va-button-group>
           </template>
         </va-data-table>
         <div v-if="!$store.state.isHostTableReady" class="flex-center ma-3">
-          <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
+          <spring-spinner
+            :animation-duration="2000"
+            :size="30"
+            color="#2c82e0"
+          />
         </div>
       </va-card-content>
     </va-card>
@@ -69,9 +104,14 @@
       </template>
       <hr class="mb-4" />
       <va-form ref="form" @validation="(validation = $event), connectHost()">
-        <va-input label="Specify the user on the server" messages="The user must have the access rights to KVM."
-          v-model="user" type="text" :rules="[(value) => value?.trim().length > 0 || 'Field is required']"
-          class="mb-3" />
+        <va-input
+          label="Specify the user on the server"
+          messages="The user must have the access rights to KVM."
+          v-model="user"
+          type="text"
+          :rules="[(value) => value?.trim().length > 0 || 'Field is required']"
+          class="mb-3"
+        />
         <va-tabs v-model="currentTabKey">
           <template #tabs>
             <va-tab v-for="{ name } in sshKeys" :key="name" :name="name">
@@ -79,17 +119,28 @@
             </va-tab>
           </template>
           <div style="position: relative">
-            <va-input label="BackROLL SSH key"
+            <va-input
+              label="BackROLL SSH key"
               messages="Copy-paste one of the keys into the ~/.ssh/authorized_keys file on the server."
-              v-model="currentSshKey" type="textarea" :autosize="true" :min-rows="2" readonly class="mb-4" />
-            <va-icon :name="isKeyCopied ? 'check' : 'content_copy'" :size="20" @click="copyToClipboard(currentSshKey)"
+              v-model="currentSshKey"
+              type="textarea"
+              :autosize="true"
+              :min-rows="2"
+              readonly
+              class="mb-4"
+            />
+            <va-icon
+              :name="isKeyCopied ? 'check' : 'content_copy'"
+              :size="20"
+              @click="copyToClipboard(currentSshKey)"
               style="
                 position: absolute;
                 top: 0;
                 right: 0;
                 margin-top: 6px;
                 margin-right: 4px;
-              " />
+              "
+            />
           </div>
         </va-tabs>
         <div class="d-flex">
@@ -109,7 +160,8 @@
       <hr />
       <div>
         You are about to remove hypervisor
-        <b>{{ JSON.parse(JSON.stringify(this.selectedHost)).hostname }}</b>. <br />Please confirm action.
+        <b>{{ JSON.parse(JSON.stringify(this.selectedHost)).hostname }}</b
+        >. <br />Please confirm action.
       </div>
     </va-modal>
   </div>
@@ -281,6 +333,15 @@ export default defineComponent({
             message: "Hypervisor has been successfully deleted",
             color: "success",
           });
+          if (response.data.warnings?.length > 0) {
+            for (const warning of response.data.warnings) {
+              this.$vaToast.init({
+                title: "Warning",
+                message: warning,
+                color: "warning",
+              });
+            }
+          }
         })
         .catch((error) => {
           console.error(error);
