@@ -62,7 +62,7 @@ export default {
   },
   data() {
     return {
-      hypersivorId: this.$route.params.id,
+      hypervisorId: this.$route.params.id,
       formHypervisor: {
         hostname: null,
         ipAddress: null,
@@ -99,7 +99,7 @@ export default {
     },
     otherHypervisors() {
       return this.$store.state.resources.hostList.filter(
-        (h) => h.id != this.hypersivorId
+        (h) => h.id != this.hypervisorId
       );
     },
   },
