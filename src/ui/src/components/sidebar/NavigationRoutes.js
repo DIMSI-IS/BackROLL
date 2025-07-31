@@ -1,95 +1,95 @@
 export default {
   root: {
-    name: '/',
-    displayName: 'navigationRoutes.home',
+    name: "/",
+    displayName: "navigationRoutes.home",
   },
   routes: [
     {
-      name: 'dashboard',
-      displayName: 'menu.dashboard',
+      name: "dashboard",
+      displayName: "menu.dashboard",
       meta: {
-        icon: 'vuestic-iconset-dashboard',
+        icon: "vuestic-iconset-dashboard",
       },
     },
     {
-      name: 'tasks',
-      displayName: 'menu.tasks',
+      name: "tasks",
+      displayName: "menu.tasks",
       meta: {
-        icon: 'settings_backup_restore',
+        icon: "settings_backup_restore",
       },
       disabled: true,
       children: [
         {
-          name: 'backup',
-          displayName: 'menu.backup'
+          name: "backup",
+          displayName: "menu.backup",
         },
         {
-          name: 'restore',
-          displayName: 'menu.restore',
-        },
-      ],
-    },
-    {
-      name: 'resources',
-      displayName: 'menu.resources',
-      meta: {
-        icon: 'category',
-      },
-      disabled: true,
-      children: [
-        {
-          name: 'pools',
-          displayName: 'menu.pools',
-        },
-        {
-          name: 'hypervisors',
-          displayName: 'menu.hypervisors',
-        },
-        {
-          name: 'virtualmachines',
-          displayName: 'menu.virtualmachines',
+          name: "restore",
+          displayName: "menu.restore",
         },
       ],
     },
     {
-      name: 'configuration',
-      displayName: 'menu.configuration',
+      name: "resources",
+      displayName: "menu.resources",
       meta: {
-        icon: 'settings',
+        icon: "category",
       },
       disabled: true,
       children: [
         {
-          name: 'policies',
-          displayName: 'menu.policies',
+          name: "pools",
+          displayName: "menu.pools",
         },
         {
-          name: 'storage',
-          displayName: 'menu.storage',
+          name: "hypervisors",
+          displayName: "menu.hypervisors",
         },
         {
-          name: 'connectors',
-          displayName: 'menu.connectors',
+          name: "virtualmachines",
+          displayName: "menu.virtualmachines",
         },
-        {
-          name: 'externalhooks',
-          displayName: 'menu.external-hooks',
-        }
       ],
     },
     {
-      name: 'account',
-      displayName: 'menu.account',
+      name: "configuration",
+      displayName: "menu.configuration",
       meta: {
-        icon: 'profile',
+        icon: "assignment",
       },
       disabled: true,
       children: [
         {
-          name: 'changePassword',
-          displayName: 'menu.changePassword',
-        }
+          name: "policies",
+          displayName: "menu.policies",
+        },
+        {
+          name: "storage",
+          displayName: "menu.storage",
+        },
+        {
+          name: "connectors",
+          displayName: "menu.connectors",
+        },
+        {
+          name: "externalhooks",
+          displayName: "menu.external-hooks",
+        },
       ],
-    }
+    },
+    {
+      name: "parameters",
+      displayName: "menu.parameters",
+      meta: {
+        icon: "settings",
+      },
+      disabled: true,
+      children: [
+        {
+          name: "changePassword",
+          displayName: "menu.changePassword",
+        },
+      ],
+    },
   ],
-}
+};

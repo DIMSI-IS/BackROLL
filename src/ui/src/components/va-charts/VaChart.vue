@@ -1,7 +1,7 @@
 <template>
   <component
     ref="chart"
-    class='va-chart'
+    class="va-chart"
     :is="chartComponent"
     :chartOptions="options"
     :chart-data="data"
@@ -9,22 +9,22 @@
 </template>
 
 <script>
-import PieChart from './chart-types/PieChart'
-import BubbleChart from './chart-types/BubbleChart'
-import DonutChart from './chart-types/DonutChart'
-import HorizontalBarChart from './chart-types/HorizontalBarChart'
-import VerticalBarChart from './chart-types/VerticalBarChart'
-import LineChart from './chart-types/LineChart'
-import { chartTypesMap } from './VaChartConfigs'
+import PieChart from "./chart-types/PieChart";
+import BubbleChart from "./chart-types/BubbleChart";
+import DonutChart from "./chart-types/DonutChart";
+import HorizontalBarChart from "./chart-types/HorizontalBarChart";
+import VerticalBarChart from "./chart-types/VerticalBarChart";
+import LineChart from "./chart-types/LineChart";
+import { chartTypesMap } from "./VaChartConfigs";
 
 export default {
-  name: 'va-chart',
+  name: "va-chart",
   props: {
     data: {},
     options: {},
     type: {
-      validator (type) {
-        return type in chartTypesMap
+      validator(type) {
+        return type in chartTypesMap;
       },
     },
   },
@@ -37,19 +37,19 @@ export default {
     BubbleChart,
   },
   computed: {
-    chartComponent () {
-      return chartTypesMap[this.type]
+    chartComponent() {
+      return chartTypesMap[this.type];
     },
   },
   methods: {
     refresh() {
-      this.$refs.chart.refresh()
+      this.$refs.chart.refresh();
     },
-  }
-}
+  },
+};
 </script>
 
-<style lang='scss'>
+<style lang="scss">
 .va-chart {
   width: 100%;
   height: 100%;
@@ -65,7 +65,7 @@ export default {
   canvas {
     width: 100%;
     height: auto;
-    min-height: 320px;
+    // min-height: 320px;
   }
 }
 </style>
