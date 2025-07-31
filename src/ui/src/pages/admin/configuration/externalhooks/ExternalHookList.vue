@@ -97,7 +97,10 @@ export default defineComponent({
           })
         })
     }
-  }
+  },
+  mounted() {
+    this.$store.dispatch("requestExternalHook");
+  },
 })
 </script>
 <style scoped>
