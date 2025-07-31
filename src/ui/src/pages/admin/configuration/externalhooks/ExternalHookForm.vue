@@ -1,10 +1,13 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="hookId
-        ? `Updating hook ${stateHook?.name ?? ''}`
-        : 'Adding external hook'
-        " />
+      <FormHeader
+        :title="
+          hookId
+            ? `Updating hook ${stateHook?.name ?? ''}`
+            : 'Adding external hook'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!hookId || stateHook">
       <va-alert color="info" icon="info" dense>
@@ -12,21 +15,44 @@
       </va-alert>
       <br />
       <va-form ref="form">
-        <va-input label="Name" v-model="formHook.name" :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Name"
+          v-model="formHook.name"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              isHookNameUnique(value) || 'This hook name is already used',
+          ]"
+        />
         <br />
-        <va-input label="Provider" v-model="formHook.provider"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" readonly />
+        <va-input
+          label="Provider"
+          v-model="formHook.provider"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          readonly
+        />
         <br />
-        <va-input v-model="formHook.value" :type="isPasswordVisible ? 'text' : 'password'" label="Value"
-          :rules="[(value) => value?.length > 0 || 'Field is required']">
+        <va-input
+          v-model="formHook.value"
+          :type="isPasswordVisible ? 'text' : 'password'"
+          label="Value"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        >
           <template #appendInner>
-            <va-icon :name="isPasswordVisible ? 'visibility_off' : 'visibility'" size="small" color="--va-primary"
-              @click="isPasswordVisible = !isPasswordVisible" />
+            <va-icon
+              :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
+              size="small"
+              color="--va-primary"
+              @click="isPasswordVisible = !isPasswordVisible"
+            />
           </template>
         </va-input>
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate() && (hookId ? updateHook() : addHook())">
+      <va-button
+        class="mb-3"
+        @click="$refs.form.validate() && (hookId ? updateHook() : addHook())"
+      >
         {{ hookId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -64,6 +90,11 @@ export default {
         (item) => item.id == this.hookId
       );
     },
+    otherHooks() {
+      return this.$store.state.resources.externalHookList.filter(
+        (h) => h.id != this.hookId
+      );
+    },
   },
   watch: {
     stateHook: function () {
@@ -71,6 +102,11 @@ export default {
     },
   },
   methods: {
+    isHookNameUnique(value) {
+      return !this.otherHooks.find(
+        (h) => h.name?.toLowerCase() === value?.toLowerCase()
+      );
+    },
     propagateStateHook() {
       this.formHook = { ...this.stateHook };
       // Other providers are not supported yet.

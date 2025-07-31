@@ -1,29 +1,60 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="policyId ? `Updating policy ${statePolicy?.name ?? ''}` : 'Creating policy'" />
+      <FormHeader
+        :title="
+          policyId
+            ? `Updating policy ${statePolicy?.name ?? ''}`
+            : 'Creating policy'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!policyId || statePolicy">
       <va-form ref="form">
-        <va-input label="Name" v-model="formPolicy.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" />
-        <va-input class="mt-3" label="Description" v-model="formPolicy.description"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Name"
+          v-model="formPolicy.name"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              isPolicyNameUnique(value) || 'This policy name is already used',
+          ]"
+        />
+        <va-input
+          class="mt-3"
+          label="Description"
+          v-model="formPolicy.description"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        />
         <va-divider class="divider">
           <span class="px-2"> SCHEDULING </span>
         </va-divider>
-        <va-select class="mb-4" label="Days on which the backup task must launch" :options="dayOptions"
-          v-model="selectedDays" multiple>
+        <va-select
+          class="mb-4"
+          label="Days on which the backup task must launch"
+          :options="dayOptions"
+          v-model="selectedDays"
+          multiple
+        >
           <template #prependInner>
             <va-icon name="event" size="small" color="primary" />
           </template>
         </va-select>
-        <va-time-input v-model="timeToBackup" label="At which time ?" ampm leftIcon />
+        <va-time-input
+          v-model="timeToBackup"
+          label="At which time ?"
+          ampm
+          leftIcon
+        />
         <va-divider class="divider">
           <span class="px-2"> STORAGE BACKEND </span>
         </va-divider>
-        <va-select label="Select storage" v-model="selectedStorage" :options="storageOptions"
-          :rules="[(value) => value || 'Field is required']">
+        <va-select
+          label="Select storage"
+          v-model="selectedStorage"
+          :options="storageOptions"
+          :rules="[(value) => value || 'Field is required']"
+        >
           <template #prependInner>
             <va-icon name="storage" size="small" color="primary" />
           </template>
@@ -54,14 +85,23 @@
         <va-divider class="divider">
           <span class="px-2"> NOTIFICATIONS </span>
         </va-divider>
-        <va-select label="Select external hook (optional)" v-model="selectedExternalHook" :options="externalHookOptions"
-          clearable>
+        <va-select
+          label="Select external hook (optional)"
+          v-model="selectedExternalHook"
+          :options="externalHookOptions"
+          clearable
+        >
           <template #prependInner>
             <va-icon name="webhook" size="small" color="primary" />
           </template>
         </va-select>
         <br />
-        <va-button class="mb-3" @click="$refs.form.validate() && (policyId ? updatePolicy() : addPolicy())">
+        <va-button
+          class="mb-3"
+          @click="
+            $refs.form.validate() && (policyId ? updatePolicy() : addPolicy())
+          "
+        >
           {{ policyId ? "Update" : "Create" }}
         </va-button>
       </va-form>
@@ -83,7 +123,7 @@ export default {
   name: "updatePolicy",
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -107,6 +147,11 @@ export default {
     };
   },
   computed: {
+    otherPolicies() {
+      return this.$store.state.resources.policyList.filter(
+        (p) => p.id != this.policyId
+      );
+    },
     statePolicy() {
       return this.$store.state.resources.policyList.find(
         (item) => item.id == this.policyId
@@ -146,19 +191,26 @@ export default {
     }
   },
   methods: {
+    isPolicyNameUnique(value) {
+      return !this.otherPolicies.find(
+        (p) => p.name?.toLowerCase() === value?.toLowerCase()
+      );
+    },
     propagateStatePolicy() {
       this.formPolicy = { ...this.statePolicy };
 
       // If the cron expression is corrupted, let the user fix it by catching the error.
       try {
         const parsedCron = JSON.parse(
-          JSON.stringify(cronParser.parseExpression(this.statePolicy.schedule).fields)
+          JSON.stringify(
+            cronParser.parseExpression(this.statePolicy.schedule).fields
+          )
         );
         this.timeToBackup = new Date(
           new Date().setHours(parsedCron.hour, parsedCron.minute, 0)
         );
         this.selectedDays = dayOfWeek.toNames(parsedCron.dayOfWeek);
-      } catch { }
+      } catch {}
 
       this.updateSelectedStorage(this.statePolicy.storage);
 
@@ -185,7 +237,9 @@ export default {
     exportPolicy() {
       const policy = JSON.parse(JSON.stringify(this.formPolicy));
 
-      policy.schedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${dayOfWeek.toSymbols(this.selectedDays).join(",")}`;
+      policy.schedule = `${this.timeToBackup.getMinutes()} ${this.timeToBackup.getHours()} * * ${dayOfWeek
+        .toSymbols(this.selectedDays)
+        .join(",")}`;
       if (this.selectedStorage) {
         policy.storage = this.selectedStorage.value;
       }
@@ -223,8 +277,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add backup policy",
             message: error?.response?.data?.detail ?? error,
