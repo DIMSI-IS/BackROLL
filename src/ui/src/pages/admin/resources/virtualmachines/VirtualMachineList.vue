@@ -20,13 +20,11 @@
         <template #header(ssh)>SSH Connection</template>
         <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
         <template #cell(cpus)="{ value }">
-          <va-chip size="small" square outline>
-            {{ value }} Cores
-          </va-chip>
+          <va-chip size="small" square outline> {{ value }} Cores </va-chip>
         </template>
         <template #cell(mem)="{ value }">
           <va-chip size="small" square outline>
-            {{ ((value / 1024) / 1024).toFixed(0) }} GiB
+            {{ (value / 1024 / 1024).toFixed(0) }} GiB
           </va-chip>
         </template>
         <template #cell(host)="{ value }">
@@ -42,15 +40,18 @@
         <template #cell(state)="{ value }">
           <va-chip size="small" :color="value === 'Running' ? 'success' : 'dark'">
             <va-icon :name="value === 'Running' ? 'bolt' : 'power_off'" />
-            <span style="padding-left: 5px;">
+            <span style="padding-left: 5px">
               {{ value }}
             </span>
           </va-chip>
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings"
-              @click="this.$router.push(`/resources/virtualmachines/${$store.state.resources.vmList[rowIndex].uuid}`)" />
+            <va-button icon="info" @click="
+              this.$router.push(
+                `/resources/virtualmachines/${$store.state.resources.vmList[rowIndex].uuid}`
+              )
+              " />
           </va-button-group>
         </template>
         <template #bodyAppend>
@@ -69,66 +70,72 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
-import * as spinners from 'epic-spinners'
+import { defineComponent } from "vue";
+import * as spinners from "epic-spinners";
 
-import ListHeader from '@/components/lists/ListHeader.vue'
+import ListHeader from "@/components/lists/ListHeader.vue";
 
 export default defineComponent({
-  name: 'VMsTable',
+  name: "VMsTable",
   components: {
     ...spinners,
-    ListHeader
+    ListHeader,
   },
   data() {
     return {
       columns: [
-        { key: 'name', sortable: true },
-        { key: 'cpus', sortable: true },
-        { key: 'mem', sortable: true },
-        { key: 'host', sortable: true },
-        { key: 'host_tag', sortable: true },
-        { key: 'state', sortable: true },
-        { key: 'actions' }
+        { key: "name", sortable: true },
+        { key: "cpus", sortable: true },
+        { key: "mem", sortable: true },
+        { key: "host", sortable: true },
+        { key: "host_tag", sortable: true },
+        { key: "state", sortable: true },
+        { key: "actions" },
       ],
       selectedHost: null,
       perPage: 25,
       currentPage: 1,
-      filter: '',
+      filter: "",
       useCustomFilteringFn: false,
-      filteredCount: this.$store.state.resources.vmList.length
-    }
+      filteredCount: this.$store.state.resources.vmList.length,
+    };
   },
   computed: {
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
-      return !this.$store.state.isHostTableReady || this.$store.state.resources.hostList.length > 0;
+      return (
+        !this.$store.state.isHostTableReady ||
+        this.$store.state.resources.hostList.length > 0
+      );
     },
     pages() {
-      return (this.perPage && this.perPage !== 0)
+      return this.perPage && this.perPage !== 0
         ? Math.ceil(this.$store.state.resources.vmList.length / this.perPage)
-        : this.filtered.length
+        : this.filtered.length;
     },
     customFilteringFn() {
-      return this.useCustomFilteringFn ? this.filterExact : undefined
-    }
+      return this.useCustomFilteringFn ? this.filterExact : undefined;
+    },
   },
   methods: {
     filterExact(source) {
-      if (this.filter === '') {
-        return true
+      if (this.filter === "") {
+        return true;
       }
 
-      return source?.toString?.() === this.filter
+      return source?.toString?.() === this.filter;
     },
     getHost(id) {
       const result = this.$store.state.resources.hostList.filter((item) => {
-        return item.id == id
-      })
-      return result[0]
-    }
-  }
-})
+        return item.id == id;
+      });
+      return result[0];
+    },
+  },
+  mounted() {
+    this.$store.dispatch("requestVirtualMachine");
+  },
+});
 </script>
 <style scoped>
 .text-right {

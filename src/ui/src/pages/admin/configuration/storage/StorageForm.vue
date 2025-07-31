@@ -1,7 +1,13 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="storageId ? `Updating storage ${stateStorage?.name ?? ''}` : 'Adding storage'" />
+      <FormHeader
+        :title="
+          storageId
+            ? `Updating storage ${stateStorage?.name ?? ''}`
+            : 'Adding storage'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!storageId || stateStorage">
       <va-alert border="top" class="mb-4">
@@ -12,19 +18,46 @@
         containers.<br />
         To do this, update the following portion in the docker-compose:
         <code class="consoleStyle">
-  volumes:<br />
-  - /mnt:/mnt
-</code>
+          volumes:<br />
+          - /mnt:/mnt
+        </code>
         This example gives access to the /mnt directory where NFS shares
         dedicated to backup storage can be mounted.
       </va-alert>
       <va-form ref="form">
-        <va-input label="Name" v-model="formStorage.name" :rules="storageNameRules" />
+        <va-input
+          label="Name"
+          v-model="formStorage.name"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              isStorageNameUnique(value) || 'This name is already used',
+          ]"
+        />
         <br />
-        <va-input label="Path" placeholder="eg. /mnt/myNFSbackend" v-model="formStorage.path"
-          :rules="storagePathRules" />
+        <va-input
+          label="Path"
+          placeholder="eg. /mnt/myNFSbackend"
+          v-model="formStorage.path"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              removeTrailingSlash(value) != '/mnt' ||
+              'The path can’t only be /mnt or /mnt/',
+            (value) => /^\/mnt/gi.test(value) || 'The path must begin by /mnt',
+            (value) =>
+              isStoragePathUnique(value) ||
+              'A storage already exist for this path',
+          ]"
+        />
         <br />
-        <va-button class="mb-3" @click="$refs.form.validate() && (storageId ? updateStorage() : addStorage())">
+        <va-button
+          class="mb-3"
+          @click="
+            $refs.form.validate() &&
+              (storageId ? updateStorage() : addStorage())
+          "
+        >
           {{ storageId ? "Update" : "Add" }}
         </va-button>
       </va-form>
@@ -40,66 +73,26 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
-
-function removeTrailingSlash(path) {
-  return path.replace(/\/$/, "");
-}
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   name: "updateStorage",
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
       storageId: this.$route.params.id,
-      formStorage: { name: null, path: null },
-      storageNameRules: [
-        (value) => value?.length > 0 || "Field is required",
-        (value) =>
-          !this.otherStorageList.find((s) => s.name === value) ||
-          "This name is already used",
-      ],
-      storagePathRules: [
-        (value) => value?.length > 0 || "Field is required",
-        (value) =>
-          value == null ||
-          removeTrailingSlash(value) != "/mnt" ||
-          "The path can't only be /mnt or /mnt/",
-        (value) => /^\/mnt/gi.test(value) || "The path must begin by /mnt",
-        (value) => {
-          if (value == null) {
-            return true;
-          }
-          value = removeTrailingSlash(value);
-          return (
-            !this.otherStorageList.find(
-              (s) => removeTrailingSlash(s.path) === value
-            ) || "A storage already exist for this path"
-          );
-        },
-      ],
+      formStorage: {
+        name: null,
+        path: null,
+      },
     };
   },
   computed: {
-    otherStorageList() {
-      return this.$store.state.storageList.filter(
-        (e) => e.id != this.storageId
-      );
-    },
     stateStorage() {
       return this.$store.state.storageList.find((e) => e.id == this.storageId);
-    },
-    isNameValid() {
-      return this.storageNameRules
-        .map((rule) => rule(this.formStorage.name))
-        .every((value) => value === true);
-    },
-    isPathValid() {
-      return this.storagePathRules
-        .map((rule) => rule(this.formStorage.path))
-        .every((value) => value === true);
     },
   },
   watch: {
@@ -107,12 +100,24 @@ export default {
       this.propagateStateStorage();
     },
   },
-  mounted() {
-    if (this.stateStorage) {
-      this.propagateStateStorage();
-    }
-  },
   methods: {
+    removeTrailingSlash(path) {
+      return path?.replace(/\/$/, "");
+    },
+    isStorageNameUnique(value) {
+      const canonical = canonicalName(value);
+      return !this.$store.state.storageList.find(
+        ({ id, name }) =>
+          id != this.storageId && canonicalName(name) == canonical
+      );
+    },
+    isStoragePathUnique(value) {
+      const trimmed = this.removeTrailingSlash(value);
+      return !this.$store.state.storageList.find(
+        ({ id, path }) =>
+          id != this.storageId && this.removeTrailingSlash(path) == trimmed
+      );
+    },
     propagateStateStorage() {
       this.formStorage = { ...this.stateStorage };
     },
@@ -147,8 +152,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add storage",
             message: error?.response?.data?.detail ?? error,
@@ -156,6 +161,13 @@ export default {
           });
         });
     },
+  },
+  mounted() {
+    // TODO Wait for the refreshed data ?
+    this.$store.dispatch("requestStorage");
+    if (this.stateStorage) {
+      this.propagateStateStorage();
+    }
   },
 };
 </script>
