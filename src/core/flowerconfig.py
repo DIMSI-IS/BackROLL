@@ -1,8 +1,7 @@
-import os
+from app.environment import get_env_var
 
 # Broker
-# TODO Env var BACKROLL_REDIS_HOST
-broker = 'redis://redis:6379/0'
+broker = f'redis://{get_env_var("REDIS_URL")}:6379/0'
 
 # Persistency
 persistent = True

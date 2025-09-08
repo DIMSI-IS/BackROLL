@@ -24,7 +24,6 @@ from fastapi import HTTPException, Depends
 from pydantic import BaseModel, Json
 import requests
 from requests.auth import HTTPBasicAuth
-import redis
 import json
 
 from typing import Optional
