@@ -16,11 +16,13 @@
 # under the License.
 
 #!/usr/bin/env python
-from redis import Redis
-from fastapi.encoders import jsonable_encoder
-from app.initialized import celery_app
-
 import time
+
+from fastapi.encoders import jsonable_encoder
+
+from app.initialized import celery_app
+from app.redis import new_redis_client
+
 from app.routes import host
 from app.routes import storage
 from app.borg import borg_core
@@ -178,8 +180,9 @@ def backup_subtask(info):
                 # Launch archive creation job
                 backup_job.create_archive(disk)
 
-    redis_client = Redis(host='localhost', port=6379)
+    redis_client = new_redis_client()
     try:
+        # TODO Duplicated code ?
         vm_lock_key = f'vmlock-{info}'
         if not redis_client.exists(vm_lock_key):
             # No duplicated key found in redis - target IS NOT locked right now

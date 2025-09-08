@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from logging import Logger
 from pathlib import Path
 from urllib.parse import quote_plus
 import uuid
@@ -23,7 +24,7 @@ from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine
 
 from app.environment import get_env_var
-from app.patch import make_path
+from app.logging import logged
 
 
 class Policies(SQLModel, table=True):
@@ -121,22 +122,28 @@ class User(SQLModel, table=True):
     password_hash: bytes
 
 
-def __get_db_url():
+@logged()
+def __get_db_url(logger: Logger):
     try:
-        # TODO Rename IP to address ?
-        return f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_IP")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
-    except:
-        # TODO Debug log ?
-        pass
+        url = f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_ADDRESS")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
+        logger.info("Database settings found.")
+        return url
+    except Exception as exception:
+        logger.info(f"No database settings. {exception}")
 
     try:
-        return f"sqlite:///{Path(get_env_var("SNAP_COMMON"), "database.sqlite")}"
-    except:
-        # TODO Debug log ?
-        pass
+        url = f"sqlite:///{Path(get_env_var("SNAP_COMMON"), "database.sqlite")}"
+        logger.info("Snap environment found.")
+        return url
+    except Exception as exception:
+        logger.info(f"No snap environment. {exception}")
 
+    logger.info("Using the default database file.")
     return f"sqlite:////var/lib/backroll/database.sqlite"
 
 
+__DB_URL = __get_db_url()
+
+
 def init_db_connection():
-    return create_engine(__get_db_url())
+    return create_engine(__DB_URL)

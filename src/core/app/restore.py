@@ -20,10 +20,11 @@ import json
 import os
 import shutil
 import subprocess
-from redis import Redis
 from fastapi.encoders import jsonable_encoder
 from celery_once import QueueOnce
+
 from app.initialized import celery_app
+from app.redis import new_redis_client
 
 from app.routes import host
 from app.routes import storage
@@ -55,8 +56,9 @@ def restore_disk_vm(self, info, backup_name, storage, mode):
     for x in info:
         print(x)
 
-    redis_client = Redis(host='localhost', port=6379)
+    redis_client = new_redis_client()
     try:
+        # TODO Duplicated code ?
         vm_lock_key = f'vmlock-{info}'
         if not redis_client.exists(vm_lock_key):
             # No duplicated key found in redis - target IS NOT locked right now

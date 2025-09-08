@@ -49,11 +49,23 @@ To contribute to Backroll, you will need to have an hypervisor and some VMs to p
 
 So let’s setup KVM :
 
-- start with this [beginners’ guide](https://ubuntu.com/blog/kvm-hyphervisor)
+- start with this [beginners’ guide](https://ubuntu.com/blog/kvm-hyphervisor) - it's deprecated now (07/2025), so just run these commands to install it :
+
+```bash
+sudo apt update
+sudo apt upgrade
+sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager
+```
+
 - if libvirtd is not running, see this [thread](https://askubuntu.com/questions/1225216/failed-to-connect-socket-to-var-run-libvirt-libvirt-sock#answers)
 
 Then create a VM :
 
 - see this [thread](https://unix.stackexchange.com/questions/309788/how-to-create-a-vm-from-scratch-with-virsh) : note that `virt-manager` is a nice tool to quickly create a VM for development purposes
+- if you are using a command line tool, mind that the install iso image may require a graphical interface
 
 If Backroll and KVM are running on the same host (WSL or a linux computer), you can reach the hypervisor by using the special domain name `host.docker.internal`.
+
+## Next steps
+
+To configure and run BackROLL, please visit the [Compose Project README](../compose_project/README.md). This document will guide you through the configuration process (follow the `dev` part).

@@ -13,16 +13,21 @@ from kombu import Queue
 
 import sqlalchemy
 
+from app.environment import get_env_var
+
+
+redis_url = get_env_var("REDIS_URL")
+
 
 class Settings(BaseSettings):
     app_name: str = 'BackupAPI'
-    broker_url: str = 'redis://localhost:6379/0'
+    broker_url: str = f'redis://{redis_url}:6379/0'
     beat_scheduler: str = 'redbeat.RedBeatScheduler'
     beat_max_loop_interval: int = 5
     worker_max_tasks_per_child: int = 200
     worker_max_memory_per_child: int = 16384
     broker_transport_options: object = {'visibility_timeout': 43200}
-    result_backend: str = 'redis://localhost:6379/0'
+    result_backend: str = f'redis://{redis_url}:6379/0'
     enable_utc: bool = False
     result_extended: bool = True
     timezone: str = 'Europe/Paris'
@@ -85,12 +90,13 @@ def patch_celery():
 
 
 # Initialize Celery
-celery_app = patch_celery().Celery('BackupAPI', broker='redis://localhost:6379/0')
+celery_app = patch_celery().Celery(
+    'BackupAPI', broker=f'redis://{redis_url}:6379/0')
 
 celery_app.conf.ONCE = {
     'backend': 'celery_once.backends.Redis',
     'settings': {
-        'url': 'redis://localhost:6379/0',
+        'url': f'redis://{redis_url}:6379/0',
         'default_timeout': 60 * 60 * 12
     }
 }

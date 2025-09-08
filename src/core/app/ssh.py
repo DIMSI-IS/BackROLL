@@ -219,7 +219,7 @@ def init_ssh_connection(host_id, ip_address, username):
         raise ConnectionException("Authentication to the hypervisor has failed.")
 
 
-def remove_key(ip_address, username):
+def remove_keys(ip_address, username):
     try:
         client, _ = connect_ssh(ip_address, username)
         try:
