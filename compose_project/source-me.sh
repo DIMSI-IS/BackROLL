@@ -11,6 +11,7 @@ backroll_setup() {
             # Shared or default values
             local backroll_host_user=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
             local backroll_hostname=$HOSTNAME
+            local backroll_version=$(git describe --tags)
 
             case $backroll_mode in
                 dev)
@@ -213,6 +214,7 @@ backroll_setup() {
                 # TODO Better use envsubst ?
                 for var_name in backroll_host_user \
                                 backroll_hostname \
+                                backroll_version \
                                 backroll_mode \
                                 flower_user \
                                 flower_password \
@@ -268,16 +270,9 @@ if [[ "$1" != "" ]]; then
     backroll_setup "${1#setup-}" || return $?
 fi
 
-# Context
-backroll_version=$(git describe --tags)
-cat <<HEREDOC > .env
-BACKROLL_VERSION=$backroll_version
-HEREDOC
-
 # $dev
-if source backroll/@dev.env 2>/dev/null; then
-    dev="--env-file backroll/@dev.env
-         --env-file .env
+if source @dev.env 2>/dev/null; then
+    dev="--env-file @dev.env
          -f compose.yaml
          -f compose.source.yaml
          -f compose.dev.yaml
@@ -288,9 +283,8 @@ else
 fi
 
 # $staging
-if source backroll/@staging.env 2>/dev/null; then
-    staging="--env-file backroll/@staging.env
-             --env-file .env
+if source @staging.env 2>/dev/null; then
+    staging="--env-file @staging.env
              -f compose.yaml
              -f compose.source.yaml
              -f compose.staging_prod.yaml
@@ -302,10 +296,9 @@ else
 fi
 
 # $prod
-if source backroll/@prod.env 2>/dev/null; then
+if source @prod.env 2>/dev/null; then
     if git describe --tags --exact-match 2>/dev/null; then
-        prod="--env-file backroll/@prod.env
-            --env-file .env
+        prod="--env-file @prod.env
             -f compose.yaml
             -f compose.staging_prod.yaml
             -f compose.prod.yaml

@@ -7,7 +7,7 @@ services:
       - database
     image: mariadb:10.3
     env_file:
-      - database/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
     volumes:
       - ./database/@${BACKROLL_MODE}_persistence:/var/lib/mysql
 
@@ -18,7 +18,7 @@ services:
   setup:
     build: ./setup
     env_file:
-      - backroll/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
     volumes:
       - .:/app/compose_project
 
@@ -30,7 +30,7 @@ services:
     profiles:
       - sso
     env_file:
-      - sso/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
 
   api:
     depends_on:
@@ -43,7 +43,7 @@ services:
     restart: on-failure # Compensates for the lack of database healthcheck.
     command: bash api.command.sh
     env_file:
-      - core/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
     volumes:
       - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
@@ -54,7 +54,7 @@ services:
       - api
     command: bash worker_primary.command.sh
     env_file:
-      - core/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
     volumes:
       - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
@@ -65,7 +65,7 @@ services:
       - worker_primary
     command: bash worker_secondary.command.sh
     env_file:
-      - core/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
     volumes:
       - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
@@ -76,7 +76,7 @@ services:
       - worker_primary
     command: bash flower.command.sh
     env_file:
-      - core/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
     volumes:
       - ./flower/@${BACKROLL_MODE}_persistence:/root/flower
 
@@ -85,11 +85,10 @@ services:
       - worker_secondary
     command: bash beat.command.sh
     env_file:
-      - core/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
 
   front:
     depends_on:
       - api
     env_file:
-      - .env
-      - front/@$BACKROLL_MODE.env
+      - "@$BACKROLL_MODE.env"
