@@ -172,7 +172,7 @@ def retrieve_restore_task_jobs():
 
     vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
     vm_retore_path_response = requests.get(
-        f'http://{get_localhost_url()}:5555/api/tasks', params=vm_retore_path_payload)
+        f'http://{get_flower_url()}:5555/api/tasks', params=vm_retore_path_payload)
     vm_retore_path_task = json.loads(
         vm_retore_path_response.content.decode('ascii'))
 
