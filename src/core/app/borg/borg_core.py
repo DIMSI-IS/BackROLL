@@ -17,18 +17,15 @@
 
 import os
 import json
-import subprocess
 import os.path
 from os import path
 from pathlib import Path
 import calendar
 import time
-import paramiko
 import shutil
 
 from app.routes import pool
 from app.routes import connectors
-from app.routes import backup_policy
 
 # KVM custom module import
 from app.kvm import kvm_manage_snapshot
@@ -38,7 +35,7 @@ from app.cloudstack import virtual_machine as cs_manage_vm
 
 from app.patch import make_path
 from app import shell
-from app.ssh import check_ssh_agent, ConnectionException
+from app.ssh import connect_ssh
 
 
 class borg_backup:
@@ -61,48 +58,8 @@ class borg_backup:
         self.vm_name = ''
 
         if 'ip_address' in self.info and 'username' in self.info:
-            # Start SSH agent if not already running
-            if not check_ssh_agent():
-                result = shell.subprocess_run("ssh-agent -s")
-                for line in result.splitlines():
-                    if line.startswith("SSH_AUTH_SOCK"):
-                        key, value = line.split("=", 1)
-                        os.environ[key] = value.split(";")[0]
-                    elif line.startswith("SSH_AGENT_PID"):
-                        key, value = line.split("=", 1)
-                        os.environ[key] = value.split(";")[0]
-
-            # Add private keys to SSH agent
-            local_ssh_dir = os.path.join(os.getenv("SNAP_COMMON", "/var/snap/backroll/common"), ".ssh", "local_ssh")
-            private_keys = shell.os_popen(
-                f"find \"{local_ssh_dir}\" -type f -name 'id_*' ! -name '*.pub'"
-            ).splitlines()
-            if not private_keys:
-                raise ConnectionException(f"No private keys found in {local_ssh_dir}")
-
-            result = shell.subprocess_run(
-                f"ssh-add $(find \"{local_ssh_dir}\" -type f -name 'id_*' ! -name '*.pub')"
-            )
-
-            # Verify loaded keys
-            result = shell.subprocess_run("ssh-add -l")
-            if not result.strip():
-                raise ConnectionException("No SSH keys loaded in agent")
-
-            # Test SSH connection
-            username = self.info['username']
-            ip_address = self.info['ip_address']
-            shell.subprocess_run(
-                f"ssh -o StrictHostKeyChecking=no {username}@{ip_address} exit"
-            )
-
-            # Starting hypervisor host ssh access
-            self.host_ssh = paramiko.SSHClient()
-            self.host_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.host_ssh.connect(
-                hostname=self.info['ip_address'],
-                username=self.info['username']
-            )
+            (self.host_ssh, _used_key) = connect_ssh(
+                self.info['ip_address'], self.info['username'])
 
     def remote_request(self, command):
         # Passing commands through SSH to remote endpoint
@@ -268,17 +225,17 @@ class borg_backup:
 
     def borg_prune(self, disk, backup_policy):
         disk_name = disk['device']
-        
+
         vm_repository_path = make_path(
             self.info['borg_repository'], self.vm_name)
-        if backup_policy.retention_day > 0 or backup_policy.retention_week > 0 or backup_policy.retention_month > 0 or backup_policy.retention_year > 0 :
+        if backup_policy.retention_day > 0 or backup_policy.retention_week > 0 or backup_policy.retention_month > 0 or backup_policy.retention_year > 0:
             command = f'borg prune' \
                 f'{f" --keep-daily {backup_policy.retention_day}" if backup_policy.retention_day > 0 else ""}' \
                 f'{f" --keep-weekly {backup_policy.retention_week}" if backup_policy.retention_week > 0 else ""}' \
                 f'{f" --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
                 f'{f" --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
                 f' --glob-archives {disk_name}* {vm_repository_path}'
-          
+
             shell.subprocess_run(command)
 
         for disk in self.virtual_machine['storage']:
