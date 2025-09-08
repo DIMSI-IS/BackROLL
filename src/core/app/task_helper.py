@@ -1,12 +1,14 @@
 import requests
 import json
 
+from app.environment import get_flower_url
 from app.patch import parse_python_data
 from app.redis import new_redis_client
 
 
 def get_task_info(task_id):
-    response = requests.get(f"http://flower:5555/api/task/info/{task_id}")
+    response = requests.get(
+        f"http://{get_flower_url()}:5555/api/task/info/{task_id}")
     return response.content
 
 

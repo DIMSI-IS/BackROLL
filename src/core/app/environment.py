@@ -27,3 +27,8 @@ def get_env_var(name, allow_blank=False, allow_undefined=False):
     return value
 
 # TODO Create a function for each env var here to prevent using strings everywhere ?
+# TODO Use Pydantic settings ?
+
+
+def get_flower_url():
+    return get_env_var("FLOWER_URL")

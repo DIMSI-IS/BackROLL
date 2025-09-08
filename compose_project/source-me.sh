@@ -13,6 +13,7 @@ backroll_setup() {
             local backroll_hostname=$HOSTNAME
             local backroll_version=$(git describe --tags)
             local redis_url=redis
+            local flower_url=flower
 
             case $backroll_mode in
                 dev)
@@ -218,6 +219,7 @@ backroll_setup() {
                                 backroll_version \
                                 backroll_mode \
                                 redis_url \
+                                flower_url \
                                 flower_user \
                                 flower_password \
                                 backroll_db \

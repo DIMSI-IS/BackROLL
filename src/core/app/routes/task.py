@@ -25,12 +25,12 @@ from pydantic import BaseModel, Json
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+from celery import chain
 
 from typing import Optional
 
-from app.initialized import fastapi_app
-from app.initialized import celery_app
-from celery import chain
+from app.initialized import fastapi_app, celery_app
+from app.environment import get_flower_url
 
 from app.backup_tasks import single_backup
 
@@ -60,7 +60,8 @@ class restorebackup_start(BaseModel):
 
 
 def get_task_logs(task_id):
-    response = requests.get(f'http://flower:5555/api/task/info/{task_id}')
+    response = requests.get(
+        f'http://{get_flower_url()}:5555/api/task/info/{task_id}')
     return response.content
 
 
@@ -166,12 +167,12 @@ def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = D
 def retrieve_restore_task_jobs():
     single_vm_payload = {"taskname": "VM_Restore_Disk"}
     single_vm_response = requests.get(
-        'http://flower:5555/api/tasks', params=single_vm_payload)
+        f'http://{get_flower_url()}:5555/api/tasks', params=single_vm_payload)
     single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
 
     vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
     vm_retore_path_response = requests.get(
-        'http://flower:5555/api/tasks', params=vm_retore_path_payload)
+        f'http://{get_flower_url()}:5555/api/tasks', params=vm_retore_path_payload)
     vm_retore_path_task = json.loads(
         vm_retore_path_response.content.decode('ascii'))
 
@@ -186,13 +187,13 @@ def retrieve_restore_task_jobs():
 def retrieve_backup_task_jobs():
     single_vm_payload = {"taskname": "	Single_VM_Backup"}
     single_vm_response = requests.get(
-        'http://flower:5555/api/tasks', params=single_vm_payload)
+        f'http://{get_flower_url()}:5555/api/tasks', params=single_vm_payload)
     pool_payload = {"taskname": "Pool_VM_Backup"}
     pool_response = requests.get(
-        'http://flower:5555/api/tasks', params=pool_payload)
+        f'http://{get_flower_url()}:5555/api/tasks', params=pool_payload)
     subtask_payload = {"taskname": "backup_subtask"}
     subtask_response = requests.get(
-        'http://flower:5555/api/tasks', params=subtask_payload)
+        f'http://{get_flower_url()}:5555/api/tasks', params=subtask_payload)
     single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
     pool_vm_task = json.loads(pool_response.content.decode('ascii'))
     subtask = json.loads(subtask_response.content.decode('ascii'))
