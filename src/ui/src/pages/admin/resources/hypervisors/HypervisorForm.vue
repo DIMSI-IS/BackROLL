@@ -2,26 +2,55 @@
   <va-card>
     <va-card-title>
       <FormHeader
-        :title="hypersivorId ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}` : 'Adding hypervisor'" />
+        :title="
+          hypervisorId
+            ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}`
+            : 'Adding hypervisor'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!hypervisorId || stateHypervisor">
       <va-form ref="form">
-        <va-input label="Hostname" v-model="formHypervisor.hostname"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Hostname"
+          v-model="formHypervisor.hostname"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              isHypervisorNameUnique(value) || 'This hostname is already used',
+          ]"
+        />
         <br />
-        <va-input label="IP Address or Domain Name" v-model="formHypervisor.ipAddress" :rules="[
-          (value) =>
-            value?.match(/^[0-9a-zA-Z.-]+$/) ||
-            'Field is required and must be a valid IP address or domain name.',
-        ]" />
+        <va-input
+          label="IP Address or Domain Name"
+          v-model="formHypervisor.ipAddress"
+          :rules="[
+            (value) =>
+              /^[0-9a-zA-Z.-]+$/.test(value) ||
+              'Field is required and must be a valid IP address or domain name.',
+            (value) =>
+              isHypervisorAddressUnique(value) ||
+              'This IP address or domain name is already used',
+          ]"
+        />
         <br />
-        <va-select label="Select Pool" v-model="selectedPool" :options="poolOptions"
-          :rules="[(value) => value || 'Field is required']" />
+        <va-select
+          label="Select Pool"
+          v-model="selectedPool"
+          :options="poolOptions"
+          :rules="[(value) => value || 'Field is required']"
+        />
         <br />
         <va-input label="Tag (optional)" v-model="formHypervisor.tags" />
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate() && (hypersivorId ? updateHypervisor() : addHypervisor())">
+      <va-button
+        class="mb-3"
+        @click="
+          $refs.form.validate() &&
+            (hypervisorId ? updateHypervisor() : addHypervisor())
+        "
+      >
         {{ hypervisorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -36,27 +65,42 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
-      hypersivorId: this.$route.params.id,
+      hypervisorId: this.$route.params.id,
       formHypervisor: {
         hostname: null,
         ipAddress: null,
         tags: null,
       },
       selectedPool: null,
+      hostnameRules: [
+        (value) => value?.length > 0 || "Field is required",
+        (value) =>
+          !this.otherHypervisors.find((h) => h.hostname === value) ||
+          "This hostname is already used",
+      ],
+      ipAddressRules: [
+        (value) =>
+          /^[0-9a-zA-Z.-]+$/.test(value) ||
+          "Field is required and must be a valid IP address or domain name.",
+        (value) =>
+          !this.otherHypervisors.find((h) => h.ipaddress === value) ||
+          "This IP address is already used",
+      ],
     };
   },
   computed: {
     stateHypervisor() {
       return this.$store.state.resources.hostList.find(
-        (item) => item.id == this.hypersivorId
+        (item) => item.id == this.hypervisorId
       );
     },
     poolOptions() {
@@ -65,12 +109,17 @@ export default {
         value: e.id,
       }));
     },
+    otherHypervisors() {
+      return this.$store.state.resources.hostList.filter(
+        (h) => h.id != this.hypervisorId
+      );
+    },
   },
   watch: {
-    stateHypervisor: function () {
+    stateHypervisor() {
       this.propagateStateHypervisor();
     },
-    poolOptions: function () {
+    poolOptions() {
       if (this.selectedPool != null) {
         this.updatePool(this.selectedPool.value);
       }
@@ -82,6 +131,18 @@ export default {
     }
   },
   methods: {
+    isHypervisorNameUnique(value) {
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.hostList.find(
+        ({ id, hostname }) =>
+          id != this.hypervisorId && canonicalName(hostname) == canonical
+      );
+    },
+    isHypervisorAddressUnique(value) {
+      return !this.$store.state.resources.hostList.find(
+        ({ id, ipaddress }) => id != this.hypervisorId && ipaddress == value
+      );
+    },
     propagateStateHypervisor() {
       this.formHypervisor = { ...this.stateHypervisor };
 
@@ -105,7 +166,6 @@ export default {
     updateHypervisor() {
       this.$store.dispatch("updateHost", {
         vm: this,
-        token: this.$store.state.token,
         hostValues: this.exportHypervisor(),
       });
     },
@@ -122,7 +182,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestHost", { token: this.$store.state.token });
+          this.$store.dispatch("requestHost");
           this.$router.push("/admin/resources/hypervisors");
           this.$vaToast.init({
             title: response.data.state,
@@ -130,8 +190,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add hypervisor",
             message: error?.response?.data?.detail ?? error,

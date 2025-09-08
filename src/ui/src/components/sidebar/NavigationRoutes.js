@@ -1,102 +1,95 @@
 export default {
   root: {
-    name: '/',
-    displayName: 'navigationRoutes.home',
+    name: "/",
+    displayName: "navigationRoutes.home",
   },
   routes: [
     {
-      name: 'dashboard',
-      displayName: 'menu.dashboard',
+      name: "dashboard",
+      displayName: "menu.dashboard",
       meta: {
-        icon: 'vuestic-iconset-dashboard',
+        icon: "vuestic-iconset-dashboard",
       },
     },
-
     {
-      name: 'tasks',
-      displayName: 'menu.tasks',
+      name: "tasks",
+      displayName: "menu.tasks",
       meta: {
-        icon: 'settings_backup_restore',
+        icon: "settings_backup_restore",
       },
       disabled: true,
       children: [
         {
-          name: 'backup',
-          displayName: 'menu.backup'
+          name: "backup",
+          displayName: "menu.backup",
         },
         {
-          name: 'restore',
-          displayName: 'menu.restore',
+          name: "restore",
+          displayName: "menu.restore",
         },
       ],
     },
-
     {
-      name: 'resources',
-      displayName: 'menu.resources',
+      name: "resources",
+      displayName: "menu.resources",
       meta: {
-        icon: 'category',
+        icon: "category",
       },
       disabled: true,
       children: [
         {
-          name: 'pools',
-          displayName: 'menu.pools',
+          name: "pools",
+          displayName: "menu.pools",
         },
         {
-          name: 'hypervisors',
-          displayName: 'menu.hypervisors',
+          name: "hypervisors",
+          displayName: "menu.hypervisors",
         },
         {
-          name: 'virtualmachines',
-          displayName: 'menu.virtualmachines',
+          name: "virtualmachines",
+          displayName: "menu.virtualmachines",
         },
       ],
     },
-
     {
-      name: 'configuration',
-      displayName: 'menu.configuration',
+      name: "configuration",
+      displayName: "menu.configuration",
       meta: {
-        icon: 'settings',
+        icon: "assignment",
       },
       disabled: true,
       children: [
         {
-          name: 'policies',
-          displayName: 'menu.policies',
+          name: "policies",
+          displayName: "menu.policies",
         },
         {
-          name: 'storage',
-          displayName: 'menu.storage',
+          name: "storage",
+          displayName: "menu.storage",
         },
         {
-          name: 'connectors',
-          displayName: 'menu.connectors',
+          name: "connectors",
+          displayName: "menu.connectors",
         },
         {
-          name: 'externalhooks',
-          displayName: 'menu.external-hooks',
-        }
+          name: "externalhooks",
+          displayName: "menu.external-hooks",
+        },
       ],
     },
     {
-      name: 'account',
-      displayName: 'menu.account',
+      name: "parameters",
+      displayName: "menu.parameters",
       meta: {
-        icon: 'profile',
+        icon: "settings",
       },
       disabled: true,
       children: [
         {
-          name: 'login',
-          displayName: 'menu.login',
+          name: "changePassword",
+          displayName: "menu.changePassword",
         },
-        {
-          name: 'changePassword',
-          displayName: 'menu.changePassword',
-        }
       ],
-    }
+    },
   ],
-}
+};

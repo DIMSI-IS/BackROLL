@@ -1,23 +1,46 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="poolId ? `Updating pool ${statePool?.name ?? ''}` : 'Creating pool'" />
+      <FormHeader
+        :title="
+          poolId ? `Updating pool ${statePool?.name ?? ''}` : 'Creating pool'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!poolId || statePool">
       <va-form ref="form">
-        <va-input label="Name" v-model="formPool.name" :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Name"
+          v-model="formPool.name"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              isPoolNameUnique(value) || 'This pool name is already used',
+          ]"
+        />
         <br />
-        <va-select label="Select policy" v-model="selectedPolicy" :options="policyOptions"
-          :rules="[(value) => value || 'Field is required']">
+        <va-select
+          label="Select policy"
+          v-model="selectedPolicy"
+          :options="policyOptions"
+          :rules="[(value) => value || 'Field is required']"
+        >
           <template #prependInner>
             <va-icon name="storage" size="small" color="primary" />
           </template>
         </va-select>
       </va-form>
       <br />
-      <va-select label="Select connector (optional)" v-model="selectedConnector" :options="connectorOptions" />
+      <va-select
+        label="Select connector (optional)"
+        v-model="selectedConnector"
+        :options="connectorOptions"
+      />
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate() && (poolId ? updatePool() : addPool())">
+      <va-button
+        class="mb-3"
+        @click="$refs.form.validate() && (poolId ? updatePool() : addPool())"
+      >
         {{ poolId ? "Update" : "Create" }}
       </va-button>
     </va-card-content>
@@ -32,11 +55,12 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -88,6 +112,12 @@ export default {
     }
   },
   methods: {
+    isPoolNameUnique(value) {
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.poolList.find(
+        ({ id, name }) => id != this.poolId && canonicalName(name) == canonical
+      );
+    },
     propagateStatePool() {
       this.formPool = { ...this.statePool };
       this.updatePolicy(this.statePool.policy_id);
@@ -114,7 +144,6 @@ export default {
     updatePool() {
       this.$store.dispatch("updatePool", {
         vm: this,
-        token: this.$store.state.token,
         poolValues: this.exportPool(),
       });
     },
@@ -131,7 +160,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestPool", { token: this.$store.state.token });
+          this.$store.dispatch("requestPool");
           this.$router.push("/admin/resources/pools");
           this.$vaToast.init({
             title: response.data.state,
@@ -139,8 +168,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add pool",
             message: error?.response?.data?.detail ?? error,

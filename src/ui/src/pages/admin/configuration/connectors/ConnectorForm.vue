@@ -1,7 +1,13 @@
 <template>
   <va-card>
     <va-card-title>
-      <FormHeader :title="connectorId ? `Updating connector ${stateConnector?.name ?? ''}` : 'Adding connector'" />
+      <FormHeader
+        :title="
+          connectorId
+            ? `Updating connector ${stateConnector?.name ?? ''}`
+            : 'Adding connector'
+        "
+      />
     </va-card-title>
     <va-card-content v-if="!connectorId || stateConnector">
       <va-alert color="info" icon="info" dense>
@@ -9,25 +15,54 @@
       </va-alert>
       <br />
       <va-form ref="form">
-        <va-input label="Name" v-model="formConnector.name"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Name"
+          v-model="formConnector.name"
+          :rules="[
+            (value) => value?.length > 0 || 'Field is required',
+            (value) =>
+              isConnectorNameUnique(value) ||
+              'This connector name is already used',
+          ]"
+        />
         <br />
-        <va-input label="Endpoint URL" v-model="formConnector.url"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <!-- TODO Test for duplicates ? -->
+        <va-input
+          label="Endpoint URL"
+          v-model="formConnector.url"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        />
         <br />
-        <va-input label="Login" v-model="formConnector.login"
-          :rules="[(value) => value?.length > 0 || 'Field is required']" />
+        <va-input
+          label="Login"
+          v-model="formConnector.login"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        />
         <br />
-        <va-input v-model="formConnector.password" :type="isPasswordVisible ? 'text' : 'password'" label="Password"
-          :rules="[(value) => value?.length > 0 || 'Field is required']">
+        <va-input
+          v-model="formConnector.password"
+          :type="isPasswordVisible ? 'text' : 'password'"
+          label="Password"
+          :rules="[(value) => value?.length > 0 || 'Field is required']"
+        >
           <template #appendInner>
-            <va-icon :name="isPasswordVisible ? 'visibility_off' : 'visibility'" size="small" color="--va-primary"
-              @click="isPasswordVisible = !isPasswordVisible" />
+            <va-icon
+              :name="isPasswordVisible ? 'visibility_off' : 'visibility'"
+              size="small"
+              color="--va-primary"
+              @click="isPasswordVisible = !isPasswordVisible"
+            />
           </template>
         </va-input>
       </va-form>
       <br />
-      <va-button class="mb-3" @click="$refs.form.validate() && (connectorId ? updateConnector() : addConnector())">
+      <va-button
+        class="mb-3"
+        @click="
+          $refs.form.validate() &&
+            (connectorId ? updateConnector() : addConnector())
+        "
+      >
         {{ connectorId ? "Update" : "Add" }}
       </va-button>
     </va-card-content>
@@ -42,11 +77,12 @@ import axios from "axios";
 import * as spinners from "epic-spinners";
 
 import FormHeader from "@/components/forms/FormHeader.vue";
+import { canonicalName } from "@/pages/admin/forms";
 
 export default {
   components: {
     ...spinners,
-    FormHeader
+    FormHeader,
   },
   data() {
     return {
@@ -72,19 +108,20 @@ export default {
       this.propagateStateConnector();
     },
   },
-  mounted() {
-    if (this.stateConnector) {
-      this.propagateStateConnector();
-    }
-  },
   methods: {
+    isConnectorNameUnique(value) {
+      const canonical = canonicalName(value);
+      return !this.$store.state.resources.connectorList.find(
+        ({ id, name }) =>
+          id != this.connectorId && canonicalName(name) == canonical
+      );
+    },
     propagateStateConnector() {
       this.formConnector = { ...this.stateConnector };
     },
     updateConnector() {
       this.$store.dispatch("updateConnector", {
         vm: this,
-        token: this.$store.state.token,
         connectorValues: this.formConnector,
       });
     },
@@ -101,9 +138,7 @@ export default {
           }
         )
         .then((response) => {
-          this.$store.dispatch("requestConnector", {
-            token: this.$store.state.token,
-          });
+          this.$store.dispatch("requestConnector");
           this.$router.push("/admin/configuration/connectors");
           this.$vaToast.init({
             title: response.data.state,
@@ -111,8 +146,8 @@ export default {
             color: "success",
           });
         })
-        .catch(error => {
-          console.error(error)
+        .catch((error) => {
+          console.error(error);
           this.$vaToast.init({
             title: "Unable to add connector",
             message: error?.response?.data?.detail ?? error,
@@ -120,6 +155,13 @@ export default {
           });
         });
     },
+  },
+  mounted() {
+    // TODO Wait ?
+    this.$store.dispatch("requestConnector");
+    if (this.stateConnector) {
+      this.propagateStateConnector();
+    }
   },
 };
 </script>
