@@ -33,25 +33,22 @@ from app.database import Hosts
 from app.routes import host
 from app.patch import ensure_uuid
 
-def get_snap_path(*subdirs: str) -> Path:
-    """Returns a path based on SNAP_COMMON with the given subdirectories."""
-    snap_common = os.getenv("SNAP_COMMON")
-    if not snap_common:
-        raise RuntimeError("SNAP_COMMON is not set. Check your Snap environment.")
-    return Path(snap_common).joinpath(*subdirs)
 
 def __get_shared_ssh_directory() -> Path:
-    return get_snap_path(".ssh", "shared_ssh")
+    return Path("/", "root", "shared_ssh")
+
 
 def __get_local_ssh_directory() -> Path:
-    return get_snap_path(".ssh", "local_ssh")
+    return Path("/", "root", ".ssh")
+
 
 def __get_sync_file() -> Path:
     return __get_shared_ssh_directory() / "sync"
 
+
 @logged()
 def push_ssh_directory() -> None:
-    
+
     __get_shared_ssh_directory().mkdir(parents=True, exist_ok=True)
 
     for key_type in ["rsa", "ed25519"]:
@@ -123,9 +120,11 @@ def list_public_keys() -> list[SshPublicKey]:
                 .replace("'", "").replace("|", "")),
         shell.os_popen(f"find {__get_local_ssh_directory().as_posix()}/*.pub").splitlines()))
 
+
 class ConnectionException(Exception):
     def __init__(self, message):
         super().__init__(message)
+
 
 def get_ssh_private_keys() -> List[Tuple[str, str]]:
     private_key_paths = shell.os_popen(
@@ -141,6 +140,7 @@ def get_ssh_private_keys() -> List[Tuple[str, str]]:
         if key_type:
             key_paths.append((key_type, path))
     return key_paths
+
 
 def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Optional[Tuple[str, str]]]:
     """Establishes an SSH connection and returns the client and used key."""
@@ -160,9 +160,11 @@ def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Opt
                 if key_type == "RSA"
                 else paramiko.Ed25519Key.from_private_key_file(path)
             )
-            logging.debug(f"Attempting connection with {key_type} key to {ip_address}")
+            logging.debug(
+                f"Attempting connection with {key_type} key to {ip_address}")
             client.connect(hostname=ip_address, username=username, pkey=key)
-            logging.info(f"SSH connection successful with {key_type} key to {ip_address}")
+            logging.info(
+                f"SSH connection successful with {key_type} key to {ip_address}")
             connected = True
             used_key = (key_type, path)
             break
@@ -174,6 +176,7 @@ def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Opt
         raise ConnectionException("Unable to connect via SSH with any key.")
 
     return client, used_key
+
 
 def check_ssh_agent() -> bool:
     try:
@@ -202,7 +205,8 @@ def init_ssh_connection(host_id, ip_address, username):
             engine = database.init_db_connection()
 
             with Session(engine) as session:
-                statement = select(Hosts).where(Hosts.id == ensure_uuid(host_id))
+                statement = select(Hosts).where(
+                    Hosts.id == ensure_uuid(host_id))
                 results = session.exec(statement)
                 data_host = results.one()
                 data_host.ssh = 1
@@ -216,7 +220,8 @@ def init_ssh_connection(host_id, ip_address, username):
     except OSError:
         raise ConnectionException("The hypervisor is unreachable.")
     except paramiko.ssh_exception.AuthenticationException:
-        raise ConnectionException("Authentication to the hypervisor has failed.")
+        raise ConnectionException(
+            "Authentication to the hypervisor has failed.")
 
 
 def remove_keys(ip_address, username):
@@ -238,4 +243,5 @@ def remove_keys(ip_address, username):
     except OSError:
         raise ConnectionException("The hypervisor is unreachable.")
     except paramiko.ssh_exception.AuthenticationException:
-        raise ConnectionException("Authentication to the hypervisor has failed.")
+        raise ConnectionException(
+            "Authentication to the hypervisor has failed.")
