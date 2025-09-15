@@ -32,31 +32,37 @@ from app.logging import logged
 from app.database import Hosts
 from app.routes import host
 from app.patch import ensure_uuid
+from app.environment import get_env_var
 
 
-def __get_shared_ssh_directory() -> Path:
-    return Path("/", "root", "shared_ssh")
+def __get_parent_directory() -> Path:
+    return Path(get_env_var("SNAP_COMMON", allow_blank=True, allow_undefined=True) or "/root")
 
 
-def __get_local_ssh_directory() -> Path:
-    return Path("/", "root", ".ssh")
+def __get_shared_directory() -> Path:
+    return __get_parent_directory() / "shared_ssh"
+
+
+# TODO Keep it private
+def get_local_directory() -> Path:
+    return __get_parent_directory() / ".ssh"
 
 
 def __get_sync_file() -> Path:
-    return __get_shared_ssh_directory() / "sync"
+    return __get_shared_directory() / "sync"
 
 
 @logged()
 def push_ssh_directory() -> None:
-    __get_shared_ssh_directory().mkdir(parents=True, exist_ok=True)
+    __get_shared_directory().mkdir(parents=True, exist_ok=True)
 
     for key_type in ["rsa", "ed25519"]:
-        key_path = __get_shared_ssh_directory() / f"id_{key_type}"
+        key_path = __get_shared_directory() / f"id_{key_type}"
         if not key_path.exists():
             shell.subprocess_run(
                 f'ssh-keygen -t {key_type} -b 2048 -N "" -C "$BACKROLL_HOST_USER@$BACKROLL_HOSTNAME(backroll)" -f "{key_path.as_posix()}" -q')
 
-    config_path = __get_shared_ssh_directory() / "config"
+    config_path = __get_shared_directory() / "config"
     if not config_path.exists():
         # The file may be created before being written.
         # Thus, it is not suitable for synchronizing.
@@ -73,14 +79,14 @@ def push_ssh_directory() -> None:
 
 @logged()
 def pull_ssh_directory(logger: Logger) -> None:
-    __get_local_ssh_directory().mkdir(parents=True, exist_ok=True)
+    get_local_directory().mkdir(parents=True, exist_ok=True)
 
     while not __get_sync_file().exists():
         logger.info("Waiting for shared SSH directory…")
         sleep(1)
 
-    src = __get_shared_ssh_directory().as_posix()
-    dst = __get_local_ssh_directory().as_posix()
+    src = __get_shared_directory().as_posix()
+    dst = get_local_directory().as_posix()
 
     shell.subprocess_run(f"""
                          # Copy shared directory
@@ -117,7 +123,7 @@ def list_public_keys() -> list[SshPublicKey]:
             # Pipes are the chosen delimiters for the sed address thus they are removed.
             shell.os_popen(f"cat {path}").strip()
                 .replace("'", "").replace("|", "")),
-        shell.os_popen(f"find {__get_local_ssh_directory().as_posix()}/*.pub").splitlines()))
+        shell.os_popen(f"find {get_local_directory().as_posix()}/*.pub").splitlines()))
 
 
 class ConnectionException(Exception):
@@ -127,7 +133,7 @@ class ConnectionException(Exception):
 
 def get_ssh_private_keys() -> List[Tuple[str, str]]:
     private_key_paths = shell.os_popen(
-        f"find {__get_local_ssh_directory().as_posix()} -type f -name 'id_*' ! -name '*.pub'"
+        f"find {get_local_directory().as_posix()} -type f -name 'id_*' ! -name '*.pub'"
     ).splitlines()
     key_paths = []
     for path in private_key_paths:
@@ -189,7 +195,7 @@ def check_ssh_agent() -> bool:
 def init_ssh_connection(host_id, ip_address, username):
     try:
         shell.subprocess_run(f"""
-                             ls -al {__get_local_ssh_directory().as_posix()}
+                             ls -al {get_local_directory().as_posix()}
                              eval `ssh-agent` && ssh-add -l
                              ssh {username}@{ip_address}""")
     except Exception as exception:

@@ -17,8 +17,9 @@
 
 import os
 import libvirt
-from app.ssh import check_ssh_agent, __get_local_ssh_directory, ConnectionException
+from app.ssh import check_ssh_agent, get_local_directory, ConnectionException
 from app import shell
+
 
 def kvm_connection(hypervisor):
     """Establishes a libvirt connection to the remote host."""
@@ -35,13 +36,14 @@ def kvm_connection(hypervisor):
                     os.environ[key] = value.split(";")[0]
 
         # Add private keys to SSH agent
-        local_ssh_dir = __get_local_ssh_directory().as_posix()
+        local_ssh_dir = get_local_directory().as_posix()
         private_keys = shell.os_popen(
             f"find \"{local_ssh_dir}\" -type f -name 'id_*' ! -name '*.pub'"
         ).splitlines()
         if not private_keys:
             print(f"ERROR: No private keys found in {local_ssh_dir}")
-            raise ConnectionException(f"No private keys found in {local_ssh_dir}")
+            raise ConnectionException(
+                f"No private keys found in {local_ssh_dir}")
 
         result = shell.subprocess_run(
             f"ssh-add $(find \"{local_ssh_dir}\" -type f -name 'id_*' ! -name '*.pub')"
@@ -69,7 +71,8 @@ def kvm_connection(hypervisor):
         raise
     except Exception as e:
         print(f"ERROR: Failed to initialize libvirt connection: {str(e)}")
-        raise ConnectionException(f"Failed to initialize libvirt connection: {str(e)}")
+        raise ConnectionException(
+            f"Failed to initialize libvirt connection: {str(e)}")
     finally:
         # Clean up SSH agent if started
         if "SSH_AGENT_PID" in os.environ:

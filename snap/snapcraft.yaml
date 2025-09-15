@@ -95,11 +95,6 @@ parts:
     plugin: dump
 
 layout:
-  /root/shared_ssh:
-    bind: $SNAP_COMMON/.ssh
-  /root/.ssh:
-    bind: $SNAP_COMMON/.ssh
-
   /etc/nginx:
     # Configuration was placed here during build.
     bind: $SNAP/etc/nginx
