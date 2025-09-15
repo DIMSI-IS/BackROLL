@@ -53,11 +53,26 @@ def __get_sync_file() -> Path:
 
 @logged()
 def manage_ssh_agent():
-    shell.subprocess_run(f"""
+    env_var_names = ["SSH_AUTH_SOCK", "SSH_AGENT_PID"]
+    def_separator = "="
+
+    output = shell.subprocess_run(f"""
                          eval `ssh-agent`
                          ssh-add $(find "{__get_local_directory().as_posix()}" -name "id_*" ! -name "*.pub")
                          ssh-add -l
+                         {"; ".join(map(lambda var_name: f"echo {var_name}{def_separator}${var_name}", env_var_names))}
                          """)
+
+    for line in output.splitlines():
+        if not def_separator in line:
+            continue
+        [name, value] = line.split(def_separator)
+        if name in env_var_names:
+            os.environ[name] = value
+
+    # Check
+    for var_name in env_var_names:
+        get_env_var(var_name)
 
 
 @logged()
