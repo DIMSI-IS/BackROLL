@@ -48,7 +48,6 @@ def __get_sync_file() -> Path:
 
 @logged()
 def push_ssh_directory() -> None:
-
     __get_shared_ssh_directory().mkdir(parents=True, exist_ok=True)
 
     for key_type in ["rsa", "ed25519"]:
@@ -74,14 +73,14 @@ def push_ssh_directory() -> None:
 
 @logged()
 def pull_ssh_directory(logger: Logger) -> None:
+    __get_local_ssh_directory().mkdir(parents=True, exist_ok=True)
+
     while not __get_sync_file().exists():
         logger.info("Waiting for shared SSH directory…")
         sleep(1)
 
     src = __get_shared_ssh_directory().as_posix()
     dst = __get_local_ssh_directory().as_posix()
-
-    __get_local_ssh_directory().mkdir(parents=True, exist_ok=True)
 
     shell.subprocess_run(f"""
                          # Copy shared directory
