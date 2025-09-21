@@ -271,6 +271,6 @@ def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json =
 @fastapi_app.get("/api/v1/publickeys", status_code=200)
 def list_ssh_public_keys(identity: Json = Depends(auth.verify_token)):
     try:
-        return {'state': 'SUCCESS', 'info': list(map(dataclasses.asdict, ssh.list_public_keys()))}
+        return {'state': 'SUCCESS', 'info': list(map(dataclasses.asdict, ssh.get_public_keys()))}
     except Exception as e:
         raise ValueError('Unable to retrieve appliance public key')

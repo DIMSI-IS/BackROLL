@@ -55,6 +55,40 @@ def __get_private_key_paths() -> List[str]:
     return shell.subprocess_run(f"find '{__get_local_directory().as_posix()}' -name 'id_*' ! -name '*.pub'").splitlines()
 
 
+def __get_public_key_paths() -> List[str]:
+    return shell.subprocess_run(f"find '{__get_local_directory().as_posix()}' -name '*.pub'").splitlines()
+
+
+@dataclass
+class PrivateKey:
+    type: str
+    path: str
+
+
+def __get_private_keys() -> List[PrivateKey]:
+    return list(map(lambda path: PrivateKey(
+        Path(path).stem.removeprefix("id_").upper(),
+        path
+    ), __get_private_key_paths()))
+
+
+@dataclass
+class PublicKey:
+    name: str
+    full_line: str
+
+
+def get_public_keys() -> List[PublicKey]:
+    return list(map(
+        lambda path: PublicKey(
+            Path(path).stem.removeprefix("id_"),
+            # Removing simple quotes to prevent exiting from the sed script.
+            # Pipes are the chosen delimiters for the sed address thus they are removed.
+            shell.subprocess_run(f"cat {path}").strip()
+                .replace("'", "").replace("|", "")),
+        __get_public_key_paths()))
+
+
 @logged()
 def manage_ssh_agent():
     env_var_names = ["SSH_AUTH_SOCK", "SSH_AGENT_PID"]
@@ -132,46 +166,15 @@ def pull_ssh_directory(logger: Logger) -> None:
     manage_ssh_agent()
 
 
-@dataclass
-class SshPublicKey:
-    name: str
-    full_line: str
-
-
-def list_public_keys() -> list[SshPublicKey]:
-    return list(map(
-        lambda path: SshPublicKey(
-            Path(path).stem.removeprefix("id_"),
-            # Removing simple quotes to prevent exiting from the sed script.
-            # Pipes are the chosen delimiters for the sed address thus they are removed.
-            shell.os_popen(f"cat {path}").strip()
-                .replace("'", "").replace("|", "")),
-        shell.os_popen(f"find {__get_local_directory().as_posix()}/*.pub").splitlines()))
-
-
 class ConnectionException(Exception):
     def __init__(self, message):
         super().__init__(message)
 
 
-def __get_ssh_private_keys() -> List[Tuple[str, str]]:
-    private_key_paths = __get_private_key_paths()
-    key_paths = []
-    for path in private_key_paths:
-        key_type = None
-        if "id_rsa" in path:
-            key_type = "RSA"
-        elif "id_ed25519" in path:
-            key_type = "ED25519"
-        if key_type:
-            key_paths.append((key_type, path))
-    return key_paths
-
-
-def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Optional[Tuple[str, str]]]:
+def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Optional[PrivateKey]]:
     """Establishes an SSH connection and returns the client and used key."""
-    key_paths = __get_ssh_private_keys()
-    if not key_paths:
+    private_keys = __get_private_keys()
+    if not private_keys:
         raise ConnectionException("No valid SSH private key found.")
 
     client = paramiko.SSHClient()
@@ -179,23 +182,25 @@ def connect_ssh(ip_address: str, username: str) -> Tuple[paramiko.SSHClient, Opt
     connected = False
     used_key = None
 
-    for key_type, path in key_paths:
+    # TODO try with SSH agent only.
+
+    for pk in private_keys:
         try:
             key = (
-                paramiko.RSAKey.from_private_key_file(path)
-                if key_type == "RSA"
-                else paramiko.Ed25519Key.from_private_key_file(path)
+                paramiko.RSAKey.from_private_key_file(pk.path)
+                if pk.type == "RSA"
+                else paramiko.Ed25519Key.from_private_key_file(pk.path)
             )
             logging.debug(
-                f"Attempting connection with {key_type} key to {ip_address}")
+                f"Attempting connection with {pk.type} key to {ip_address}")
             client.connect(hostname=ip_address, username=username, pkey=key)
             logging.info(
-                f"SSH connection successful with {key_type} key to {ip_address}")
+                f"SSH connection successful with {pk.type} key to {ip_address}")
             connected = True
-            used_key = (key_type, path)
+            used_key = pk
             break
         except (paramiko.ssh_exception.AuthenticationException, paramiko.ssh_exception.SSHException) as e:
-            logging.debug(f"Failed with {key_type} key: {e}")
+            logging.debug(f"Failed with {pk.type} key: {e}")
 
     if not connected:
         client.close()
@@ -245,7 +250,7 @@ def remove_keys(ip_address, username):
     try:
         client, _ = connect_ssh(ip_address, username)
         try:
-            for public_key in list_public_keys():
+            for public_key in get_public_keys():
                 _, _, stderr = client.exec_command(
                     f"sed -i '\\|{public_key.full_line}|d' ~/.ssh/authorized_keys"
                 )

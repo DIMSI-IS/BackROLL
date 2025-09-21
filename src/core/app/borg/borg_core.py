@@ -58,7 +58,7 @@ class borg_backup:
         self.vm_name = ''
 
         if 'ip_address' in self.info and 'username' in self.info:
-            (self.host_ssh, _used_key) = connect_ssh(
+            (self.host_ssh, _) = connect_ssh(
                 self.info['ip_address'], self.info['username'])
 
     def remote_request(self, command):
