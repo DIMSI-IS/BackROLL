@@ -1,3 +1,5 @@
+# TODO Useless ?
+
 echo "Starting BackROLL configuration by $BACKROLL_HOST_USER…"
 
 host_directory=compose_project

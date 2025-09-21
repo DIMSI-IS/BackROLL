@@ -51,6 +51,10 @@ def __get_sync_file() -> Path:
     return __get_shared_directory() / "sync"
 
 
+def __get_private_key_paths() -> List[str]:
+    return shell.subprocess_run(f"find '{__get_local_directory().as_posix()}' -name 'id_*' ! -name '*.pub'").splitlines()
+
+
 @logged()
 def manage_ssh_agent():
     env_var_names = ["SSH_AUTH_SOCK", "SSH_AGENT_PID"]
@@ -58,7 +62,7 @@ def manage_ssh_agent():
 
     output = shell.subprocess_run(f"""
                          eval `ssh-agent`
-                         ssh-add $(find "{__get_local_directory().as_posix()}" -name "id_*" ! -name "*.pub")
+                         ssh-add {" ".join(__get_private_key_paths())}
                          ssh-add -l
                          {"; ".join(map(lambda var_name: f"echo {var_name}{def_separator}${var_name}", env_var_names))}
                          """)
@@ -151,9 +155,7 @@ class ConnectionException(Exception):
 
 
 def __get_ssh_private_keys() -> List[Tuple[str, str]]:
-    private_key_paths = shell.os_popen(
-        f"find {__get_local_directory().as_posix()} -type f -name 'id_*' ! -name '*.pub'"
-    ).splitlines()
+    private_key_paths = __get_private_key_paths()
     key_paths = []
     for path in private_key_paths:
         key_type = None
