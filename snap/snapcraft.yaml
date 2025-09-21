@@ -19,29 +19,38 @@ apps:
     command: wrappers/api.sh
     daemon: simple
     restart-condition: always
+    plugs:
+      - mnt
+      - libvirt
 
   worker-one:
     command: wrappers/worker_one.sh
     daemon: simple
     restart-condition: always
+    plugs:
+      - mnt
+      - libvirt
 
   worker-two:
     command: wrappers/worker_two.sh
     daemon: simple
     restart-condition: always
+    plugs:
+      - mnt
+      - libvirt
 
   beat:
     command: wrappers/beat.sh
     daemon: simple
     restart-condition: always
 
-  ui:
-    command: wrappers/ui.sh
+  flower:
+    command: wrappers/flower.sh
     daemon: simple
     restart-condition: always
 
-  flower:
-    command: wrappers/flower.sh
+  ui:
+    command: wrappers/ui.sh
     daemon: simple
     restart-condition: always
 
@@ -104,3 +113,13 @@ layout:
     bind: $SNAP_DATA/var/log/nginx
   /usr/share/nginx/html:
     bind: $SNAP_DATA/usr/share/nginx/html
+
+plugs:
+  mnt:
+    interface: system-files
+    write:
+      - /mnt
+  libvirt:
+    interface: system-files
+    write:
+      - /var/lib/libvirt/images
