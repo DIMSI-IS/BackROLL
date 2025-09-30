@@ -100,7 +100,7 @@ parts:
       - nginx
 
   snap-src:
-    source: snap-src
+    source: snap_project
     plugin: dump
 
 layout:
