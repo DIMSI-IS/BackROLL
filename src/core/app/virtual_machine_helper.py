@@ -11,10 +11,6 @@ from app import shell
 
 
 def add_disk_access_check(virtual_machine):
-    for path in ["/var", "/var/lib", "/var/lib/libvirt", "/var/lib/libvirt/images"]:
-        path = Path(path)
-        print(f"{path=} {path.exists()=}, {path.is_file()=}, {path.is_dir()=}, {path.stat()=}")
-
     for disk in virtual_machine["storage"]:
         path = disk["source"]
 

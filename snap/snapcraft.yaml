@@ -21,7 +21,6 @@ apps:
     restart-condition: always
     plugs:
       - mnt
-      - libvirt
 
   worker-one:
     command: wrappers/worker_one.sh
@@ -29,7 +28,6 @@ apps:
     restart-condition: always
     plugs:
       - mnt
-      - libvirt
 
   worker-two:
     command: wrappers/worker_two.sh
@@ -37,7 +35,6 @@ apps:
     restart-condition: always
     plugs:
       - mnt
-      - libvirt
 
   beat:
     command: wrappers/beat.sh
@@ -103,6 +100,7 @@ parts:
     source: snap_project
     plugin: dump
 
+# Binding must start with $SNAP, $SNAP_DATA or $SNAP_COMMON.
 layout:
   /etc/nginx:
     # Configuration was placed here during build.
@@ -114,12 +112,9 @@ layout:
   /usr/share/nginx/html:
     bind: $SNAP_DATA/usr/share/nginx/html
 
+# File plugs may conflict with the layout.
 plugs:
   mnt:
     interface: system-files
     write:
       - /mnt
-  libvirt:
-    interface: system-files
-    write:
-      - /var/lib/libvirt/images

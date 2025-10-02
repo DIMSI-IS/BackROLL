@@ -36,7 +36,7 @@ from app.environment import get_env_var
 
 
 def __get_source_directory() -> Path:
-    return (Path(get_env_var("SNAP_COMMON", allow_blank=True, allow_undefined=True) or "/root") / "shared_ssh").expanduser()
+    return (Path(get_env_var("SNAP_COMMON", allow_blank=True, allow_undefined=True) or "/root") / "shared_ssh")
 
 
 def __get_destination_directory() -> Path:
