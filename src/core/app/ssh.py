@@ -163,6 +163,9 @@ def manage_ssh_agent():
         get_env_var(var_name)
 
 
+# TODO Kill ssh-agent function ?
+
+
 @logged()
 def ensure_configuration():
     __pull_ssh_directory()
