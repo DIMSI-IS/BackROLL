@@ -1,3 +1,4 @@
+cd .. &&\
 snapcraft clean &&\
 snapcraft pack &&\
 # Too brutal : data loss.

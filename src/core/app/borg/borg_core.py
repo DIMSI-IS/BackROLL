@@ -58,7 +58,7 @@ class borg_backup:
         self.vm_name = ''
 
         if 'ip_address' in self.info and 'username' in self.info:
-            (self.host_ssh, _) = connect_ssh(
+            self.host_ssh, _ = connect_ssh(
                 self.info['ip_address'], self.info['username'])
 
     def remote_request(self, command):
@@ -265,6 +265,7 @@ class borg_backup:
 
     def delete_archive(self, payload):
         repository = self.info['borg_repository']
+        # Formatting may a space after :: !
         command = f'borg delete {make_path(repository, payload["target"]["name"])}::{
             payload["selected_backup"]["name"]}'
         request = self.remote_request(command)

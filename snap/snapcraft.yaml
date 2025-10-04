@@ -97,7 +97,7 @@ parts:
       - nginx
 
   snap-src:
-    source: snap_project
+    source: snap_project/src
     plugin: dump
 
 # Binding must start with $SNAP, $SNAP_DATA or $SNAP_COMMON.
