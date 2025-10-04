@@ -274,6 +274,8 @@ if [[ "$1" != "" ]]; then
     backroll_setup "${1#setup-}" || return $?
 fi
 
+# TODO Always update the backroll version variable.
+
 # $dev
 if source @dev.env 2>/dev/null; then
     dev="--env-file @dev.env
