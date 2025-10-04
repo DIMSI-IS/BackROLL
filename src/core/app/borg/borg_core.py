@@ -17,18 +17,15 @@
 
 import os
 import json
-import subprocess
 import os.path
 from os import path
 from pathlib import Path
 import calendar
 import time
-import paramiko
 import shutil
 
 from app.routes import pool
 from app.routes import connectors
-from app.routes import backup_policy
 
 # KVM custom module import
 from app.kvm import kvm_manage_snapshot
@@ -38,6 +35,7 @@ from app.cloudstack import virtual_machine as cs_manage_vm
 
 from app.patch import make_path
 from app import shell
+from app.ssh import connect_ssh
 
 
 class borg_backup:
@@ -60,13 +58,8 @@ class borg_backup:
         self.vm_name = ''
 
         if 'ip_address' in self.info and 'username' in self.info:
-            # Starting hypervisor host ssh access
-            self.host_ssh = paramiko.SSHClient()
-            self.host_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.host_ssh.connect(
-                hostname=self.info['ip_address'],
-                username=self.info['username']
-            )
+            self.host_ssh, _ = connect_ssh(
+                self.info['ip_address'], self.info['username'])
 
     def remote_request(self, command):
         # Passing commands through SSH to remote endpoint
@@ -232,17 +225,17 @@ class borg_backup:
 
     def borg_prune(self, disk, backup_policy):
         disk_name = disk['device']
-        
+
         vm_repository_path = make_path(
             self.info['borg_repository'], self.vm_name)
-        if backup_policy.retention_day > 0 or backup_policy.retention_week > 0 or backup_policy.retention_month > 0 or backup_policy.retention_year > 0 :
+        if backup_policy.retention_day > 0 or backup_policy.retention_week > 0 or backup_policy.retention_month > 0 or backup_policy.retention_year > 0:
             command = f'borg prune' \
                 f'{f" --keep-daily {backup_policy.retention_day}" if backup_policy.retention_day > 0 else ""}' \
                 f'{f" --keep-weekly {backup_policy.retention_week}" if backup_policy.retention_week > 0 else ""}' \
                 f'{f" --keep-monthly {backup_policy.retention_month}" if backup_policy.retention_month > 0 else ""}' \
                 f'{f" --keep-yearly {backup_policy.retention_year}" if backup_policy.retention_year > 0 else ""}' \
                 f' --glob-archives {disk_name}* {vm_repository_path}'
-          
+
             shell.subprocess_run(command)
 
         for disk in self.virtual_machine['storage']:
@@ -272,6 +265,7 @@ class borg_backup:
 
     def delete_archive(self, payload):
         repository = self.info['borg_repository']
+        # Formatting may a space after :: !
         command = f'borg delete {make_path(repository, payload["target"]["name"])}::{
             payload["selected_backup"]["name"]}'
         request = self.remote_request(command)

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# TODO Help the user to configure Backroll.
+
+echo "I'm the default-configure hook."
+
+bash "$SNAP/configuration/main.sh"

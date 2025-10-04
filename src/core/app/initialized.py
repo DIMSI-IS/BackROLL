@@ -100,6 +100,7 @@ celery_app.conf.ONCE = {
         'default_timeout': 60 * 60 * 12
     }
 }
+# TODO Some of the previous configuration is useless because overriden here.
 celery_app.conf.update(settings)
 
 celery_app.conf.update(

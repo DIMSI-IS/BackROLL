@@ -32,6 +32,7 @@ def __from_pool_id(pool_id) -> tuple[Pools, None | HookClient]:
     # Hook is optional.
     if policy.externalhook:
         return pool, __from_hook_id(policy.externalhook)
+    # TODO return None ?
 
 
 def __from_task_id(task_id) -> tuple[dict, None | HookClient]:
