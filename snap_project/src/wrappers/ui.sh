@@ -11,7 +11,7 @@ source "$SNAP/configuration/main.sh"
 src="$SNAP/ui"
 dst="$SNAP_DATA/usr/share/nginx/html"
 
-# TODO Fix entrypoint.sh an call it if production with Docker is still relevant.
+# TODO Update entrypoint.sh an call it if production with Docker is still relevant.
 # Use layout to make nginx call work ?
 
 cp -r "$src"/* "$dst"/
