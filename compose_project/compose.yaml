@@ -83,3 +83,10 @@ services:
       - api
     env_file:
       - "@$BACKROLL_MODE.env"
+  
+  server:
+    image: nginx
+    volumes:
+      - ../src/server/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports: 
+      - 80:80

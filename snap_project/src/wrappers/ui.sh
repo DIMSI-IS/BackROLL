@@ -16,7 +16,7 @@ dst="$SNAP_DATA/usr/share/nginx/html"
 
 cp -r "$src"/* "$dst"/
 for path in "$dst"/js/*; do
-    envsubst '$BACKROLL_VERSION $API_ENDPOINT_URL $OPENID_ISSUER $OPENID_REALM $OPENID_CLIENT_UI_ID $DEFAULT_USER_NAME' < "$path" > envsubst_output
+    envsubst '$BACKROLL_VERSION $OPENID_ISSUER $OPENID_REALM $OPENID_CLIENT_UI_ID $DEFAULT_USER_NAME' < "$path" > envsubst_output
     mv envsubst_output "$path"
 done
 

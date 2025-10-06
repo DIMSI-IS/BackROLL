@@ -6,7 +6,7 @@ export default createStore({
   strict: true, // process.env.NODE_ENV !== 'production',
   state: {
     endpoint: {
-      api: process.env.VUE_APP_API_ENDPOINT_URL,
+      api: `${window.location.origin}`,
     },
     token: null,
     isSidebarMinimized: false,
