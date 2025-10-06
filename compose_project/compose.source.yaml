@@ -1,8 +1,5 @@
 services:
 
-  setup:
-    volumes:
-      - ./setup/src:/app/src:ro
   api:
     build: ../src/core
     volumes:

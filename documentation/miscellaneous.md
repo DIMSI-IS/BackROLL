@@ -6,8 +6,6 @@
 
 The first start is longer than the next ones due to image building and containers’ initialisation. Then the `up` command will continue to run to show you the logs.
 
-The service `setup` will generate ssh keys.
-
 For the moment, the `api` container crashes at the first start because the `database` service is not ready yet. As a quick fix, an automatic restart is set up in the [compose.yaml](./compose.yaml#L38):
 
 ```yaml

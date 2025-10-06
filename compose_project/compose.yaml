@@ -15,13 +15,6 @@ services:
     image: redis:7.2
     command: "redis-server"
 
-  setup:
-    build: ./setup
-    env_file:
-      - "@$BACKROLL_MODE.env"
-    volumes:
-      - .:/app/compose_project
-
   sso:
     build:
       context: ./sso
@@ -36,8 +29,6 @@ services:
     depends_on:
       redis:
         condition: service_started
-      setup:
-        condition: service_completed_successfully
     # database:
     #   condition: service_healthy
     restart: on-failure # Compensates for the lack of database healthcheck.
