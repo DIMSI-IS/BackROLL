@@ -100,7 +100,7 @@ parts:
     plugin: nil
     source: src/server
     override-build: |
-      cp nginx.conf $SNAPCRAFT_PART_INSTALL/etc/nginx/conf.d/server.conf
+      cp localhost.conf "$SNAPCRAFT_PART_INSTALL/etc/nginx/conf.d/server.conf"
     stage-packages:
       - nginx
 
