@@ -1,8 +1,8 @@
-from app.environment import get_env_var, get_flower_url
+from app.environment import get_redis_host, get_persistent_directory
 
 # Broker
-broker = f'redis://{get_env_var("REDIS_URL")}:6379/0'
+broker = f'redis://{get_redis_host()}:6379/0'
 
 # Persistency
 persistent = True
-db = f'/root/{get_flower_url()}/database'
+db = (get_persistent_directory() / "flower/database").as_posix()

@@ -12,8 +12,6 @@ backroll_setup() {
             local backroll_host_user=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
             local backroll_hostname=$HOSTNAME
             local backroll_version=$(git describe --tags)
-            local redis_url=redis
-            local flower_url=flower
 
             case $backroll_mode in
                 dev)
@@ -218,8 +216,6 @@ backroll_setup() {
                                 backroll_hostname \
                                 backroll_version \
                                 backroll_mode \
-                                redis_url \
-                                flower_url \
                                 flower_user \
                                 flower_password \
                                 backroll_db \

@@ -32,11 +32,11 @@ from app.logging import logged
 from app.database import Hosts
 from app.routes import host
 from app.patch import ensure_uuid
-from app.environment import get_env_var
+from app.environment import get_env_var, get_persistent_directory
 
 
 def __get_source_directory() -> Path:
-    return (Path(get_env_var("SNAP_COMMON", allow_blank=True, allow_undefined=True) or "/root") / "shared_ssh")
+    return get_persistent_directory() / "shared_ssh"
 
 
 def __get_destination_directory() -> Path:
@@ -148,7 +148,7 @@ def manage_ssh_agent():
                          ssh-add {" ".join(__get_private_key_paths())}
                          ssh-add -l
                          {"; ".join(map(
-                             lambda var_name: f"echo {var_name}{def_separator}${var_name}", env_var_names))}
+        lambda var_name: f"echo {var_name}{def_separator}${var_name}", env_var_names))}
                          """)
 
     for line in output.splitlines():

@@ -43,6 +43,7 @@ RUN pip install -U pip setuptools wheel && \
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# TODO Remove since volume are mounted and mkdir(parent=True) is used ?
 # Set up the ssh folder
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /root/flower
