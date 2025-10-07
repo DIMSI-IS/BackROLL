@@ -1,6 +1,0 @@
-services:
-
-  front:
-    # TODO Update.
-    ports:
-      - 8080:80

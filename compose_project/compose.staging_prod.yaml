@@ -14,8 +14,6 @@ services:
 
   api:
     restart: unless-stopped
-    ports:
-      - 5050:5050
   
   worker_primary:
     restart: unless-stopped

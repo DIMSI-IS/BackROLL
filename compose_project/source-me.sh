@@ -290,7 +290,6 @@ if source @staging.env 2>/dev/null; then
              -f compose.yaml
              -f compose.source.yaml
              -f compose.staging_prod.yaml
-             -f compose.staging.yaml
              ${BACKROLL_DB:+ --profile database}
              ${BACKROLL_SSO:+ --profile sso}"
 else
