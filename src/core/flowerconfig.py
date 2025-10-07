@@ -5,4 +5,6 @@ broker = f'redis://{get_redis_host()}:6379/0'
 
 # Persistency
 persistent = True
-db = (get_persistent_directory() / "flower/database").as_posix()
+__directory = get_persistent_directory() / "flower"
+__directory.mkdir(parents=True, exist_ok=True)
+db = (__directory / "database").as_posix()
