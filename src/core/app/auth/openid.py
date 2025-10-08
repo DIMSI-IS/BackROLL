@@ -15,6 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from logging import Logger
+
 from fastapi import Security
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from starlette.config import Config
@@ -27,15 +29,35 @@ from authlib.integrations.starlette_client import OAuth
 from app.initialized import fastapi_app
 from app.environment import get_env_var
 from app.patch import make_path
+from app.logging import logged
 
+
+# TODO Move ? And use it to store our token ?
 fastapi_app.add_middleware(SessionMiddleware,
                            secret_key="""zY64v78B#C.-nfp@~zW:*a+mL=xWTKGM""")
+
+
+@logged()
+def __get_env(logger: Logger):
+    try:
+        env = get_env_var("OPENID_ISSUER"), \
+            get_env_var("OPENID_REALM"), \
+            get_env_var("OPENID_CLIENT_API_ID"), \
+            get_env_var("OPENID_CLIENT_API_SECRET")
+        logger.info("OpenID settings found.")
+        return env
+    except Exception as exception:
+        logger.info(f"No OpenID settings. {exception}")
+
+
+# TODO Clean error in API response.
+__ISSUER, __REALM, __CLIENT_ID, __CLIENT_SECRET = __get_env() or "", "", "", ""
+
 
 config = Config(".env")
 oauth = OAuth(config)
 
-issuer_url = make_path(get_env_var("OPENID_ISSUER"),
-                       "realms", get_env_var("OPENID_REALM"))
+issuer_url = make_path(__ISSUER, "realms", __REALM)
 metadata_url = make_path(issuer_url, ".well-known/openid-configuration")
 connect_url = make_path(issuer_url, "protocol/openid-connect")
 auth_url = make_path(connect_url, "auth")
@@ -44,8 +66,8 @@ certs_url = make_path(connect_url, "certs")
 
 oauth.register(
     name="""openid_provider""",
-    client_id=get_env_var("OPENID_CLIENT_API_ID"),
-    client_secret=get_env_var("OPENID_CLIENT_API_SECRET"),
+    client_id=__CLIENT_ID,
+    client_secret=__CLIENT_SECRET,
     server_metadata_url=metadata_url,
     client_kwargs={"scope": "openid email profile"},
 )

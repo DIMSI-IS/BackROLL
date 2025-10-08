@@ -139,6 +139,7 @@ def __get_db_url(logger: Logger):
         logger.info(f"No snap environment. {exception}")
 
     logger.info("Using the default database file.")
+    # TODO Is make dirs done ?
     return f"sqlite:////var/lib/backroll/database.sqlite"
 
 
