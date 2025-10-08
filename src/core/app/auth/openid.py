@@ -51,7 +51,7 @@ def __get_env(logger: Logger):
 
 
 # TODO Clean error in API response.
-__ISSUER, __REALM, __CLIENT_ID, __CLIENT_SECRET = __get_env() or "", "", "", ""
+__ISSUER, __REALM, __CLIENT_ID, __CLIENT_SECRET = __get_env() or ("", "", "", "")
 
 
 config = Config(".env")
