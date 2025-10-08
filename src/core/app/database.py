@@ -23,7 +23,7 @@ from uuid import UUID
 from typing import Optional
 from sqlmodel import Field, SQLModel, create_engine
 
-from app.environment import get_env_var
+from app.environment import MissingEnvironmentVariableException, get_env_var
 from app.logging import logged
 
 
@@ -128,14 +128,14 @@ def __get_db_url(logger: Logger):
         url = f"mysql+mysqlconnector://{get_env_var("DB_USER_NAME")}:{quote_plus(get_env_var("DB_USER_PASSWORD"))}@{get_env_var("DB_ADDRESS")}:{get_env_var("DB_PORT")}/{get_env_var("DB_BASE")}"
         logger.info("Database settings found.")
         return url
-    except Exception as exception:
+    except MissingEnvironmentVariableException as exception:
         logger.info(f"No database settings. {exception}")
 
     try:
         url = f"sqlite:///{Path(get_env_var("SNAP_COMMON"), "database.sqlite")}"
         logger.info("Snap environment found.")
         return url
-    except Exception as exception:
+    except MissingEnvironmentVariableException as exception:
         logger.info(f"No snap environment. {exception}")
 
     logger.info("Using the default database file.")

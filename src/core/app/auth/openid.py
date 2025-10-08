@@ -27,7 +27,7 @@ from pydantic import Json
 from authlib.integrations.starlette_client import OAuth
 
 from app.initialized import fastapi_app
-from app.environment import get_env_var
+from app.environment import MissingEnvironmentVariableException, get_env_var
 from app.patch import make_path
 from app.logging import logged
 
@@ -46,7 +46,7 @@ def __get_env(logger: Logger):
             get_env_var("OPENID_CLIENT_API_SECRET")
         logger.info("OpenID settings found.")
         return env
-    except Exception as exception:
+    except MissingEnvironmentVariableException as exception:
         logger.info(f"No OpenID settings. {exception}")
 
 
