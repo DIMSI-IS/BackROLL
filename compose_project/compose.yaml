@@ -26,12 +26,6 @@ services:
       - "@$BACKROLL_MODE.env"
 
   api:
-    depends_on:
-      redis:
-        condition: service_started
-    # database:
-    #   condition: service_healthy
-    restart: on-failure # Compensates for the lack of database healthcheck.
     command: bash api.command.sh
     env_file:
       - "@$BACKROLL_MODE.env"
@@ -39,6 +33,12 @@ services:
       - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
       - ./core/ssh/@$BACKROLL_MODE:/root/shared_ssh
       - /mnt:/mnt
+    depends_on:
+      redis:
+        condition: service_started
+    # database:
+    #   condition: service_healthy
+    restart: on-failure # Compensates for the lack of database healthcheck.
 
   worker_primary:
     depends_on:
@@ -90,3 +90,9 @@ services:
       - ../src/server/containers.conf:/etc/nginx/conf.d/default.conf:ro
     ports: 
       - 80:80
+    depends_on:
+      api:
+        condition: service_started
+      front:
+        condition: service_started
+    restart: on-failure # Compensates for the lack of api and front healthcheck.
