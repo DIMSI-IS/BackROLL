@@ -20,4 +20,6 @@ for path in "$dst"/js/*; do
     mv envsubst_output "$path"
 done
 
-"$SNAP/usr/sbin/nginx" -g "daemon off;"
+export PATH="$SNAP/bin:$SNAP/usr/sbin:$PATH"
+
+nginx -g "daemon off;"
