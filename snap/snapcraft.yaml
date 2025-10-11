@@ -57,8 +57,8 @@ parts:
     stage-snaps:
       - redis
 
-  core:
-    source: src/core
+  core-python:
+    source: src/core/python_project
     build-packages:
       - pkg-config
       - libssl-dev
@@ -70,10 +70,15 @@ parts:
     stage-packages:
       - libvirt-dev
       - qemu-utils
-
     plugin: python
     python-requirements:
       - requirements.txt
+
+  core-commands:
+    source: src/core
+    plugin: dump
+    stage:
+      - commands
 
   ui:
     plugin: nil
@@ -103,12 +108,6 @@ parts:
       cp localhost.conf "$SNAPCRAFT_PART_INSTALL/etc/nginx/conf.d/server.conf"
     stage-packages:
       - nginx
-
-  commands:
-    source: src
-    plugin: dump
-    stage:
-      - commands
 
   snap-src:
     source: snap_project/src
