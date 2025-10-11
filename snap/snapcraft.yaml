@@ -16,33 +16,33 @@ apps:
     restart-condition: always
 
   api:
-    command: wrappers/api.sh
+    command: wrapper.sh api
     daemon: simple
     restart-condition: always
     plugs:
       - mnt
 
   worker-one:
-    command: wrappers/worker_one.sh
+    command: wrapper.sh worker_one
     daemon: simple
     restart-condition: always
     plugs:
       - mnt
 
   worker-two:
-    command: wrappers/worker_two.sh
+    command: wrapper.sh worker_two
     daemon: simple
     restart-condition: always
     plugs:
       - mnt
 
   beat:
-    command: wrappers/beat.sh
+    command: wrapper.sh beat
     daemon: simple
     restart-condition: always
 
   flower:
-    command: wrappers/flower.sh
+    command: wrapper.sh flower
     daemon: simple
     restart-condition: always
 
@@ -103,6 +103,12 @@ parts:
       cp localhost.conf "$SNAPCRAFT_PART_INSTALL/etc/nginx/conf.d/server.conf"
     stage-packages:
       - nginx
+
+  commands:
+    source: src
+    plugin: dump
+    stage:
+      - commands
 
   snap-src:
     source: snap_project/src
