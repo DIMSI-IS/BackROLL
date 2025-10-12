@@ -47,7 +47,8 @@ apps:
     restart-condition: always
 
   ui:
-    command: wrappers/ui.sh
+    # Do not use “"”: app commands must consist of only alphanumeric characters, spaces, and the following characters: / . _ # : $ - (in field 'apps.ui.command')
+    command: wrapper.sh ui $SNAP/ui $SNAP_DATA/usr/share/nginx/html
     daemon: simple
     restart-condition: always
 
@@ -74,7 +75,7 @@ parts:
     python-requirements:
       - requirements.txt
 
-  core-commands:
+  core-dump:
     source: src/core
     plugin: dump
     organize:
@@ -105,6 +106,16 @@ parts:
       - gettext
       - nginx
 
+  # TODO deal with nginx conf here.
+  ui-dump:
+    source: src/ui
+    plugin: dump
+    organize:
+      entrypoint.sh: commands/ui.sh
+    stage:
+      - commands/ui.sh
+
+  # TODO use dump and organize
   server:
     plugin: nil
     source: src/server
