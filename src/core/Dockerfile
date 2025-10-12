@@ -40,11 +40,9 @@ RUN pip install -U pip setuptools wheel && \
 
 ########################################################
 
-COPY requirements.txt ./
+COPY python_project/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app/src
 
 COPY . .
-
-CMD ["uvicorn", "run=app"]
