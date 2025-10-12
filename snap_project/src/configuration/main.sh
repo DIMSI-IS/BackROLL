@@ -1,3 +1,5 @@
+# TODO constants vs variables
+
 load_configuration() {
     while read line; do
         local name="${line%%=*}"
