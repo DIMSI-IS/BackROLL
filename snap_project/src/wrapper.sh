@@ -1,8 +1,14 @@
 #!/bin/bash
 
-command_name="$1"
+service="$1"
 
 source "$SNAP/configuration/main.sh"
 export PATH="$SNAP/bin:$SNAP/usr/sbin:$PATH"
 
-bash "$SNAP/commands/$command_name.sh"
+case "$service" in
+    flower)
+        cp "$SNAP/flower_config.py" ./
+        ;;
+esac
+
+bash "$SNAP/commands/$service.sh"

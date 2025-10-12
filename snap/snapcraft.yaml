@@ -77,8 +77,12 @@ parts:
   core-commands:
     source: src/core
     plugin: dump
+    organize:
+      # SNAP_DATA is the working directory.
+      python_project/flower_config.py: flower_config.py
     stage:
       - commands
+      - flower_config.py
 
   ui:
     plugin: nil

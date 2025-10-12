@@ -1,1 +1,1 @@
-celery -A app.finalized.celery_app flower --conf=flowerconfig.py --loglevel=info
+celery -A app.finalized.celery_app flower --conf=flower_config.py --loglevel=info
