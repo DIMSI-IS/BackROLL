@@ -16,39 +16,39 @@ apps:
     restart-condition: always
 
   api:
-    command: wrapper.sh api
+    command: app/commands/snap.sh api
     daemon: simple
     restart-condition: always
     plugs:
       - mnt
 
   worker-one:
-    command: wrapper.sh worker_one
+    command: app/commands/snap.sh worker_one
     daemon: simple
     restart-condition: always
     plugs:
       - mnt
 
   worker-two:
-    command: wrapper.sh worker_two
+    command: app/commands/snap.sh worker_two
     daemon: simple
     restart-condition: always
     plugs:
       - mnt
 
   beat:
-    command: wrapper.sh beat
+    command: app/commands/snap.sh beat
     daemon: simple
     restart-condition: always
 
   flower:
-    command: wrapper.sh flower
+    command: app/commands/snap.sh flower
     daemon: simple
     restart-condition: always
 
   ui:
-    # Do not use “"”: app commands must consist of only alphanumeric characters, spaces, and the following characters: / . _ # : $ - (in field 'apps.ui.command')
-    command: wrapper.sh ui $SNAP/ui $SNAP_DATA/usr/share/nginx/html
+    # Do not use “"”: app commands must consist of only alphanumeric characters, spaces, and the following characters: / . _ # : $ -
+    command: app/commands/snap.sh ui $SNAP/app/ui $SNAP_DATA/usr/share/nginx/html
     daemon: simple
     restart-condition: always
 
@@ -79,11 +79,10 @@ parts:
     source: src/core
     plugin: dump
     organize:
-      # SNAP_DATA is the working directory.
-      python_project/flower_config.py: flower_config.py
+      commands: app/commands
+      python_project/flower_config.py: app/flower_config.py
     stage:
-      - commands
-      - flower_config.py
+      - app
 
   ui:
     plugin: nil
@@ -97,7 +96,7 @@ parts:
       npm run build
 
       src=dist
-      dst="$SNAPCRAFT_PART_INSTALL/ui/"
+      dst="$SNAPCRAFT_PART_INSTALL/app/ui/"
       mkdir -p "$dst"
       cp -r "$src"/* "$dst"/
 
@@ -106,27 +105,31 @@ parts:
       - gettext
       - nginx
 
-  # TODO deal with nginx conf here.
   ui-dump:
     source: src/ui
     plugin: dump
+    # The dump plugin organize section does not support environment variables.
     organize:
-      entrypoint.sh: commands/ui.sh
+      entrypoint.sh: app/commands/ui.sh
     stage:
-      - commands/ui.sh
+      - app
 
-  # TODO use dump and organize
   server:
     plugin: nil
     source: src/server
+    # The dump plugin organize section does not support environment variables.
     override-build: |
       cp localhost.conf "$SNAPCRAFT_PART_INSTALL/etc/nginx/conf.d/server.conf"
     stage-packages:
       - nginx
 
   snap-src:
-    source: snap_project/src
+    source: snap_project
     plugin: dump
+    organize:
+      src: app
+    stage:
+      - app
 
 # Binding must start with $SNAP, $SNAP_DATA or $SNAP_COMMON.
 layout:
