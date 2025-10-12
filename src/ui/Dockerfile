@@ -8,11 +8,8 @@ RUN npm run build
 
 # production stage
 FROM nginx as production-stage
+WORKDIR /app
+COPY --from=build-stage /app/dist ./ui
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-
 COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
-
-EXPOSE 80
-CMD ["/bin/sh", "entrypoint.sh"]
+CMD ["/bin/sh", "entrypoint.sh", "ui", "/usr/share/nginx/html"]

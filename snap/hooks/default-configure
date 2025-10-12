@@ -4,4 +4,4 @@
 
 echo "I'm the default-configure hook."
 
-bash "$SNAP/configuration/main.sh"
+bash "$SNAP/app/configuration/main.sh"

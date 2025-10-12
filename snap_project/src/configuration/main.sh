@@ -1,3 +1,5 @@
+# TODO constants vs variables
+
 load_configuration() {
     while read line; do
         local name="${line%%=*}"
@@ -16,7 +18,7 @@ load_configuration() {
         fi
 
         declare -gx "$env_name=$value"
-    done <<< "$(cat "$SNAP/configuration/default.txt" | grep -E "[A-Z_]+=")"
+    done <<< "$(cat "$SNAP/app/configuration/default.txt" | grep -E "[A-Z_]+=")"
 }
 
 check_configuration() {

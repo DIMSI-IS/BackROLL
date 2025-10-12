@@ -26,7 +26,7 @@ services:
       - "@$BACKROLL_MODE.env"
 
   api:
-    command: bash api.command.sh
+    command: bash commands/docker.sh api
     env_file:
       - "@$BACKROLL_MODE.env"
     volumes:
@@ -43,7 +43,7 @@ services:
   worker_primary:
     depends_on:
       - api
-    command: bash worker_primary.command.sh
+    command: bash commands/docker.sh worker_one
     env_file:
       - "@$BACKROLL_MODE.env"
     volumes:
@@ -54,7 +54,7 @@ services:
   worker_secondary:
     depends_on:
       - worker_primary
-    command: bash worker_secondary.command.sh
+    command: bash commands/docker.sh worker_two
     env_file:
       - "@$BACKROLL_MODE.env"
     volumes:
@@ -65,7 +65,7 @@ services:
   flower:
     depends_on:
       - worker_primary
-    command: bash flower.command.sh
+    command: bash commands/docker.sh flower
     env_file:
       - "@$BACKROLL_MODE.env"
     volumes:
@@ -74,7 +74,7 @@ services:
   beat:
     depends_on:
       - worker_secondary
-    command: bash beat.command.sh
+    command: bash commands/docker.sh beat
     env_file:
       - "@$BACKROLL_MODE.env"
 
