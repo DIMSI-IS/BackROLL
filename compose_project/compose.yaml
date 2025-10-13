@@ -7,6 +7,7 @@ services:
       - database
     image: mariadb:10.3
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
     volumes:
       - ./database/@${BACKROLL_MODE}_persistence:/var/lib/mysql
@@ -23,11 +24,13 @@ services:
     profiles:
       - sso
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
 
   api:
     command: bash commands/docker.sh api
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
     volumes:
       - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
@@ -45,6 +48,7 @@ services:
       - api
     command: bash commands/docker.sh worker_one
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
     volumes:
       - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
@@ -56,6 +60,7 @@ services:
       - worker_primary
     command: bash commands/docker.sh worker_two
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
     volumes:
       - ./core/@${BACKROLL_MODE}_persistence:/var/lib/backroll
@@ -67,6 +72,7 @@ services:
       - worker_primary
     command: bash commands/docker.sh flower
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
     volumes:
       - ./flower/@${BACKROLL_MODE}_persistence:/root/flower
@@ -76,12 +82,14 @@ services:
       - worker_secondary
     command: bash commands/docker.sh beat
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
 
   front:
     depends_on:
       - api
     env_file:
+      - .env
       - "@$BACKROLL_MODE.env"
   
   server:

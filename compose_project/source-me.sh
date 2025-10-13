@@ -8,11 +8,6 @@ backroll_setup() {
             local backroll_db=
             local backroll_sso=
 
-            # Shared or default values
-            local backroll_host_user=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
-            local backroll_hostname=$HOSTNAME
-            local backroll_version=$(git describe --tags)
-
             case $backroll_mode in
                 dev)
                     local flower_user=
@@ -212,10 +207,7 @@ backroll_setup() {
                 cp "$template_path" "$path"
 
                 # TODO Better use envsubst ?
-                for var_name in backroll_host_user \
-                                backroll_hostname \
-                                backroll_version \
-                                backroll_mode \
+                for var_name in backroll_mode \
                                 flower_user \
                                 flower_password \
                                 backroll_db \
@@ -265,16 +257,26 @@ backroll_setup() {
     esac
 }
 
+backroll_context() {
+    cat <<HEREDOC > .env
+BACKROLL_HOSTNAME=$HOSTNAME
+BACKROLL_HOST_USER=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
+BACKROLL_VERSION=$(git describe --tags)
+HEREDOC
+}
+
 # Setup
 if [[ "$1" != "" ]]; then
     backroll_setup "${1#setup-}" || return $?
 fi
 
-# TODO Always update the backroll version variable.
+# Context
+backroll_context || return $?
 
 # $dev
 if source @dev.env 2>/dev/null; then
-    dev="--env-file @dev.env
+    dev="--env-file .env
+         --env-file @dev.env
          -f compose.yaml
          -f compose.source.yaml
          -f compose.dev.yaml
@@ -286,7 +288,8 @@ fi
 
 # $staging
 if source @staging.env 2>/dev/null; then
-    staging="--env-file @staging.env
+    staging="--env-file .env
+             --env-file @staging.env
              -f compose.yaml
              -f compose.source.yaml
              -f compose.staging_prod.yaml
@@ -299,12 +302,13 @@ fi
 # $prod
 if source @prod.env 2>/dev/null; then
     if git describe --tags --exact-match 2>/dev/null; then
-        prod="--env-file @prod.env
-            -f compose.yaml
-            -f compose.staging_prod.yaml
-            -f compose.prod.yaml
-            ${BACKROLL_DB:+ --profile database}
-            ${BACKROLL_SSO:+ --profile sso}"
+        prod="--env-file .env
+              --env-file @prod.env
+              -f compose.yaml
+              -f compose.staging_prod.yaml
+              -f compose.prod.yaml
+              ${BACKROLL_DB:+ --profile database}
+              ${BACKROLL_SSO:+ --profile sso}"
     else
         prod="ERROR_VERSION_MISMATCH"
     fi
