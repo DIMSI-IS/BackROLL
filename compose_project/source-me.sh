@@ -34,7 +34,7 @@ backroll_setup() {
                                 read -r -p "You are not on a release commit. Run version mismatch protection ? " response
                                 if [[ "$response" != "I know that prod will fail." ]]; then
                                     echo "Running version mismatch protection…"
-                                    git checkout $(git describe --tags --abbrev=0) || return $?
+                                    git checkout $(git describe --tags --abbrev=0) || return 1
                                 fi
                             fi
                             ;;
@@ -251,27 +251,19 @@ backroll_setup() {
             fi
             ;;
         *)
-            echo "Choose dev, staging or prod." 1>&2
+            echo "Choose dev, staging or prod." >&2
             return 1
             ;;
     esac
 }
 
-backroll_context() {
-    cat <<HEREDOC > .env
-BACKROLL_HOSTNAME=$HOSTNAME
-BACKROLL_HOST_USER=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
-BACKROLL_VERSION=$(git describe --tags)
-HEREDOC
-}
+# Context
+bash ../src/env/get.sh .env || return 1
 
 # Setup
 if [[ "$1" != "" ]]; then
-    backroll_setup "${1#setup-}" || return $?
+    backroll_setup "${1#setup-}" || return 1
 fi
-
-# Context
-backroll_context || return $?
 
 # $dev
 if source @dev.env 2>/dev/null; then

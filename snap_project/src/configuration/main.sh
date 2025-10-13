@@ -1,9 +1,32 @@
-# TODO constants vs variables
+# Intented to be run with the bash source command.
+
+root_path="${SNAP:+$SNAP/app/configuration}"
+root_path="${root_path:-.}"
+
+read_configuration() {
+    cat "$root_path/$1.env" | grep -E "[A-Z_]+="
+}
+
+get_name() {
+    echo "${1%%=*}"
+}
+
+get_value() {
+    echo "${1#*=}"
+}
+
+set_variable() {
+    declare -gx "$1=$2"
+}
 
 load_configuration() {
     while read line; do
-        local name="${line%%=*}"
-        local default="${line#*=}"
+        set_variable "$(get_name "$line")" "$(get_value "$line")"
+    done <<< "$(read_configuration read_only)"
+
+    while read line; do
+        local name="$(get_name "$line")"
+        local default="$(get_value "$line")"
 
         local lower_name="${name,,}"
         local upper_name="${name^^}"
@@ -11,14 +34,15 @@ load_configuration() {
         local snap_name="${lower_name//_/.}"
         local env_name="${upper_name//./_}"
 
-        local value="$(snapctl get "$snap_name")"
+        local value
+        ! test -z "$SNAP" && value="$(snapctl get "$snap_name")"
         if test -z "$value"; then
             value="$default"
-            snapctl set "$snap_name=$value"
+            ! test -z "$SNAP" && snapctl set "$snap_name=$value"
         fi
 
-        declare -gx "$env_name=$value"
-    done <<< "$(cat "$SNAP/app/configuration/default.txt" | grep -E "[A-Z_]+=")"
+        set_variable "$env_name" "$value"
+    done <<< "$(read_configuration default)"
 }
 
 check_configuration() {

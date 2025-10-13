@@ -4,8 +4,11 @@ main() {
     cd ..
     root_path=$(pwd)
     project_path=snap_project
+    configuration_path="$project_path/src/configuration"
     output_path="$project_path/output"
     pack_path="$output_path/pack"
+    
+    bash src/env/get.sh "$configuration_path/read_only.env" "$configuration_path/default.env"  || return 1
 
     snapcraft clean && snapcraft pack --output "$pack_path" || return 1
 
