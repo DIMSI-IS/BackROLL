@@ -1,8 +1,4 @@
 read_only=$(cat <<HEREDOC
-# TODO Not in snap :
-BACKROLL_HOSTNAME=$HOSTNAME
-BACKROLL_HOST_USER=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
-# …not in snap.
 BACKROLL_VERSION=$(git describe --tags)
 
 BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK=yes

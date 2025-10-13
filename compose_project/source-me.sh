@@ -257,8 +257,9 @@ backroll_setup() {
     esac
 }
 
-# Context
-bash ../src/env/get.sh .env || return 1
+# Environment
+bash ../src/env/write_base.sh .env || return 1
+source ../src/env/load_local.sh || return 1
 
 # Setup
 if [[ "$1" != "" ]]; then
