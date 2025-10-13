@@ -1,6 +1,7 @@
 # Intented to be run with the bash source command.
 
 root_path="${SNAP:+$SNAP/app/configuration}"
+# To test this script outside the snap.
 root_path="${root_path:-.}"
 
 read_configuration() {
@@ -35,6 +36,7 @@ load_configuration() {
         local env_name="${upper_name//./_}"
 
         local value
+        # To test this outside the snap.
         ! test -z "$SNAP" && value="$(snapctl get "$snap_name")"
         if test -z "$value"; then
             value="$default"
