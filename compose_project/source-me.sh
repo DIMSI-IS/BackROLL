@@ -1,31 +1,33 @@
 # Intented to be run with the bash source command.
 
 backroll_setup() {
-    local backroll_mode=$1
+    backroll_mode=$1
     case $backroll_mode in
         dev|staging|prod)
             # Unset variables.
-            local backroll_db=
-            local backroll_sso=
+            backroll_db=
+            backroll_sso=
 
             case $backroll_mode in
                 dev)
-                    local flower_user=
-                    local flower_password=
-                    local db_root_password=root
-                    local db_address=database
-                    local db_port=3306
-                    local db_name=backroll
-                    local db_user_name=backroll
-                    local db_user_password=backroll
-                    local sso_admin_name=admin
-                    local sso_admin_password=admin
-                    local sso_base_url=http://sso:8080
-                    local sso_client_secret=e7cbb6ae88ce7cd7cf3b104a972d08ed
-                    local sso_user_name=developer
-                    local sso_user_password=developer
-                    local api_address=api
-                    local front_url=http://front:8080
+                    backroll_db=defined
+                    backroll_sso=defined
+
+                    flower_user=
+                    flower_password=
+                    db_root_password=root
+                    db_address=database
+                    db_port=3306
+                    db_name=backroll
+                    db_user_name=backroll
+                    db_user_password=backroll
+                    sso_admin_name=admin
+                    sso_admin_password=admin
+                    sso_base_url=http://sso:8080
+                    sso_client_secret=e7cbb6ae88ce7cd7cf3b104a972d08ed
+                    sso_user_name=developer
+                    sso_user_password=developer
+                    front_url=http://front:8080
                     ;;
                 staging|prod)
                     case $backroll_mode in
@@ -60,22 +62,13 @@ backroll_setup() {
                                 ;;
                         esac
                     done
-                    local api_address=$host_ip
-                    local front_address=$host_ip
-
-                    local front_port=
-                    case $backroll_mode in
-                        staging)
-                            front_port=8080
-                            ;;
-                    esac
 
                     echo "#### Backroll front configuration ####"
                     echo "Which protocol the Backroll front will be reached by ?"
                     select protocol in http https; do
                         case $protocol in
                             http|https)
-                                local front_url=$protocol://$front_address${front_port:+:$front_port}
+                                front_url=$protocol://$host_ip
                                 break
                                 ;;
                         esac
@@ -101,11 +94,11 @@ backroll_setup() {
                     select choice in "$provided_db" "$existing_db"; do
                         case $choice in
                             "$provided_db"|"$existing_db")
-                                [[ "$choice" == "$provided_db" ]] && local backroll_db=defined
+                                [[ "$choice" == "$provided_db" ]] && backroll_db=defined
 
                                 local action=
-                                local db_address=database
-                                local db_port=3306
+                                db_address=database
+                                db_port=3306
                                 case $choice in
                                     "$provided_db")
                                         action="Define new"
@@ -161,9 +154,9 @@ backroll_setup() {
                         esac
                     done
 
-                    local sso_client_secret=$(date | md5sum)
-                    local sso_client_secret=(${sso_client_secret// / })
-                    local sso_client_secret=${sso_client_secret[0]}
+                    sso_client_secret=$(date | md5sum)
+                    sso_client_secret=${sso_client_secret// /}
+                    sso_client_secret=${sso_client_secret//-/}
 
                     echo "#### Keycloak first user configuration ####"
                     read -r -p "Define new Keycloak username : " sso_user_name
@@ -179,7 +172,7 @@ backroll_setup() {
                         echo "Passwords do not match. Try again."
                     done
 
-                    local sso_base_url="http://$host_ip:8081"
+                    sso_base_url="http://$host_ip:8081"
                     if [[ "$backroll_sso" == "" ]]; then
                         echo "#### Existing Keycloak configuration ####"
                         read -r -p "Enter existing Keyclock url (ex : http://localhost:8080) : " sso_base_url
@@ -201,35 +194,29 @@ backroll_setup() {
                     ;;
             esac
 
+            export backroll_db
+            export backroll_mode
+            export backroll_sso
+            export db_address
+            export db_name
+            export db_port
+            export db_root_password
+            export db_user_name
+            export db_user_password
+            export flower_password
+            export flower_user
+            export front_url
+            export sso_admin_name
+            export sso_admin_password
+            export sso_base_url
+            export sso_client_secret
+            export sso_user_name
+            export sso_user_password
+
             for template_path in $(find . -wholename "*/template.*" 2>/dev/null); do
                 local path="${template_path/template./@$backroll_mode.}"
 
-                cp "$template_path" "$path"
-
-                # TODO Better use envsubst ?
-                for var_name in backroll_mode \
-                                flower_user \
-                                flower_password \
-                                backroll_db \
-                                backroll_sso \
-                                db_root_password \
-                                db_address \
-                                db_port \
-                                db_name \
-                                db_user_name \
-                                db_user_password \
-                                sso_admin_name \
-                                sso_admin_password \
-                                sso_base_url \
-                                sso_client_secret \
-                                sso_user_name \
-                                sso_user_password \
-                                api_address \
-                                front_url \
-                                ;
-                do
-                    sed -i 's|_'"$var_name"'|'"${!var_name}"'|' "$path"
-                done
+                envsubst < "$template_path" > "$path"
             done
 
             if [[ "$backroll_mode" != dev ]] && [[ "$backroll_sso" == "" ]]; then
@@ -247,7 +234,7 @@ backroll_setup() {
                 curl -X POST "$sso_base_url/admin/realms" \
                     -H "Content-Type: application/json" \
                     -H "Authorization: Bearer $token" \
-                    -d "$(cat sso/realm.json)"
+                    -d "$(cat sso/@staging.realm.json)"
             fi
             ;;
         *)
@@ -259,11 +246,12 @@ backroll_setup() {
 
 # Environment
 bash ../src/env/write_base.sh .env || return 1
-source ../src/env/load_local.sh || return 1
+bash ../src/env/get_local.sh >> .env || return 1
 
 # Setup
 if [[ "$1" != "" ]]; then
-    backroll_setup "${1#setup-}" || return 1
+    # Using a subshell not to export local environment.
+    (backroll_setup "${1#setup-}") || return 1
 fi
 
 # $dev
@@ -273,8 +261,8 @@ if source @dev.env 2>/dev/null; then
          -f compose.yaml
          -f compose.source.yaml
          -f compose.dev.yaml
-         --profile database
-         --profile sso"
+         ${BACKROLL_DB:+ --profile database}
+         ${BACKROLL_SSO:+ --profile sso}"
 else
     echo "Run “source source-me.sh setup-dev” to setup dev."
 fi

@@ -1,0 +1,4 @@
+cat <<HEREDOC
+BACKROLL_HOSTNAME=$HOSTNAME
+BACKROLL_HOST_USER=$(echo "${USERNAME:-${USER:-someone}}" | sed 's/\./-/g')
+HEREDOC
