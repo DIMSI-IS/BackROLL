@@ -155,6 +155,7 @@ backroll_setup() {
                     done
 
                     sso_client_secret=$(date | md5sum)
+                    # Do not use an array as it can not be exported.
                     sso_client_secret=${sso_client_secret// /}
                     sso_client_secret=${sso_client_secret//-/}
 
@@ -234,7 +235,7 @@ backroll_setup() {
                 curl -X POST "$sso_base_url/admin/realms" \
                     -H "Content-Type: application/json" \
                     -H "Authorization: Bearer $token" \
-                    -d "$(cat sso/@staging.realm.json)"
+                    -d "$(cat "sso/@$backroll_mode.realm.json")"
             fi
             ;;
         *)
