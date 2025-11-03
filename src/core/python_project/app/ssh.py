@@ -101,10 +101,10 @@ def push_ssh_directory() -> None:
         # The file may be created before being written.
         # Thus, it is not suitable for synchronizing.
         with config_path.open("w") as config_file:
-            config_file.write("""
-                              Host *
-                                StrictHostKeyChecking no
-                              """)
+            config_file.write((
+                "Host *\n"
+                "    StrictHostKeyChecking no"
+            ))
 
     # TODO Rename init ?
     sync = __get_sync_file()
