@@ -5,7 +5,7 @@ root_path="${SNAP:+$SNAP/app/configuration}"
 root_path="${root_path:-.}"
 
 read_configuration() {
-    cat "$root_path/$1.env" | grep -E "[A-Z_]+="
+    cat "$root_path/$1" | grep -E "[A-Z_]+="
 }
 
 get_name() {
@@ -20,11 +20,13 @@ set_variable() {
     declare -gx "$1=$2"
 }
 
-load_configuration() {
+load_read_only() {
     while read line; do
         set_variable "$(get_name "$line")" "$(get_value "$line")"
-    done <<< "$(read_configuration read_only)"
+    done <<< "$(read_configuration "$1")"
+}
 
+load_default() {
     while read line; do
         local name="$(get_name "$line")"
         local default="$(get_value "$line")"
@@ -44,7 +46,13 @@ load_configuration() {
         fi
 
         set_variable "$env_name" "$value"
-    done <<< "$(read_configuration default)"
+    done <<< "$(read_configuration "$1")"
+}
+
+load_configuration() {
+    load_read_only "read_only_base.env"
+    load_default "default_base.env"
+    load_default "default.env"
 }
 
 check_configuration() {
