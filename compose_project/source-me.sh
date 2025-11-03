@@ -246,7 +246,8 @@ backroll_setup() {
 }
 
 # Environment
-bash ../src/env/write_base.sh .env || return 1
+bash ../src/env/get_read_only.sh > .env || return 1
+bash ../src/env/get_default.sh >> .env || return 1
 bash ../src/env/get_local.sh >> .env || return 1
 
 # Setup
