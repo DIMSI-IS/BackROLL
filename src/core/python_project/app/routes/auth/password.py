@@ -10,7 +10,7 @@ class Credentials(BaseModel):
 
 @fastapi_app.post("/api/v1/auth/password/login")
 def login_route(request: Credentials):
-    return login(request.username, request.password)
+    return {"access_token": login(request.username, request.password)}
 
 
 class CredentialsChange(BaseModel):
