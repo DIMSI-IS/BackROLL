@@ -1,5 +1,7 @@
-from pydantic import BaseModel
+from fastapi import Depends
+from pydantic import BaseModel, Json
 from app.initialized import fastapi_app
+from app import auth
 from app.auth.password import login, change
 
 
@@ -20,5 +22,5 @@ class CredentialsChange(BaseModel):
 
 
 @fastapi_app.post("/api/v1/auth/password/change")
-def change_route(request: CredentialsChange):
+def change_route(request: CredentialsChange, identity: Json = Depends(auth.verify_token)):
     change(request.username, request.old_password, request.new_password)
