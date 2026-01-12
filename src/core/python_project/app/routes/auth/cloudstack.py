@@ -15,6 +15,6 @@ def login_route(request: Credentials):
     return {"access_token": login(request.app_id, request.app_secret)}
 
 
-# @fastapi_app.get("/api/v1/auth/cloudstack/test")
-# def test_route(identity: Json = Depends(auth.verify_token)):
-#     pass
+@fastapi_app.get("/api/v1/auth/cloudstack/test")
+def test_route(token: Json = Depends(auth.verify_token)):
+    return {"token": token}
