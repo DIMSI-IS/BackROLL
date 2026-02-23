@@ -2,7 +2,7 @@ name: Manage release
 
 on:
   release:
-    types: [published]
+    types: [created, edited, published]
 
 jobs:
   manage-docker-images:
@@ -39,3 +39,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ github.event.release.tag_name }} release/quickstart.sh
+
+      - name: Make snap package
+        run: snapcraft pack --output release/
+      - name: Upload snap package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.event.release.tag_name }} release/*.snap
