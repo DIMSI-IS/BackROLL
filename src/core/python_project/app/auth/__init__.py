@@ -6,8 +6,6 @@ from app.auth import openid, password
 
 
 def verify_token(token: str = Security(openid.oauth2_scheme)) -> Json:
-    print(f"Inspect token at https://jwt.io/#id_token={token}.")
-
     try:
         if "azp" in jwt.decode(token, options={"verify_signature": False}):
             return openid.verify(token)
