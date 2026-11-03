@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 import bcrypt
 import jwt
 
+from app.auth.signing_key import get_signing_key
 from app.database import init_db_connection, User
 from app.environment import get_env_var
 from app.logging import logged
@@ -20,10 +21,6 @@ def __hash_password(password: str) -> bytes:
 
 def __check_password(password: str, hash: bytes) -> bool:
     return bcrypt.checkpw(__bytes_from_string(password), hash)
-
-
-def __get_private_key():
-    return "TODO private key"
 
 
 def register(username: str, password: str):
@@ -49,7 +46,7 @@ def login(username: str, password: str) -> str:
 
         return jwt.encode({
             "username": username,
-        }, __get_private_key(), algorithm="HS256")
+        }, get_signing_key(), algorithm="HS256")
 
 
 def change(username: str, old_password, new_password):
@@ -69,7 +66,7 @@ def change(username: str, old_password, new_password):
 
 def verify(token: str) -> Json:
     decoded = jwt.decode(token,
-                         __get_private_key(),
+                         get_signing_key(),
                          algorithms=["HS256"])
     if decoded["username"] != get_env_var("DEFAULT_USER_NAME"):
         raise Exception("You must use the default user.")
