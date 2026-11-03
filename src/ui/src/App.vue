@@ -5,18 +5,38 @@
 export default {
   name: "app-main",
   props: ["refreshPool"],
+  beforeUnmount() {
+    clearInterval(this.timer);
+  },
   mounted() {
-    setInterval(() => {
-      if (this.$store.state.token) {
-        // Read-only data that can be refreshed without any conflict.
+    // A session restored after a page refresh has not gone through the login page,
+    // which is what loads the lists.
+    if (this.$store.state.token) {
+      [
+        "requestJob",
+        "requestBackupTask",
+        "requestRestoreTask",
+        "requestPool",
+        "requestHost",
+        "requestVirtualMachine",
+        "requestPolicy",
+        "requestStorage",
+        "requestConnector",
+        "requestExternalHook",
+      ].forEach((action) => this.$store.dispatch(action));
+    }
 
-        this.$store.dispatch("requestJob");
-        this.$store.dispatch("requestBackupTask");
-        this.$store.dispatch("requestRestoreTask");
-
-        this.$store.dispatch("requestVirtualMachine");
+    // One check per second: the period is chosen in the top bar and can change at any time.
+    // Nothing is loaded while the tab is hidden.
+    this.timer = setInterval(() => {
+      const refresh = this.$store.state.refresh;
+      if (!this.$store.state.token || refresh.seconds === 0 || document.hidden) {
+        return;
       }
-    }, 10000);
+      if (refresh.lastAt === null || Date.now() - refresh.lastAt >= refresh.seconds * 1000) {
+        this.$store.dispatch("refreshAll");
+      }
+    }, 1000);
   },
 };
 </script>

@@ -1,19 +1,22 @@
 <template>
   <div>
-    <va-data-table :items="data" :columns="columns" :per-page="perPage" :current-page="currentPage">
+    <va-data-table :no-data-html="$t('pages.common.noItems')" :items="data" :columns="columns" :per-page="perPage" :current-page="currentPage">
       <template #cell(started)="{ value }">
         <va-chip v-if="value" size="small" square outline color="primary">
           {{ new Date(value * 1000).toLocaleTimeString() }}
         </va-chip>
         <div v-else>
-          <b>N/A</b>
+          <b>{{ $t('pages.tasks.common.na') }}</b>
         </div>
       </template>
       <template #cell(target)="{ value }">
-        <div>
+        <div class="target">
           <va-chip size="small" square color="primary">
             {{ value }}
           </va-chip>
+          <va-button v-if="value && value !== 'N/A'" class="copy-name" flat size="small" icon="content_copy"
+            :title="$t('pages.tasks.common.copy')" :aria-label="$t('pages.tasks.common.copy')"
+            @click="copyName(value)" />
         </div>
       </template>
       <template #cell(runtime)="{ rowIndex }">
@@ -32,21 +35,25 @@
           </va-chip>
         </div>
         <div v-else>
-          <b>N/A</b>
+          <b>{{ $t('pages.tasks.common.na') }}</b>
         </div>
       </template>
-      <template #cell(state)="{ value }">
+      <template #cell(state)="{ value, rowIndex }">
         <va-chip v-if="value === 'STARTED'" size="small" color="info">
-          {{ value }}
+          {{ $t('pages.tasks.common.state.STARTED') }}
         </va-chip>
         <va-chip v-else-if="value === 'SUCCESS'" size="small" color="success">
-          {{ value }}
+          {{ $t('pages.tasks.common.state.SUCCESS') }}
+        </va-chip>
+        <va-chip v-else-if="value === 'SKIPPED'" size="small" color="warning" class="skipped-state"
+          :title="data[rowIndex].reason">
+          {{ $t('pages.tasks.common.state.SKIPPED') }}
         </va-chip>
         <va-chip v-else-if="value === 'FAILURE'" size="small" color="danger">
-          {{ value }}
+          {{ $t('pages.tasks.common.state.FAILURE') }}
         </va-chip>
-        <va-chip v-else-if="value === 'RECEIVED'" size="small" color="purple">
-          QUEUED
+        <va-chip v-else-if="value === 'RECEIVED' || value === 'RETRY'" size="small" color="purple">
+          {{ $t('pages.tasks.common.queued') }}
         </va-chip>
       </template>
       <template #cell(args)="{ value }">
@@ -73,7 +80,7 @@
         </tr>
       </template>
     </va-data-table>
-    <error-modal v-model="taskErrorToShow" :title="`Task logs (${selectedTask?.target})`"></error-modal>
+    <error-modal v-model="taskErrorToShow" :title="$t('pages.tasks.common.taskLogs', { target: selectedTask?.target })"></error-modal>
   </div>
 </template>
 <script>
@@ -109,9 +116,31 @@ export default {
     },
   },
   methods: {
+    // The name goes to the clipboard. Outside a secure page (http on an address that is not localhost)
+    // the browser has no clipboard: a hidden text field is used then.
+    async copyName(name) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(name)
+        } else {
+          const field = document.createElement("textarea")
+          field.value = name
+          field.style.position = "fixed"
+          field.style.opacity = "0"
+          document.body.appendChild(field)
+          field.select()
+          const copied = document.execCommand("copy")
+          document.body.removeChild(field)
+          if (!copied) throw new Error("copy refused")
+        }
+        this.$vaToast.init({ message: this.$t("pages.tasks.common.copied", { name }), color: "success", duration: 1800 })
+      } catch (error) {
+        this.$vaToast.init({ message: this.$t("pages.tasks.common.copyFailed"), color: "warning" })
+      }
+    },
     showTaskError(task) {
       this.selectedTask = task;
-      this.taskErrorToShow = "Retrieving logs…";
+      this.taskErrorToShow = this.$t("pages.tasks.common.retrievingLogs");
       axios
         .get(`${this.$store.state.endpoint.api}/api/v1/logs/${task.uuid}`, {
           headers: {
@@ -125,7 +154,7 @@ export default {
         .catch(error => {
           console.error(error)
           this.$vaToast.init({
-            title: "Unexpected error",
+            title: this.$t("pages.tasks.common.unexpectedError"),
             message: error,
             color: "danger"
           })

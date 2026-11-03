@@ -1,0 +1,51 @@
+{
+  "title": "Réglages",
+  "refresh": "Actualiser",
+  "save": "Enregistrer",
+  "runningNow": "En cours actuellement :",
+  "unableLoad": "Impossible de charger les réglages",
+  "unableSave": "Impossible d'enregistrer les réglages",
+  "saved": "Réglages enregistrés",
+  "range": "Entre {min} et {max}",
+  "environmentNote": "Une modification s'applique immédiatement, sans redémarrage. Ce qui n'est pas réglé ici garde la valeur de la variable d'environnement correspondante, ou sa valeur par défaut.",
+  "section": {
+    "backups": "Sauvegardes",
+    "history": "Historique et fichiers",
+    "security": "Sécurité"
+  },
+  "sectionHelp": {
+    "backups": "Le déroulement des sauvegardes.",
+    "history": "Combien de temps les enregistrements et les copies temporaires sont conservés. Les plus anciens enregistrements sont supprimés par un nettoyage qui tourne toutes les six heures.",
+    "security": "Les connexions et les sessions."
+  },
+  "field": {
+    "backup_concurrency": "Machines virtuelles sauvegardées en même temps",
+    "storage_alert_percent": "Prévenir Slack quand un stockage de sauvegarde est plein à",
+    "task_history_retention_days": "Conserver l'historique des sauvegardes et restaurations",
+    "audit_retention_days": "Conserver le journal d'audit",
+    "file_browser_ttl_minutes": "Conserver une copie ouverte pour parcourir une sauvegarde",
+    "jwt_lifetime_minutes": "Durée d'une session de connexion",
+    "login_max_attempts": "Échecs de connexion avant le blocage d'un compte",
+    "login_lock_minutes": "Durée du blocage"
+  },
+  "unit": {
+    "backup_concurrency": "machines",
+    "storage_alert_percent": "% utilisés",
+    "task_history_retention_days": "jours",
+    "audit_retention_days": "jours",
+    "file_browser_ttl_minutes": "minutes",
+    "jwt_lifetime_minutes": "minutes",
+    "login_max_attempts": "essais",
+    "login_lock_minutes": "minutes"
+  },
+  "fieldHelp": {
+    "backup_concurrency": "Les autres sauvegardes attendent qu'une place se libère, dans l'ordre où elles ont été lancées, y compris quand cette valeur change. La valeur maximale est le nombre de processus du worker de sauvegarde (BACKUP_MAX_CONCURRENCY).",
+    "storage_alert_percent": "Un message au hook Slack choisi pour le stockage (Tâches > Clean backup) quand son disque atteint cette occupation, contrôlée toutes les 15 minutes. Aucun message tant qu'il reste au-dessus, un nouveau après un retour sous la limite.",
+    "task_history_retention_days": "La liste de Tâches > Sauvegarde et Tâches > Restauration, et les compteurs du tableau de bord.",
+    "audit_retention_days": "Qui a fait quoi, dans Paramètres > Journal d'audit.",
+    "file_browser_ttl_minutes": "La copie d'une sauvegarde que vous ouvrez pour parcourir ses fichiers est supprimée après ce délai sans utilisation.",
+    "jwt_lifetime_minutes": "Passé ce délai, la personne doit se reconnecter. Cela s'applique aux prochaines connexions.",
+    "login_max_attempts": "Mots de passe erronés à la suite.",
+    "login_lock_minutes": "Un administrateur peut débloquer un compte plus tôt depuis la page des utilisateurs."
+  }
+}

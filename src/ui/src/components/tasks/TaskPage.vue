@@ -5,7 +5,7 @@
         <va-card-title>
           <h1>{{ title }}</h1>
           <div class="mr-0 text-right">
-            <va-button color="info"
+            <va-button v-if="$store.getters.canEdit" color="info"
               @click="this.$router.push({ path: '/admin/tasks/kickstart', query: { task: kickstartTask } })">
               {{ kickstartTitle }}
             </va-button>
@@ -16,6 +16,13 @@
             <va-icon name="task_alt" />
             <span style="font-style: bold; padding-left: 5px;">
               {{ successTaskNumber }}
+            </span>
+          </va-chip>
+          <va-chip v-show="skippedTaskNumber" color="warning" class="mr-4 mb-2 skipped-count"
+            :title="$t('pages.tasks.common.state.SKIPPED')">
+            <va-icon name="pause_circle" />
+            <span style="font-style: bold; padding-left: 5px;">
+              {{ skippedTaskNumber }}
             </span>
           </va-chip>
           <va-chip v-show="failureTaskNumber" color="danger" class="mr-4 mb-2">
@@ -30,7 +37,13 @@
               {{ pendingTaskNumber }}
             </span>
           </va-chip>
-          <task-table :data="taskList" :columns="columns" />
+          <va-input v-model="search" class="mb-3 task-search" clearable
+            :placeholder="$t('pages.tasks.common.search')" :aria-label="$t('pages.tasks.common.search')">
+            <template #prependInner>
+              <va-icon name="search" size="small" />
+            </template>
+          </va-input>
+          <task-table :data="visibleTaskList" :columns="columns" />
           <div v-if="!$store.state.isbackupTaskTableReady" class="flex-center ma-3">
             <spring-spinner :animation-duration="2000" :size="30" color="#2c82e0" />
           </div>
@@ -40,7 +53,7 @@
     <div class="flex lg12 xl2">
       <va-card class="d-flex">
         <va-card-title>
-          Filter by date
+          {{ $t('pages.tasks.common.filterByDate') }}
         </va-card-title>
         <va-card-content class="row">
           <va-date-picker v-model="selectedDate" :highlight-today="false"
@@ -74,14 +87,8 @@ export default defineComponent({
     } catch (_) { }
 
     return {
-      columns: [
-        { key: 'target', sortable: true },
-        { key: 'started', sortable: true },
-        { key: 'runtime', sortable: true },
-        { key: 'state', sortable: true },
-        { key: 'actions' },
-      ],
       selectedDate,
+      search: "",
       logModal: false,
       taskInfo: { traceback: null },
 
@@ -95,11 +102,39 @@ export default defineComponent({
     }
   },
   computed: {
+    columns() {
+      return [
+        { key: 'target', label: this.$t('pages.tasks.common.columns.target'), sortable: true },
+        { key: 'started', label: this.$t('pages.tasks.common.columns.started'), sortable: true },
+        { key: 'runtime', label: this.$t('pages.tasks.common.columns.runtime'), sortable: true },
+        { key: 'state', label: this.$t('pages.tasks.common.columns.state'), sortable: true },
+        { key: 'actions', label: this.$t('pages.tasks.common.columns.actions') },
+      ]
+    },
     taskList() {
       return this.getTaskList((task) => this.isOnSelectedDay(task.received))
     },
+    // The search looks in the name of the machine, the state (as shown and as sent), the time and the date.
+    visibleTaskList() {
+      const words = (this.search || "").toLowerCase().split(/\s+/).filter(Boolean)
+      if (!words.length) {
+        return this.taskList
+      }
+      return this.taskList.filter((task) => {
+        const text = [
+          task.target,
+          task.state,
+          this.$te(`pages.tasks.common.state.${task.state}`) ? this.$t(`pages.tasks.common.state.${task.state}`) : "",
+          task.started ? new Date(task.started * 1000).toLocaleString() : "",
+        ].join(" ").toLowerCase()
+        return words.every((word) => text.includes(word))
+      })
+    },
     successTaskNumber() {
       return this.taskList.filter(({ state }) => state === 'SUCCESS').length
+    },
+    skippedTaskNumber() {
+      return this.taskList.filter(({ state }) => state === 'SKIPPED').length
     },
     failureTaskNumber() {
       return this.taskList.filter(({ state }) => state === 'FAILURE').length

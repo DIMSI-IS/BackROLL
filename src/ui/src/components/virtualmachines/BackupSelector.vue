@@ -1,5 +1,5 @@
 <template>
-  <va-select label="Backup" v-model="backupSelection" :options="selectDataVirtualMachine"
+  <va-select :label="$t('pages.resources.selector.backup')" v-model="backupSelection" :options="selectDataVirtualMachine"
     :loading="this.loadingBackups">
     <template #prependInner>
       <va-icon name="today" size="small" color="primary" />
@@ -31,7 +31,8 @@ export default defineComponent({
   computed: {
     selectDataVirtualMachine() {
       if (this.backupInfo.archives) {
-        const result = this.backupInfo.archives.map(x => ({
+        // The backups of folders and files are not disks: they are restored from the file browser.
+        const result = this.backupInfo.archives.filter(x => !x.name.startsWith('files_')).map(x => ({
           text: `${x.archive.split('_')[0].toUpperCase()} (${new Date(x.start).toLocaleDateString()} ${new Date(x.start).toLocaleTimeString()})`,
           value: x.name
         }))
@@ -59,59 +60,27 @@ export default defineComponent({
         .catch(error => {
           console.error(error)
           this.$vaToast.init({
-            title: "Unexpected error",
+            title: this.$t('pages.resources.common.unexpectedError'),
             message: error,
             color: "danger"
           })
         })
     },
-    getVirtualMachineBackupsFromPath(archives) {
-      if (archives) {
-        this.loadingBackups = false;
-        if (archives.length > 0) {
-          this.backupInfo = archives;
-        }
-      }
-    },
     requestBackupList() {
-      if (this.job == "mounted") {
-        const urlToCall = `${this.$store.state.endpoint.api}/api/v1/virtualmachinebackupsfrompath`;
-
-        let virtualMachineBackupsRequest = {}
-        virtualMachineBackupsRequest.virtualMachineName = this.virtualMachine.substring(this.virtualMachine.lastIndexOf('/'))
-        virtualMachineBackupsRequest.storagePath = this.virtualMachine.substring(0, this.virtualMachine.lastIndexOf('/'));
-
-        axios.post(urlToCall, JSON.stringify(virtualMachineBackupsRequest), { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
-          .then(response => {
-            this.loadingBackups = true
-            // this.getVirtualMachineBackupsFromPath(response.data.backups.archives)
-            this.getBackupList(response.data.Location)
+      const urlToCall = `${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine}/backups`;
+      axios.get(urlToCall, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
+        .then(response => {
+          this.loadingBackups = true
+          this.getBackupList(response.data.Location)
+        })
+        .catch(error => {
+          console.error(error)
+          this.$vaToast.init({
+            title: this.$t('pages.resources.common.unexpectedError'),
+            message: error,
+            color: "danger"
           })
-          .catch(error => {
-            console.error(error)
-            this.$vaToast.init({
-              title: "Unexpected error",
-              message: error,
-              color: "danger"
-            })
-          })
-      }
-      else {
-        const urlToCall = `${this.$store.state.endpoint.api}/api/v1/virtualmachines/${this.virtualMachine}/backups`;
-        axios.get(urlToCall, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
-          .then(response => {
-            this.loadingBackups = true
-            this.getBackupList(response.data.Location)
-          })
-          .catch(error => {
-            console.error(error)
-            this.$vaToast.init({
-              title: "Unexpected error",
-              message: error,
-              color: "danger"
-            })
-          })
-      }
+        })
     },
   }
 })

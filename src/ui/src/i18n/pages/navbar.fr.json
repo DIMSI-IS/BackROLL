@@ -1,0 +1,21 @@
+{
+  "refreshNow": "Actualiser maintenant",
+  "autoRefresh": "Actualisation automatique",
+  "refreshOff": "Désactivée",
+  "sec5": "5 s",
+  "sec10": "10 s",
+  "sec30": "30 s",
+  "min1": "1 min",
+  "logout": "Déconnexion",
+  "logoutFailed": "Échec de la déconnexion",
+  "roleViewer": "lecteur",
+  "roleEditor": "éditeur",
+  "roleAdmin": "administrateur",
+  "errorTitle": "Erreur !",
+  "poolUpdated": "Le pool a été mis à jour avec succès",
+  "policyUpdated": "La politique a été mise à jour avec succès",
+  "hypervisorUpdated": "L'hyperviseur a été mis à jour avec succès",
+  "storageUpdated": "Le stockage a été mis à jour avec succès",
+  "hookUpdated": "Le hook externe a été mis à jour avec succès",
+  "connectorUpdated": "Le connecteur a été mis à jour avec succès"
+}

@@ -3,15 +3,29 @@
 backroll_setup() {
     backroll_mode=$1
     case $backroll_mode in
+        staging|prod)
+            # The files of an installation hold the keys that decrypt its database: writing them again with new
+            # keys makes the secrets unreadable and can point the API to an empty database.
+            if [[ -e "@$backroll_mode.env" ]]; then
+                echo "@$backroll_mode.env already exists: this BackROLL is already set up." >&2
+                echo "Running the setup again generates new keys and overwrites the passwords and the keys of this installation." >&2
+                echo "To update BackROLL, do not run the setup again: pull the new version and recreate the containers." >&2
+                read -r -p "To overwrite anyway, type: overwrite " response
+                if [[ "$response" != "overwrite" ]]; then
+                    echo "Nothing was changed." >&2
+                    return 1
+                fi
+            fi
+            ;;
+    esac
+    case $backroll_mode in
         dev|staging|prod)
             # Unset variables.
             backroll_db=
-            backroll_sso=
 
             case $backroll_mode in
                 dev)
                     backroll_db=defined
-                    backroll_sso=defined
 
                     flower_user=
                     flower_password=
@@ -21,12 +35,8 @@ backroll_setup() {
                     db_name=backroll
                     db_user_name=backroll
                     db_user_password=backroll
-                    sso_admin_name=admin
-                    sso_admin_password=admin
-                    sso_base_url=http://sso:8080
-                    sso_client_secret=e7cbb6ae88ce7cd7cf3b104a972d08ed
-                    sso_user_name=developer
-                    sso_user_password=developer
+                    jwt_secret=dev-only-secret-never-use-in-production-0123456789
+                    secrets_key=dev-only-secrets-key-never-use-in-production-0123456789
                     front_url=http://front:8080
                     ;;
                 staging|prod)
@@ -142,62 +152,16 @@ backroll_setup() {
                         esac
                     done
 
-                    echo "#### SSO configuration ####"
-                    local provided_sso="Use the Keycloak provided by BackROLL."
-                    local existing_sso="Use your existing Keycloak. (preview)"
-                    select choice in "$provided_sso" "$existing_sso"; do
-                        case $choice in
-                            "$provided_sso"|"$existing_sso")
-                                [[ "$choice" == "$provided_sso" ]] && backroll_sso=defined
-                                break
-                                ;;
-                        esac
-                    done
-
-                    sso_client_secret=$(date | md5sum)
-                    # Do not use an array as it can not be exported.
-                    sso_client_secret=${sso_client_secret// /}
-                    sso_client_secret=${sso_client_secret//-/}
-
-                    echo "#### Keycloak first user configuration ####"
-                    read -r -p "Define new Keycloak username : " sso_user_name
-                    while true;
-                    do 
-                        read -s -p "Define new Keycloak password : " sso_user_password
-                        echo
-                        read -s -p "Confirm password : " confirmed_password
-                        echo
-
-                        [[ "$sso_user_password" == "$confirmed_password" ]] && break
-
-                        echo "Passwords do not match. Try again."
-                    done
-
-                    sso_base_url="http://$host_ip:8081"
-                    if [[ "$backroll_sso" == "" ]]; then
-                        echo "#### Existing Keycloak configuration ####"
-                        read -r -p "Enter existing Keyclock url (ex : http://localhost:8080) : " sso_base_url
-                    else
-                        echo "#### New Keycloak configuration ####"
-                        read -r -p "Define new Keyclock admin name : " sso_admin_name
-                        while true;
-                            do 
-                                read -s -p "Define new Keycloak admin password : " sso_admin_password
-                                echo
-                                read -s -p "Confirm password : " confirmed_password
-                                echo
-
-                                [[ "$sso_admin_password" == "$confirmed_password" ]] && break
-
-                                echo "Passwords do not match. Try again."
-                            done
-                    fi
+                    # Secret used to sign the login tokens.
+                    jwt_secret=$(openssl rand -hex 32)
+                    # Key that encrypts the secrets of the database, apart from the one of the tokens: changing one
+                    # does not break the other.
+                    secrets_key=$(openssl rand -hex 32)
                     ;;
             esac
 
             export backroll_db
             export backroll_mode
-            export backroll_sso
             export db_address
             export db_name
             export db_port
@@ -207,12 +171,8 @@ backroll_setup() {
             export flower_password
             export flower_user
             export front_url
-            export sso_admin_name
-            export sso_admin_password
-            export sso_base_url
-            export sso_client_secret
-            export sso_user_name
-            export sso_user_password
+            export jwt_secret
+            export secrets_key
 
             for template_path in $(find . -wholename "*/template.*" 2>/dev/null); do
                 local path="${template_path/template./@$backroll_mode.}"
@@ -220,23 +180,6 @@ backroll_setup() {
                 envsubst < "$template_path" > "$path"
             done
 
-            if [[ "$backroll_mode" != dev ]] && [[ "$backroll_sso" == "" ]]; then
-                read -r -p "Enter existing Keyclock realm (master): " keycloak_realm
-                local keycloak_realm="${keycloak_realm:=master}"
-                read -r -p "Enter existing Keyclock admin client_id (admin-cli) : " admin_client_id
-                local admin_client_id="${admin_client_id:=admin-cli}"
-                read -s -p "Enter existing Keyclock admin client_secret : " admin_client_secret
-                echo
-                local token=$(curl -s -X POST "$sso_base_url/realms/$keycloak_realm/protocol/openid-connect/token" \
-                    -H "Content-Type: application/x-www-form-urlencoded" \
-                    -d "grant_type=client_credentials&client_id=$admin_client_id&client_secret=$admin_client_secret" \
-                    | grep -oP '"access_token":"\K[^"]+')
-
-                curl -X POST "$sso_base_url/admin/realms" \
-                    -H "Content-Type: application/json" \
-                    -H "Authorization: Bearer $token" \
-                    -d "$(cat "sso/@$backroll_mode.realm.json")"
-            fi
             ;;
         *)
             echo "Choose dev, staging or prod." >&2
@@ -263,8 +206,7 @@ if source @dev.env 2>/dev/null; then
          -f compose.yaml
          -f compose.source.yaml
          -f compose.dev.yaml
-         ${BACKROLL_DB:+ --profile database}
-         ${BACKROLL_SSO:+ --profile sso}"
+         ${BACKROLL_DB:+ --profile database}"
 else
     echo "Run “source source-me.sh setup-dev” to setup dev."
 fi
@@ -276,8 +218,7 @@ if source @staging.env 2>/dev/null; then
              -f compose.yaml
              -f compose.source.yaml
              -f compose.staging_prod.yaml
-             ${BACKROLL_DB:+ --profile database}
-             ${BACKROLL_SSO:+ --profile sso}"
+             ${BACKROLL_DB:+ --profile database}"
 else
     echo "Run “source source-me.sh setup-staging” to setup staging."
 fi
@@ -290,8 +231,7 @@ if source @prod.env 2>/dev/null; then
               -f compose.yaml
               -f compose.staging_prod.yaml
               -f compose.prod.yaml
-              ${BACKROLL_DB:+ --profile database}
-              ${BACKROLL_SSO:+ --profile sso}"
+              ${BACKROLL_DB:+ --profile database}"
     else
         prod="ERROR_VERSION_MISMATCH"
     fi

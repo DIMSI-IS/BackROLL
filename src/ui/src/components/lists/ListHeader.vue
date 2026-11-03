@@ -10,7 +10,7 @@
                 color="danger" :to="goButtonRoute">
                 {{ goButtonTitle }}
             </va-button>
-            <va-button v-if="plusButtonTitle && plusButtonRoute" icon="add" color="info" :to="plusButtonRoute"
+            <va-button v-if="plusButtonTitle && plusButtonRoute && $store.getters.canEdit" icon="add" color="info" :to="plusButtonRoute"
                 :disabled="!dependenciesResolved">
                 {{ plusButtonTitle }}
             </va-button>

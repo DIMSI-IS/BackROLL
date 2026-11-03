@@ -355,7 +355,16 @@
     "policies": "Politiques de sauvegarde",
     "storage": "Stockage",
     "connectors": "Connecteurs",
-    "parameters": "Paramètres"
+    "external-hooks": "Hooks externes",
+    "parameters": "Paramètres",
+    "changePassword": "Changer le mot de passe",
+    "users": "Utilisateurs",
+    "audit": "Journal d'audit",
+    "settings": "Réglages",
+    "directory": "Active Directory",
+    "cleanup": "Nettoyage des sauvegardes",
+    "documentation": "Documentation",
+    "drp": "Reprise d'activité (DRP)"
   },
   "messages": {
     "all": "See all messages",

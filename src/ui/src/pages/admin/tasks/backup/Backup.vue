@@ -1,5 +1,6 @@
 <template>
-  <task-page title="Backups" kickstart-title="Start backup task" kickstart-task="backup" :get-task-list="getTaskList" />
+  <task-page :title="$t('pages.tasks.backup.title')" :kickstart-title="$t('pages.tasks.backup.kickstart')"
+    kickstart-task="backup" :get-task-list="getTaskList" />
 </template>
 
 <script>
@@ -29,13 +30,14 @@ export default defineComponent({
             return {
               uuid: task.uuid,
               name: task.name.replaceAll('_', ' '),
-              target: isPool ? this.$store.state.resources.poolList.find(e => e.id == poolId)?.name : taskArg?.name ?? "N/A",
+              target: isPool ? this.$store.state.resources.poolList.find(e => e.id == poolId)?.name : taskArg?.name ?? this.$t('pages.tasks.common.na'),
               targetPage: isPool ? "pools" : "virtualmachines",
               targetUuid: taskArg?.uuid,
               started: task.started,
               ipAddress: task.ip_address,
               runtime: isPool ? null : task.runtime,
-              state: task.state
+              state: task.state,
+              reason: task.reason
             }
           })
       }

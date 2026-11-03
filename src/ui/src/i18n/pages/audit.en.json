@@ -1,0 +1,22 @@
+{
+  "title": "Audit log",
+  "refresh": "Refresh",
+  "user": "User",
+  "action": "Action",
+  "failedOnly": "Failed only",
+  "search": "Search",
+  "success": "success",
+  "entries": "{total} entries",
+  "colTime": "time",
+  "colUser": "user",
+  "colAction": "action",
+  "colDetails": "details",
+  "colResult": "result",
+  "colIp": "ip",
+  "unableLoad": "Unable to load the audit log",
+  "colSource": "source",
+  "source": "Source",
+  "sourceAll": "All",
+  "sourceLocal": "Local",
+  "sourceAd": "Active Directory"
+}

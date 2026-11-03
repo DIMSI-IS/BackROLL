@@ -7,8 +7,11 @@
       </span>
     </template>
     <va-dropdown-content class="profile-dropdown__content">
+      <va-list-item v-if="$store.state.user">
+        <span class="profile-dropdown__role">{{ roleLabel($store.state.user.role) }}</span>
+      </va-list-item>
       <va-list-item>
-        <va-button @click="logout" color="danger" icon="logout" flat :rounded="false" class="mr-4">Logout</va-button>
+        <va-button @click="logout" color="danger" icon="logout" flat :rounded="false" class="mr-4">{{ $t('pages.navbar.logout') }}</va-button>
       </va-list-item>
     </va-dropdown-content>
   </va-dropdown>
@@ -30,14 +33,17 @@ export default {
     },
   },
   methods: {
+    roleLabel(role) {
+      const key = { viewer: "roleViewer", editor: "roleEditor", admin: "roleAdmin" }[role];
+      return key ? this.$t(`pages.navbar.${key}`) : role;
+    },
     logout() {
       try {
-        // this.$keycloak.logoutFn() // TODO: Implement Keycloak logout
         this.$store.commit("logout");
         this.$router.push("/login");
       } catch (error) {
-        vm.$vaToast.init({
-          title: "Logout failed",
+        this.$vaToast.init({
+          title: this.$t("pages.navbar.logoutFailed"),
           message: error,
           color: "danger",
         });
@@ -58,6 +64,11 @@ export default {
 
   &__content {
     width: 8rem;
+  }
+
+  &__role {
+    text-transform: capitalize;
+    color: var(--va-gray);
   }
 
   &__item {

@@ -3,27 +3,27 @@
     <va-card-title>
       <FormHeader
         :title="
-          poolId ? `Updating pool ${statePool?.name ?? ''}` : 'Creating pool'
+          poolId ? $t('pages.resources.pool.updating', { name: statePool?.name ?? '' }) : $t('pages.resources.pool.creating')
         "
       />
     </va-card-title>
     <va-card-content v-if="!poolId || statePool">
       <va-form ref="form">
         <va-input
-          label="Name"
+          :label="$t('pages.resources.pool.name')"
           v-model="formPool.name"
           :rules="[
-            (value) => value?.length > 0 || 'Field is required',
+            (value) => value?.length > 0 || $t('pages.resources.common.required'),
             (value) =>
-              isPoolNameUnique(value) || 'This pool name is already used',
+              isPoolNameUnique(value) || $t('pages.resources.pool.nameUsed'),
           ]"
         />
         <br />
         <va-select
-          label="Select policy"
+          :label="$t('pages.resources.pool.selectPolicy')"
           v-model="selectedPolicy"
           :options="policyOptions"
-          :rules="[(value) => value || 'Field is required']"
+          :rules="[(value) => value || $t('pages.resources.common.required')]"
         >
           <template #prependInner>
             <va-icon name="storage" size="small" color="primary" />
@@ -32,7 +32,7 @@
       </va-form>
       <br />
       <va-select
-        label="Select connector (optional)"
+        :label="$t('pages.resources.pool.selectConnector')"
         v-model="selectedConnector"
         :options="connectorOptions"
       />
@@ -41,7 +41,7 @@
         class="mb-3"
         @click="$refs.form.validate() && (poolId ? updatePool() : addPool())"
       >
-        {{ poolId ? "Update" : "Create" }}
+        {{ poolId ? $t('pages.resources.common.update') : $t('pages.resources.pool.create') }}
       </va-button>
     </va-card-content>
     <div v-else class="flex-center ma-3">
@@ -164,14 +164,14 @@ export default {
           this.$router.push("/admin/resources/pools");
           this.$vaToast.init({
             title: response.data.state,
-            message: "Pool has been successfully added",
+            message: this.$t('pages.resources.pool.added'),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to add pool",
+            title: this.$t('pages.resources.pool.addFailed'),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

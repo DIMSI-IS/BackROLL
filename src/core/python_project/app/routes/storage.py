@@ -31,6 +31,8 @@ from app.initialized import celery_app
 
 from app import auth
 from app import database
+from app import safety
+from pydantic import field_validator
 from app.database import Hosts
 from app.database import Pools
 from app.database import Policies
@@ -40,6 +42,14 @@ from app.database import Storage
 class items_storage(BaseModel):
     name: str
     path: str
+
+    @field_validator("path")
+    @classmethod
+    def check_path(cls, value):
+        # The path ends in shell commands (borg, rm, mkdir): only a plain absolute path is accepted.
+        if not safety.valid_storage_path(value):
+            raise ValueError("The path of a storage must be an absolute path made of letters, digits and . _ - @ + = , :")
+        return value
 
     class Config:
         schema_extra = {
@@ -84,7 +94,7 @@ def retrieveStoragePathFromHostBackupPolicy(virtual_machine_info):
                 pool = results.one()
                 if not pool:
                     raise ValueError(
-                        f"Pool with id {host_info['pool_id']} not found")
+                        f"Pool with id {host.pool_id} not found")
             else:
                 # Find pool linked to vm (CS)
                 statement = select(Pools).where(
@@ -129,6 +139,19 @@ def filter_storage_by_id(storage_id):
         raise ValueError(e)
 
 
+def check_name_and_path_are_free(name, path, storage_id=None):
+    """A second storage with the same name or the same path would mix the backups of two policies."""
+    engine = database.init_db_connection()
+    with Session(engine) as session:
+        for other in session.exec(select(Storage)):
+            if str(other.id) == str(storage_id):
+                continue
+            if name and other.name.strip().lower() == name.strip().lower():
+                raise HTTPException(status_code=409, detail=f'A storage named "{other.name}" already exists.')
+            if path and other.path.rstrip("/") == path.rstrip("/"):
+                raise HTTPException(status_code=409, detail=f'The path {path} is already used by the storage "{other.name}".')
+
+
 @celery_app.task(name='create storage')
 def api_create_storage(name, path):
     engine = database.init_db_connection()
@@ -152,9 +175,9 @@ def api_update_storage(storage_id, name, path):
         statement = select(Storage).where(
             Storage.id == ensure_uuid(storage_id))
         results = session.exec(statement)
-        data_storage = results.one()
+        data_storage = results.first()
     if not data_storage:
-        raise ValueError(f'Storage with id {storage_id} not found')
+        raise HTTPException(status_code=404, detail=f'Storage with id {storage_id} not found')
     try:
         if name:
             data_storage.name = name
@@ -165,6 +188,8 @@ def api_update_storage(storage_id, name, path):
             session.commit()
             session.refresh(data_storage)
         return jsonable_encoder(data_storage)
+    except HTTPException:
+        raise
     except Exception as e:
         print(e)
         raise ValueError(e)
@@ -187,6 +212,9 @@ def api_delete_storage(storage_id):
                 status_code=409, detail='One or more policies are linked to this storage.')
     try:
         storage = filter_storage_by_id(storage_id)
+        # Its cleaning settings reference it, and its schedule would run for nothing.
+        from app.routes import cleanup as cleanup_routes
+        cleanup_routes.forget_storage(storage.id)
         with Session(engine) as session:
             session.delete(storage)
             session.commit()
@@ -224,25 +252,27 @@ def list_storage(identity: Json = Depends(auth.verify_token)):
 
 
 @fastapi_app.post('/api/v1/storage', status_code=201)
-def create_storage(item: items_storage, identity: Json = Depends(auth.verify_token)):
+def create_storage(item: items_storage, identity: Json = Depends(auth.require_editor)):
     name = item.name
     path = item.path
+    check_name_and_path_are_free(name, path)
     return api_create_storage(name, path)
 
 
 @fastapi_app.patch("/api/v1/storage/{storage_id}", status_code=200)
-def update_storage(storage_id, item: items_storage, identity: Json = Depends(auth.verify_token)):
+def update_storage(storage_id, item: items_storage, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(storage_id)
     except ValueError:
         raise HTTPException(status_code=404, detail='Given uuid is not valid')
     name = item.name
     path = item.path
+    check_name_and_path_are_free(name, path, storage_id)
     return api_update_storage(storage_id, name, path)
 
 
 @fastapi_app.delete('/api/v1/storage/{storage_id}', status_code=200)
-def delete_storage(storage_id: str, identity: Json = Depends(auth.verify_token)):
+def delete_storage(storage_id: str, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(storage_id)
     except ValueError:

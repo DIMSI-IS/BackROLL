@@ -14,6 +14,16 @@ It's also
 - The only required agent is the QEMU guest agent
 - Fully containerized with minimum maintenance needed
 
+## What is in this version
+
+- Users with roles (viewer, editor, admin), an audit log, optional login with Active Directory
+- Backup of the disks, and of chosen folders and files, of the running machines (the others are skipped, not failed)
+- Browse and download the files of a backup, restore a disk, or restore a whole machine in a new CloudStack VM (disaster recovery)
+- Clean backup: old backups, backups of deleted machines, a simulation that lets you choose what is deleted
+- Slack notifications, and an alert when a backup storage is almost full
+- A dashboard of the protection of the machines, English and French, and a documentation page in the interface
+- Automated tests on every push (GitHub Actions)
+
 ## Cloudstack Collaboration Conference November 2023
 
 [![Watch the video](https://i.ytimg.com/vi/yh-purfnMGg/hqdefault.jpg)](https://youtu.be/yh-purfnMGg?si=nF6ORjA0iGUsVXVy)
@@ -29,11 +39,9 @@ It's also
 
 Backroll has some default components that can be replaced by your own ones.
 
-#### Recommended
+#### Authentication
 
-- An OpenID provider (Keycloak, Google/Microsoft, Okta, etc.)
-
-If you choose to use the default provider, please harden it with SSL certificate, secure password, etc..
+BackROLL manages its own users, with the roles admin, editor and viewer. No external identity provider is needed. The users of a company can also log in with their Active Directory account, with a role for each group (optional). See [the features and the configuration](./documentation/features.md).
 
 #### Optional
 
@@ -50,17 +58,20 @@ Backroll requires Docker and Docker Compose. Please refer to the official Docker
 
 ### Quickstart 🚀
 
-Backroll is distributed through git and structured as a Docker Compose project. We have cooked up a quickstart script which clones the repository and runs the commands from the [dedicated compose project README](./compose_project/README.md).
+Backroll is distributed through git and structured as a Docker Compose project. Get the code of the version you target, then run the helper script of the [compose project](./compose_project/README.md). You will be guided through the setup of the components and some accounts. To use your own database please prepare your credentials.
 
-Use Bash to get and run the quickstart script of the release you target. You will be guided through the setup of the components and some accounts. To use your own OpenID provider or database please prepare your credentials.
+After the setup process, the containers will be starting. The default database initialization lasts around one minute. Then open your host address in a web browser to access the Backroll UI. The first time, it asks you to create the administrator account.
 
-After the setup process, the containers will be starting. The default database initialization lasts around one minute. Then open your host address in a web browser to access the Backroll UI.
-
-#### Latest prerelease or release
+#### Install a version
 
 ```bash
-source <(curl -L https://github.com/DIMSI-IS/BackROLL/releases/download/v1.0.0-beta.1/quickstart.sh)
+git clone --branch v1.1.0-beta.1 <address of this repository> BackROLL
+cd BackROLL/compose_project
+source source-me.sh setup-prod
+docker compose $prod up -d
 ```
+
+The `prod` mode downloads the Docker images of the version from Docker Hub (`dimsicloud/backroll` and `dimsicloud/backroll-ui`, tagged with the version): they have to be published first. To try a version whose images are not published, build them from the source with the `staging` mode instead (`source source-me.sh setup-staging`, then `docker compose $staging up -d`): the first start takes several minutes.
 
 #### Manage your containers
 

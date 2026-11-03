@@ -24,7 +24,7 @@ from typing import Optional
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.encoders import jsonable_encoder
 from sqlmodel import Session, select
-from pydantic import BaseModel, Json
+from pydantic import BaseModel, ConfigDict, Field, Json
 from celery import Celery, states, chord
 from celery.result import AsyncResult
 from celery.schedules import crontab
@@ -38,6 +38,8 @@ from app.database import Storage
 from app.database import Pools
 from app.database import Hosts
 from app.logging import logged
+from app import file_backup
+from app import cleanup
 
 from app.routes import external_hooks
 
@@ -45,14 +47,25 @@ from app.initialized import celery_app as celeryWorker
 from app.initialized import celery_app
 
 
+class retention_settings(BaseModel):
+    """How many backups are kept: a key that is not known, or a negative number, is refused with its name."""
+    model_config = ConfigDict(extra='forbid')
+
+    day: int = Field(0, ge=0)
+    week: int = Field(0, ge=0)
+    month: int = Field(0, ge=0)
+    year: int = Field(0, ge=0)
+
+
 class backup_policy_create(BaseModel):
     name: str
     description: Optional[str] = None
     schedule: str
-    retention: dict
+    retention: retention_settings
     storage: UUID
     externalhook: Optional[UUID] = None
     enabled: Optional[bool] = False
+    file_paths: Optional[list[str]] = None
 
     class Config:
         schema_extra = {
@@ -74,10 +87,12 @@ class backup_policy_update(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     schedule: Optional[str] = None
-    retention: Optional[dict] = None
+    retention: Optional[retention_settings] = None
     storage: Optional[UUID] = None
     externalhook: Optional[UUID] = None
     enabled: Optional[bool] = None
+    # None leaves the paths as they are, an empty list removes them.
+    file_paths: Optional[list[str]] = None
 
     class Config:
         schema_extra = {
@@ -111,13 +126,32 @@ def filter_policy_by_id(policy_id):
         raise ValueError(e)
 
 
+def check_name_is_free(name, policy_id=None):
+    """Two policies with the same name (whatever the case) could not be told apart in the lists and the messages."""
+    engine = database.init_db_connection()
+    with Session(engine) as session:
+        for policy in session.exec(select(Policies)):
+            if str(policy.id) != str(policy_id) and policy.name.strip().lower() == name.strip().lower():
+                raise HTTPException(status_code=409, detail=f'A policy named "{policy.name}" already exists.')
+
+
+def checked_file_paths(file_paths):
+    if file_paths is None:
+        return None
+    try:
+        return file_backup.validate_paths(file_paths)
+    except ValueError as exception:
+        raise HTTPException(status_code=400, detail=str(exception))
+
+
 @celery_app.task(name='create_backup_policy')
-def api_create_backup_policy(name, description, schedule, retention, storage, externalhook):
+def api_create_backup_policy(name, description, schedule, retention, storage, externalhook, file_paths=None):
     engine = database.init_db_connection()
 
     try:
-        new_policy = Policies(name=name, description=description, schedule=schedule, retention_day=retention["day"], retention_week=retention[
-                              "week"], retention_month=retention["month"], retention_year=retention["year"], storage=storage, externalhook=externalhook)
+        new_policy = Policies(name=name, description=description or "", schedule=schedule, retention_day=retention["day"], retention_week=retention[
+                              "week"], retention_month=retention["month"], retention_year=retention["year"], storage=storage, externalhook=externalhook,
+                              file_paths="\n".join(file_paths) if file_paths else None)
         with Session(engine) as session:
             session.add(new_policy)
             session.commit()
@@ -164,22 +198,22 @@ def retrieve_backup_policies():
 
 
 @logged(bounds=False)
-def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled, logger):
+def api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled, logger, file_paths=None):
     engine = database.init_db_connection()
 
     with Session(engine) as session:
         statement = select(Policies).where(
             Policies.id == ensure_uuid(policy_id))
-        results = session.exec(statement)
-        data_backup_policy = results.one()
+        data_backup_policy = session.exec(statement).first()
 
     if not data_backup_policy:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            # "Invalid authentication credentials",
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f'backup policy with id {policy_id} not found',
-            headers={"WWW-Authenticate": "Bearer"},
         )
+    # Without an answer, the policy keeps its state: editing a policy must not switch its backups off.
+    if enabled is None:
+        enabled = data_backup_policy.enabled == 1
     task = "Kickstart_Pool_Backup"
     if schedule:
         split_cron = schedule.split()
@@ -252,14 +286,16 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
                         detail=f'backup policy with id {policy_id} has one or more empty pool associated to it',
                         headers={"WWW-Authenticate": "Bearer"}
                     )
+            except HTTPException:
+                # A refusal wanted by the code is sent as it is, with its message, not as an error of the server.
+                raise
             except Exception as e:
                 raise ValueError(e)
             try:
                 currentPool = pool.to_json()
                 unique_task_name = f"{task}-{policy_name}-{policy_id}-{currentPool['name']}"
-                # Quick fix. Better get rid of the 7 if no side effect.
-                day_of_week = ",".join(
-                    set(map(lambda d: str(int(d) % 7), split_cron[4].split(","))))
+                # Cron counts Sunday as 0 or 7, Celery only as 0; "*", ranges and steps are kept as they are.
+                day_of_week = cleanup.celery_day_of_week(split_cron[4])
                 cron = crontab(minute=split_cron[0], hour=split_cron[1], day_of_month=split_cron[2],
                                month_of_year=split_cron[3], day_of_week=day_of_week)
                 entry = RedBeatSchedulerEntry(
@@ -285,6 +321,8 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
             data_backup_policy.retention_year = retention["year"]
         if storage:
             data_backup_policy.storage = storage
+        if file_paths is not None:
+            data_backup_policy.file_paths = "\n".join(file_paths) or None
         if externalhook is not None:
             external_hooks.get_hook_by_id(externalhook)
             data_backup_policy.externalhook = externalhook
@@ -295,12 +333,14 @@ def api_update_backup_policy(policy_id, name, description, schedule, retention, 
             session.commit()
             session.refresh(data_backup_policy)
         return jsonable_encoder(data_backup_policy)
+    except HTTPException:
+        raise
     except Exception as e:
         raise ValueError(e)
 
 
 @fastapi_app.post("/api/v1/backup_policies", status_code=201)
-def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.verify_token)):
+def create_backup_policy(item: backup_policy_create, identity: Json = Depends(auth.require_editor)):
     engine = database.init_db_connection()
 
     records = []
@@ -312,14 +352,16 @@ def create_backup_policy(item: backup_policy_create, identity: Json = Depends(au
             records.append(policy)
         if len(records) < 1:
             reason = f'Specified storage hasn\'t been found'
-            raise HTTPException(status_code=500, detail=reason)
+            raise HTTPException(status_code=404, detail=reason)
     name = item.name
     description = item.description
     schedule = item.schedule
-    retention = item.retention
+    retention = item.retention.model_dump()
     storage = item.storage
     externalhook = item.externalhook
-    return api_create_backup_policy(name, description, schedule, retention, storage, externalhook)
+    file_paths = checked_file_paths(item.file_paths)
+    check_name_is_free(name)
+    return api_create_backup_policy(name, description, schedule, retention, storage, externalhook, file_paths)
 
 
 @fastapi_app.get("/api/v1/backup_policies", status_code=202)
@@ -329,14 +371,17 @@ def list_backup_policies(identity: Json = Depends(auth.verify_token)):
 
 
 @fastapi_app.patch("/api/v1/backup_policies/{policy_id}", status_code=200)
-def update_backup_policy(policy_id, item: backup_policy_update, identity: Json = Depends(auth.verify_token)):
+def update_backup_policy(policy_id, item: backup_policy_update, identity: Json = Depends(auth.require_editor)):
     name = item.name
     description = item.description
     schedule = item.schedule
-    retention = item.retention
+    retention = item.retention.model_dump() if item.retention else None
     storage = item.storage
     externalhook = item.externalhook
     enabled = item.enabled
+    file_paths = checked_file_paths(item.file_paths)
+    if name:
+        check_name_is_free(name, policy_id)
 
     if schedule and not croniter.is_valid(schedule):
         raise HTTPException(
@@ -345,11 +390,12 @@ def update_backup_policy(policy_id, item: backup_policy_update, identity: Json =
         if not type(enabled) == bool:
             raise HTTPException(
                 status_code=400, detail='Provided enabled status is invalid (must be true/false)')
-    return api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled)
+    return api_update_backup_policy(policy_id, name, description, schedule, retention, storage, externalhook, enabled,
+                                    file_paths=file_paths)
 
 
 @fastapi_app.delete("/api/v1/backup_policies/{policy_id}", status_code=200)
-def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.verify_token)):
+def delete_backup_policy(policy_id: str, identity: Json = Depends(auth.require_editor)):
     engine = database.init_db_connection()
 
     records = []

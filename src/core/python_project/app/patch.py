@@ -1,3 +1,4 @@
+import ast
 import json
 import sys
 from uuid import UUID
@@ -28,9 +29,10 @@ def parse_python_data(data_string):
         data_string_len = len(data_string)
         for _ in range(0, data_string_len):
             try:
-                return eval(data_string)
+                # Only data is read, never run: the text comes from Flower, and carries the names of machines.
+                return ast.literal_eval(data_string)
             except SyntaxError as e:
-                column = e.offset
+                column = e.offset or 0
                 if column == 0:
                     data_string = data_string[1:]
                 elif column == len(data_string) - 1:

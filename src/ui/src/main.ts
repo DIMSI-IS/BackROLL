@@ -4,8 +4,6 @@ import { createGtm } from 'vue-gtm'
 import { createI18n } from 'vue-i18n'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-import VueKeyCloak from '@dsb-norge/vue-keycloak-js'
-import { VueKeycloakInstance } from "@dsb-norge/vue-keycloak-js/dist/types";
 import App from './App.vue'
 import './registerServiceWorker'
 import router from './router'
@@ -13,53 +11,55 @@ import store from './store'
 import vuesticGlobalConfig from './services/vuestic-ui/global-config'
 
 
+// The texts of the pages are in src/i18n/pages/<area>.<language>.json, one file per area of the
+// interface. The content of a file is available as pages.<area>.
+function loadPageMessages(language: string) {
+  // @ts-ignore webpack's require.context
+  const context = require.context('@/i18n/pages', false, /\.json$/)
+  const pages: Record<string, unknown> = {}
+  for (const key of context.keys()) {
+    const match = /^\.\/(.+)\.(en|fr)\.json$/.exec(key)
+    if (match && match[2] === language) {
+      pages[match[1]] = context(key)
+    }
+  }
+  return { pages }
+}
+
+// The language chosen by the person is kept in this browser.
+function savedLanguage(): string {
+  try {
+    const language = localStorage.getItem('backroll.language')
+    return language === 'fr' || language === 'en' ? language : 'en'
+  } catch {
+    return 'en'
+  }
+}
+
 const i18nConfig = {
-  locale: 'en',
+  locale: savedLanguage(),
   fallbackLocale: 'en',
   messages: {
-    en: require('@/i18n/en.json'),
-    fr: require('@/i18n/fr.json')
+    en: { ...require('@/i18n/en.json'), ...loadPageMessages('en') },
+    fr: { ...require('@/i18n/fr.json'), ...loadPageMessages('fr') }
   }
 }
 
-const setToken = (token: any) => {
-  store.dispatch('insertToken', token)
-}
-
-// Allow usage of this.$keycloak in components
-declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties {
-    $keycloak: VueKeycloakInstance;
+// An expired or revoked session sends the user back to the login page.
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && store.getters.isAuthenticated) {
+      store.commit('logout')
+      router.push({ name: 'login' })
+    }
+    return Promise.reject(error)
   }
-}
+)
 
 async function instantiateVueApp() {
-  const app = createApp({
-    extends: App,
-    created() {
-      this.$watch('$keycloak.token', setToken, { immediate: true })
-    }
-  })
+  const app = createApp(App)
   app.config.globalProperties.window = window
-
-  if (process.env.VUE_APP_KEYCLOAK == "true") {
-    const { token } = await new Promise((resolve) =>
-      app.use(VueKeyCloak, {
-        init: {
-          onLoad: 'login-required'
-        },
-        config: {
-          url: process.env.VUE_APP_OPENID_ISSUER,
-          realm: process.env.VUE_APP_OPENID_REALM,
-          clientId: process.env.VUE_APP_OPENID_CLIENT_UI_ID
-        },
-        onReady: resolve
-      })
-    );
-    // TODO Not using $keycloak.token ?
-    // Store token immediately
-    setToken(token)
-  }
 
   app.use(store)
   app.use(router)

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# Logs only on failure.
-
-bash "$SNAP/app/configuration/main.sh"

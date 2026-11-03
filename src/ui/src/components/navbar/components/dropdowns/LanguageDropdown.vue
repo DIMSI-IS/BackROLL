@@ -50,8 +50,15 @@ export default {
     },
   },
   methods: {
-    setLanguage (locale) {
+    setLanguage (code) {
+      // The flag of English is gb, its language is en.
+      const locale = code === 'gb' ? 'en' : code
       this.$root.$i18n.locale = locale
+      try {
+        localStorage.setItem('backroll.language', locale)
+      } catch {
+        // The choice is then kept until the page is closed.
+      }
     },
 
     currentLanguage () {

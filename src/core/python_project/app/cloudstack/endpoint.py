@@ -17,11 +17,13 @@
 
 from cs import CloudStack
 
+from app import vault
+
 def cloudstack_connector(connector):
     if not connector:
         raise ValueError("No connector provided")
     
     return CloudStack(endpoint=connector.url,
                 key=connector.login,
-                secret=connector.password,
+                secret=vault.decrypt(connector.password),
                 timeout=15)

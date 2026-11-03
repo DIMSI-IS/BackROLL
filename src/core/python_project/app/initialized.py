@@ -13,7 +13,8 @@ from kombu import Queue
 
 import sqlalchemy
 
-from app.environment import get_redis_host
+from app.environment import get_env_var, get_redis_host
+from app import vault
 
 
 class Settings(BaseSettings):
@@ -48,19 +49,38 @@ def database_exception_handler(request, exception):
     return JSONResponse(status_code=500, content={"detail": "Database error."})
 
 
-origins = [
-    "*"
-]
+@fastapi_app.exception_handler(vault.SecretError)
+def secret_exception_handler(request, exception):
+    # A secret that cannot be read (the key changed) is told to the user, who types it again: it is not an error of the
+    # server. The message says which setting to open.
+    return JSONResponse(status_code=409, content={"detail": str(exception)})
 
-# Using an outer CORS middleware (from starlette)
-# to properly add CORS header
-# to auto-generated status-code-500 responses.
-starlette_app = CORSMiddleware(app=fastapi_app,
-                               allow_origins=origins,
-                               allow_credentials=True,
-                               allow_methods=["*"],
-                               allow_headers=["Authorization"],
-                               )
+
+def get_allowed_origins() -> list[str]:
+    """The UI is served by the same address as the API, so no other site needs to call it.
+
+    CORS_ORIGINS, a list separated by commas, can allow more. By default only the address of the front.
+    """
+    configured = (get_env_var("CORS_ORIGINS", allow_undefined=True)
+                  or get_env_var("FRONT_URL", allow_blank=True, allow_undefined=True)
+                  or "")
+    return [origin.strip().rstrip("/") for origin in configured.split(",") if origin.strip()]
+
+
+def make_cors_app(app):
+    # Using an outer CORS middleware (from starlette)
+    # to properly add CORS header
+    # to auto-generated status-code-500 responses.
+    return CORSMiddleware(app=app,
+                          allow_origins=get_allowed_origins(),
+                          # The token is sent in a header, not in a cookie.
+                          allow_credentials=False,
+                          allow_methods=["*"],
+                          allow_headers=["Authorization", "Content-Type"],
+                          )
+
+
+starlette_app = make_cors_app(fastapi_app)
 
 
 def patch_celery():

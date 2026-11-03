@@ -43,6 +43,15 @@ RUN pip install -U pip setuptools wheel && \
 COPY python_project/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+########################################################
+
+# Reads the files of a VM disk without mounting it (file browser of the backups).
+# The kernel is needed by the small virtual machine that libguestfs starts to read the disk.
+RUN apt install -y --no-install-recommends     libguestfs-tools     python3-guestfs     linux-image-virtual
+# Builds the appliance now rather than at the first use.
+RUN update-guestfs-appliance || true
+ENV LIBGUESTFS_BACKEND=direct
+
 WORKDIR /app/src
 
 COPY . .

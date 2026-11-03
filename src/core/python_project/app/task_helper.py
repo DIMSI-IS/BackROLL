@@ -8,7 +8,7 @@ from app.redis import new_redis_client
 
 def get_task_info(task_id):
     response = requests.get(
-        f"http://{get_flower_host()}:5555/api/task/info/{task_id}")
+        f"http://{get_flower_host()}:5555/api/task/info/{task_id}", timeout=20)
     return response.content
 
 

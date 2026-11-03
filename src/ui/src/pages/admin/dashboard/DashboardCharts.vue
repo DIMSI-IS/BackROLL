@@ -1,6 +1,6 @@
 <template>
   <div class="row row-equal">
-    <div class="flex xs12 xl10">
+    <div class="flex xs12 xl12">
       <va-card v-if="lineChartData">
         <va-card-title>
           <h1>{{ $t("dashboard.charts.lastFailedBackup") }}</h1>
@@ -9,14 +9,17 @@
               size="small"
               color="info"
               @click="this.$router.push('/admin/tasks/backup')"
-              :disabled="lineChartData.labels.length < 2"
             >
               {{ $t("dashboard.charts.showInMoreDetail") }}
             </va-button>
           </div>
         </va-card-title>
         <va-card-content>
+          <p v-if="tableData.length === 0 && $store.state.isbackupTaskTableReady" class="mb-0">
+            <va-icon name="check_circle" color="success" /> {{ $t('pages.dashboard.noFailedTasks24') }}
+          </p>
           <task-table
+            v-else
             :data="tableData"
             :columns="columns"
             :pagination="true"
@@ -32,36 +35,6 @@
               color="#2c82e0"
             />
           </div>
-        </va-card-content>
-      </va-card>
-    </div>
-    <div class="flex xs12 md6 xl2">
-      <va-card class="d-flex">
-        <va-card-title>
-          <h1>{{ $t("dashboard.charts.vmRepartition") }}</h1>
-          <div class="mr-0 text-right">
-            <va-button icon="print" flat class="mr-0" @click="printChart" />
-          </div>
-        </va-card-title>
-        <va-card-content v-if="!$store.state.isvmTableReady">
-          <div class="text--center pb-4">
-            <div class="flex-center spinner-box">
-              <component
-                :animation-duration="1500"
-                :is="loadingDonutType"
-                color="#2c82e0"
-                :size="120"
-              >
-              </component>
-            </div>
-          </div>
-        </va-card-content>
-        <va-card-content v-else>
-          <va-chart
-            class="chart chart--donut"
-            :data="configChart"
-            type="donut"
-          />
         </va-card-content>
       </va-card>
     </div>
@@ -85,12 +58,6 @@ export default defineComponent({
       lineChartData: null,
       donutChartData: null,
       lineChartFirstMonthIndex: 0,
-      columns: [
-        { key: "target" },
-        { key: "started" },
-        { key: "state" },
-        { key: "actions" },
-      ],
       loadingDonutType: "HalfCircleSpinner",
     };
   },
@@ -161,12 +128,20 @@ export default defineComponent({
     },
   },
   computed: {
+    columns() {
+      return [
+        { key: "target", label: this.$t("pages.dashboard.colTarget") },
+        { key: "started", label: this.$t("pages.dashboard.colStarted") },
+        { key: "state", label: this.$t("pages.dashboard.colState") },
+        { key: "actions", label: this.$t("pages.dashboard.colActions") },
+      ];
+    },
     configChart: function () {
       const generatedData = {
         labels: this.poolListName,
         datasets: [
           {
-            label: "VM distribution by pool",
+            label: this.$t("pages.dashboard.vmDistribution"),
             backgroundColor: [
               "#2c82e0",
               "#DE1041",
@@ -245,6 +220,7 @@ export default defineComponent({
           ipAddress: x.ip_address,
           runtime: isPool ? null : x.runtime,
           state: x.state,
+          reason: x.reason,
           parent: x.name == "backup_subtask" ? x.parent : null,
         };
       });

@@ -21,7 +21,7 @@ import sys
 import logging
 from uuid import UUID
 from fastapi import HTTPException, Depends
-from pydantic import BaseModel, Json
+from pydantic import BaseModel, Json, field_validator
 import requests
 from requests.auth import HTTPBasicAuth
 import json
@@ -31,6 +31,7 @@ from typing import Optional
 
 from app.initialized import fastapi_app, celery_app
 from app.environment import get_flower_host
+from app import task_history
 
 from app.backup_tasks import single_backup
 
@@ -39,6 +40,7 @@ from app.routes import virtual_machine
 
 from app import auth
 from app import restore
+from app import safety
 from app import task_helper
 
 
@@ -47,6 +49,23 @@ class restorebackup_start(BaseModel):
     backup_name: str
     storage: Optional[str] = None
     mode: Optional[str] = None
+
+    @field_validator("virtual_machine_id")
+    @classmethod
+    def check_machine(cls, value):
+        UUID(value)
+        return value
+
+    @field_validator("backup_name")
+    @classmethod
+    def check_backup(cls, value):
+        # The name ends in a shell command and in a path.
+        if not safety.valid_backup_name(value):
+            raise ValueError("Invalid backup name.")
+        # The archives of folders and files are restored from the file browser, they are not disks.
+        if value.startswith("files_"):
+            raise ValueError("This is a backup of folders or files: it is not a disk and cannot be restored here.")
+        return value
 
     class Config:
         schema_extra = {
@@ -61,7 +80,7 @@ class restorebackup_start(BaseModel):
 
 def get_task_logs(task_id):
     response = requests.get(
-        f'http://{get_flower_host()}:5555/api/task/info/{task_id}')
+        f'http://{get_flower_host()}:5555/api/task/info/{task_id}', timeout=20)
     return response.content
 
 
@@ -82,7 +101,9 @@ def retrieve_task_status(task_id, identity: Json = Depends(auth.verify_token)):
     elif task.state == 'PROGRESS':
         response = {
             'state': task.state,
-            'status': 'In progress...'
+            'status': 'In progress...',
+            # The step reached, when the task reports it.
+            'info': task.info if isinstance(task.info, dict) else None
         }
     elif task.state != 'FAILURE':
         response = {
@@ -115,7 +136,7 @@ def retrieve_task_logs(task_id, identity: Json = Depends(auth.verify_token)):
 
 
 @fastapi_app.post('/api/v1/tasks/singlebackup/{virtual_machine_id}', status_code=202)
-def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.verify_token)):
+def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(virtual_machine_id)
     except ValueError:
@@ -129,11 +150,14 @@ def start_vm_single_backup(virtual_machine_id, identity: Json = Depends(auth.ver
 
 
 @fastapi_app.post('/api/v1/tasks/restore/{virtual_machine_id}', status_code=202)
-def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Json = Depends(auth.verify_token)):
+def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(virtual_machine_id)
     except ValueError:
         raise HTTPException(status_code=404, detail='Given uuid is not valid')
+    # The machine of the address is the machine in the body: the audit log must name the one that is restored.
+    if UUID(item.virtual_machine_id) != uuid_obj:
+        raise HTTPException(status_code=422, detail='The virtual machine of the request does not match its address.')
     virtual_machine_id = item.virtual_machine_id
     print("DEBUG ID VM : " + virtual_machine_id)
     # print("virtual_machine_id: " + virtual_machine_id)
@@ -150,60 +174,34 @@ def start_vm_restore(virtual_machine_id, item: restorebackup_start, identity: Js
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
 
 
-@fastapi_app.post('/api/v1/tasks/restorespecificpath', status_code=202)
-def start_vm_restore_specific_path(item: restorebackup_start, identity: Json = Depends(auth.verify_token)):
-    virtual_machine_id = item.virtual_machine_id
-    backup_name = item.backup_name
-    storage = item.storage
-    mode = item.mode
-    # res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name, storage, mode)).apply_async()
-    # res = chain(host.retrieve_host.s(), virtual_machine.dmap.s(virtual_machine.parse_host.s()), virtual_machine.handle_results.s(), virtual_machine.filter_virtual_machine_list.s(virtual_machine_id), restore.restore_disk_vm.s(backup_name)).apply_async()
-    res = chain(restore.restore_to_path_task.s(
-        virtual_machine_id, backup_name, storage, mode)).apply_async()
-    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
+def flower_tasks(task_name):
+    """The tasks Flower knows. Without Flower, only the history of the database is shown."""
+    try:
+        response = requests.get(
+            f'http://{get_flower_host()}:5555/api/tasks', params={"taskname": task_name}, timeout=20)
+        return json.loads(response.content.decode('ascii'))
+    except (requests.RequestException, ValueError):
+        return {}
 
 
 @celery_app.task(name='restore_task_jobs')
 def retrieve_restore_task_jobs():
-    single_vm_payload = {"taskname": "VM_Restore_Disk"}
-    single_vm_response = requests.get(
-        f'http://{get_flower_host()}:5555/api/tasks', params=single_vm_payload)
-    single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
-
-    vm_retore_path_payload = {"taskname": "VM_Restore_To_Path"}
-    vm_retore_path_response = requests.get(
-        f'http://{get_flower_host()}:5555/api/tasks', params=vm_retore_path_payload)
-    vm_retore_path_task = json.loads(
-        vm_retore_path_response.content.decode('ascii'))
-
-    single_vm_task.update(vm_retore_path_task)
+    single_vm_task = flower_tasks("VM_Restore_Disk")
 
     task_helper.manage_task_dict_args(single_vm_task)
 
-    return single_vm_task
+    return task_history.merge(single_vm_task, task_history.RESTORE_TASKS)
 
 
 @celery_app.task(name='backuptask_jobs')
 def retrieve_backup_task_jobs():
-    single_vm_payload = {"taskname": "	Single_VM_Backup"}
-    single_vm_response = requests.get(
-        f'http://{get_flower_host()}:5555/api/tasks', params=single_vm_payload)
-    pool_payload = {"taskname": "Pool_VM_Backup"}
-    pool_response = requests.get(
-        f'http://{get_flower_host()}:5555/api/tasks', params=pool_payload)
-    subtask_payload = {"taskname": "backup_subtask"}
-    subtask_response = requests.get(
-        f'http://{get_flower_host()}:5555/api/tasks', params=subtask_payload)
-    single_vm_task = json.loads(single_vm_response.content.decode('ascii'))
-    pool_vm_task = json.loads(pool_response.content.decode('ascii'))
-    subtask = json.loads(subtask_response.content.decode('ascii'))
-    aggregated_jobs_list = single_vm_task.copy()
-    aggregated_jobs_list.update(pool_vm_task)
-    aggregated_jobs_list.update(subtask)
+    aggregated_jobs_list = flower_tasks("Single_VM_Backup")
+    aggregated_jobs_list.update(flower_tasks("Pool_VM_Backup"))
+    aggregated_jobs_list.update(flower_tasks("backup_subtask"))
 
     task_helper.manage_task_dict_args(aggregated_jobs_list)
 
-    return aggregated_jobs_list
+    return task_history.merge(aggregated_jobs_list, task_history.BACKUP_TASKS)
 
 
 @fastapi_app.get('/api/v1/tasks/backup', status_code=200)

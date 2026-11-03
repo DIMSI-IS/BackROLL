@@ -1,11 +1,11 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="Connectors" plus-button-title="Add connector"
+      <ListHeader :title="$t('pages.configuration.connector.title')" :plus-button-title="$t('pages.configuration.connector.addButton')"
         plus-button-route="/admin/configuration/connectors/new" />
     </va-card-title>
     <va-card-content>
-      <va-data-table :items="$store.state.resources.connectorList" :columns="columns">
+      <va-data-table :no-data-html="$t('pages.common.noItems')" :items="$store.state.resources.connectorList" :columns="columns">
         <template #cell(name)="{ value }">
           {{ value }}
         </template>
@@ -14,12 +14,12 @@
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="settings" @click="
+            <va-button :disabled="!$store.getters.canEdit" icon="settings" @click="
               this.$router.push(
                 `/admin/configuration/connectors/${$store.state.resources.connectorList[rowIndex].id}`
               )
               " />
-            <va-button icon="delete" @click="
+            <va-button :disabled="!$store.getters.canEdit" icon="delete" @click="
             (selectedConnector =
               $store.state.resources.connectorList[rowIndex]),
               (showDeleteModal = !showDeleteModal)
@@ -36,13 +36,13 @@
     <template #header>
       <h2>
         <va-icon name="warning" color="danger" />
-        Removing connector
+        {{ $t('pages.configuration.connector.removing') }}
       </h2>
     </template>
     <hr />
     <div>
-      You are about to remove connector
-      <b>{{ JSON.parse(JSON.stringify(this.selectedConnector)).name }}</b>. <br />Please confirm action.
+      {{ $t('pages.configuration.connector.removeIntro') }}
+      <b>{{ JSON.parse(JSON.stringify(this.selectedConnector)).name }}</b>. <br />{{ $t('pages.configuration.common.confirm') }}
     </div>
   </va-modal>
 </template>
@@ -50,6 +50,7 @@
 import axios from "axios";
 import { defineComponent } from "vue";
 import * as spinners from "epic-spinners";
+import { errorMessage } from "@/services/errorMessage";
 
 import ListHeader from "@/components/lists/ListHeader.vue";
 
@@ -61,10 +62,18 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [{ key: "name" }, { key: "url" }, { key: "actions" }],
       showDeleteModal: false,
       selectedConnector: null,
     };
+  },
+  computed: {
+    columns() {
+      return [
+        { key: "name", label: this.$t("pages.configuration.common.name") },
+        { key: "url", label: this.$t("pages.configuration.connector.url") },
+        { key: "actions", label: this.$t("pages.configuration.common.actions") },
+      ];
+    },
   },
   methods: {
     deleteConnector() {
@@ -83,15 +92,15 @@ export default defineComponent({
           this.$store.dispatch("requestConnector");
           this.$vaToast.init({
             title: response.data.state,
-            message: "connector has been successfully removed",
+            message: this.$t("pages.configuration.connector.removed"),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to remove connector",
-            message: error?.message ?? error,
+            title: this.$t("pages.configuration.connector.removeFailed"),
+            message: errorMessage(error),
             color: "danger",
           });
         });

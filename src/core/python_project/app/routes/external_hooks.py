@@ -29,10 +29,33 @@ from app.initialized import celery_app
 
 from app import auth
 from app import database
+from app import vault
 from app.database import ExternalHooks
 from app.database import Policies
 from app.hooks import notification_sender
 from app.patch import ensure_uuid
+
+
+# The address of a webhook is a secret: whoever has it can post in the channel. It is only read by BackROLL itself,
+# the browser gets it masked.
+MASK = "…"
+
+
+def mask_value(value: str) -> str:
+    if not value or len(value) <= 12:
+        return MASK if value else ""
+    scheme, _, rest = value.partition("://")
+    host = rest.split("/")[0] if rest else ""
+    return f"{scheme}://{host}/{MASK}{value[-4:]}" if host else f"{MASK}{value[-4:]}"
+
+
+def public_view(hook) -> dict:
+    try:
+        value = mask_value(vault.decrypt(hook.value))
+    except vault.SecretError:
+        # The key changed: the list stays usable, and the address is typed again to replace this one.
+        value = MASK
+    return {"id": str(hook.id), "name": hook.name, "value": value}
 
 
 class items_create_external_hook(BaseModel):
@@ -70,12 +93,12 @@ def api_create_external_hook(name, value):
     engine = database.init_db_connection()
 
     try:
-        new_external_hook = ExternalHooks(name=name, value=value)
+        new_external_hook = ExternalHooks(name=name, value=vault.encrypt(value))
         with Session(engine) as session:
             session.add(new_external_hook)
             session.commit()
             session.refresh(new_external_hook)
-        return new_external_hook
+        return public_view(new_external_hook)
     except Exception as exc:
         raise ValueError(exc) from exc
 
@@ -89,7 +112,7 @@ def api_read_external_hook():
         statement = select(ExternalHooks)
         results = session.exec(statement)
         for external_hook in results:
-            records.append(external_hook)
+            records.append(public_view(external_hook))
     return jsonable_encoder(records)
 
 
@@ -107,13 +130,14 @@ def api_update_external_hook(hook_id, name, value):
     try:
         if name:
             data_external_hook.name = name
-        if value:
-            data_external_hook.value = value
+        # Empty, or the masked address as received: the current one is kept.
+        if value and MASK not in value:
+            data_external_hook.value = vault.encrypt(value)
         with Session(engine) as session:
             session.add(data_external_hook)
             session.commit()
             session.refresh(data_external_hook)
-        return jsonable_encoder(data_external_hook)
+        return public_view(data_external_hook)
     except Exception as exc:
         print(exc)
         raise ValueError(exc) from exc
@@ -131,10 +155,15 @@ def api_delete_external_hook(hook_id):
         for hook in results:
             records.append(hook)
         if len(records) > 0:
-            raise ValueError(
-                "One or more policies are attached to this external_hook")
+            names = ", ".join(sorted(policy.name for policy in records))
+            raise HTTPException(
+                status_code=409,
+                detail=f"This hook is used by the policy(ies) {names}: remove it from them before deleting it.")
     try:
         external_hook = get_hook_by_id(hook_id)
+        # The storages whose cleaning tells this hook do not notify anybody any more.
+        from app import cleanup
+        cleanup.forget_hook(external_hook.id)
         with Session(engine) as session:
             session.delete(external_hook)
             session.commit()
@@ -145,7 +174,7 @@ def api_delete_external_hook(hook_id):
 
 @fastapi_app.post("/api/v1/externalhooks", status_code=201)
 def create_external_hook(
-    item: items_create_external_hook, identity: Json = Depends(auth.verify_token)
+    item: items_create_external_hook, identity: Json = Depends(auth.require_editor)
 ):
     name = item.name
     value = item.value
@@ -162,7 +191,7 @@ def read_external_hook(_: Json = Depends(auth.verify_token)):
 def update_external_hook(
     hook_id,
     item: items_create_external_hook,
-    _: Json = Depends(auth.verify_token),
+    _: Json = Depends(auth.require_editor),
 ):
     try:
         uuid_obj = UUID(hook_id)
@@ -175,13 +204,13 @@ def update_external_hook(
 
 
 @fastapi_app.get("/api/v1/externalhooks/{hook_id}/test", status_code=200)
-def test_external_hook(hook_id, _: Json = Depends(auth.verify_token)):
+def test_external_hook(hook_id, _: Json = Depends(auth.require_editor)):
     notification_sender.test(hook_id)
     return {"state": "SUCCESS"}
 
 
 @fastapi_app.delete("/api/v1/externalhooks/{hook_id}", status_code=200)
-def delete_external_hook(hook_id, identity: Json = Depends(auth.verify_token)):
+def delete_external_hook(hook_id, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(hook_id)
     except ValueError:

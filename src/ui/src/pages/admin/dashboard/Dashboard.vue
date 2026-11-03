@@ -1,19 +1,38 @@
 <template>
   <div class="dashboard">
+    <dashboard-attention />
+    <machine-list-warnings />
+    <div class="row">
+      <div class="flex xs12 xl8">
+        <dashboard-info-block part="counters" />
+        <dashboard-activity />
+      </div>
+      <div class="flex xs12 xl4">
+        <dashboard-info-block part="storage" />
+      </div>
+    </div>
+    <dashboard-protection />
     <dashboard-charts />
-    <dashboard-info-block />
   </div>
 </template>
 
 <script>
+import DashboardActivity from './DashboardActivity'
+import DashboardAttention from './DashboardAttention'
+import DashboardProtection from './DashboardProtection'
 import DashboardCharts from './DashboardCharts'
 import DashboardInfoBlock from './DashboardInfoBlock'
+import MachineListWarnings from '@/components/MachineListWarnings.vue'
 
 export default {
   name: 'dashboard',
   components: {
+    DashboardActivity,
+    DashboardAttention,
+    DashboardProtection,
     DashboardCharts,
-    DashboardInfoBlock
+    DashboardInfoBlock,
+    MachineListWarnings
   },
 }
 </script>

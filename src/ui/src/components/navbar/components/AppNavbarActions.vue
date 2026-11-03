@@ -12,6 +12,7 @@
         {{ pendingTaskNumber }}
       </span>
     </va-chip>
+    <refresh-control class="app-navbar-actions__item" />
     <dark-mode-selector class="app-navbar-actions__item" />
     <notification-dropdown class="app-navbar-actions__item"/>
     <language-dropdown class="app-navbar-actions__item"/>
@@ -25,12 +26,14 @@
 import LanguageDropdown from './dropdowns/LanguageDropdown'
 import ProfileDropdown from './dropdowns/ProfileDropdown'
 import DarkModeSelector from './DarkModeSelector'
+import RefreshControl from './RefreshControl'
 
 export default {
   name: 'app-navbar-actions',
 
   components: {
     DarkModeSelector,
+    RefreshControl,
     LanguageDropdown,
     ProfileDropdown,
   },

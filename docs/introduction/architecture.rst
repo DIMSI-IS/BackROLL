@@ -43,9 +43,11 @@ Information related to architecture
 
 A separated database is needed to store some information, like your
 logical pools, your backup policies and hosts list. **No password is
-stored in the database** as we choose to rely on an OpenID connector to
-handle authentication. BackROLL also creates a SSH keypair during
-installation to handle connection to hosts.
+stored in the database**: the users of BackROLL are, but only with the
+bcrypt hash of their password. The API keys of the connectors, the addresses of
+the Slack webhooks and the password of the Active Directory account are stored
+encrypted so that BackROLL can use them, and are never sent back to the browser. BackROLL
+also creates a SSH keypair during installation to handle connection to hosts.
 
 The access to the web interface is by default in HTTP only. We strongly
 advise you to use a reverse-proxy (Nginx, Apache2, Haproxy, etc.) to

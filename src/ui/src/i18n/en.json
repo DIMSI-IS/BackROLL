@@ -356,7 +356,15 @@
     "storage": "Storage",
     "external-hooks": "External hooks",
     "connectors": "Connectors",
-    "parameters": "Parameters"
+    "parameters": "Parameters",
+    "changePassword": "Change password",
+    "users": "Users",
+    "audit": "Audit log",
+    "settings": "Settings",
+    "directory": "Active Directory",
+    "cleanup": "Clean backup",
+    "documentation": "Documentation",
+    "drp": "Disaster recovery"
   },
   "messages": {
     "all": "See all messages",

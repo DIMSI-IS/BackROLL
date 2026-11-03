@@ -3,17 +3,17 @@
     <va-card>
       <va-card-title>
         <ListHeader
-          title="Hypervisors"
-          plus-button-title="Add hypervisor"
+          :title="$t('pages.resources.hypervisor.title')"
+          :plus-button-title="$t('pages.resources.hypervisor.addButton')"
           plus-button-route="/admin/resources/hypervisors/new"
           :dependencies-resolved="areDependenciesResolved"
-          dependencies-message="You need to create a pool."
-          go-button-title="Go to pools"
+          :dependencies-message="$t('pages.resources.hypervisor.needPool')"
+          :go-button-title="$t('pages.resources.hypervisor.goToPools')"
           go-button-route="/admin/resources/pools"
         />
       </va-card-title>
       <va-card-content>
-        <va-data-table
+        <va-data-table :no-data-html="$t('pages.common.noItems')"
           :items="$store.state.resources.hostList"
           :columns="columns"
         >
@@ -41,7 +41,7 @@
               :color="JSON.parse(value) ? 'success' : 'danger'"
             >
               <va-icon v-if="!JSON.parse(value)" name="warning" />
-              {{ JSON.parse(value) ? "Configured" : "Unconfigured" }}
+              {{ JSON.parse(value) ? $t('pages.resources.hypervisor.configured') : $t('pages.resources.hypervisor.unconfigured') }}
             </va-chip>
           </template>
           <template #cell(tags)="{ value }">
@@ -54,7 +54,7 @@
               size="small"
               :color="value === 'Reachable' ? 'success' : 'danger'"
             >
-              {{ value === "Reachable" ? "Reachable" : "Unreachable" }}
+              {{ value === "Reachable" ? $t('pages.resources.hypervisor.reachable') : $t('pages.resources.hypervisor.unreachable') }}
             </va-chip>
           </template>
           <template #cell(actions)="{ rowIndex }">
@@ -62,13 +62,13 @@
               <va-button
                 v-if="!$store.state.resources.hostList[rowIndex].ssh"
                 icon="link"
-                :disabled="sshKeys.length == 0"
+                :disabled="(sshKeys.length == 0) || !$store.getters.canEdit"
                 @click="
                   (selectedHost = $store.state.resources.hostList[rowIndex]),
                     (showConnectModal = true)
                 "
               />
-              <va-button
+              <va-button :disabled="!$store.getters.canEdit"
                 icon="settings"
                 @click="
                   this.$router.push(
@@ -76,7 +76,7 @@
                   )
                 "
               />
-              <va-button
+              <va-button :disabled="!$store.getters.canEdit"
                 icon="delete"
                 @click="
                   (selectedHost = $store.state.resources.hostList[rowIndex]),
@@ -99,17 +99,17 @@
       <template #header>
         <h2>
           <va-icon name="link" />
-          Connecting to the hypervisor at {{ selectedHost.hostname }}
+          {{ $t('pages.resources.hypervisor.connectingTo', { name: selectedHost.hostname }) }}
         </h2>
       </template>
       <hr class="mb-4" />
       <va-form ref="form" @validation="(validation = $event), connectHost()">
         <va-input
-          label="Specify the user on the server"
-          messages="The user must have the access rights to KVM."
+          :label="$t('pages.resources.hypervisor.sshUser')"
+          :messages="$t('pages.resources.hypervisor.sshUserHint')"
           v-model="user"
           type="text"
-          :rules="[(value) => value?.trim().length > 0 || 'Field is required']"
+          :rules="[(value) => value?.trim().length > 0 || $t('pages.resources.common.required')]"
           class="mb-3"
         />
         <va-tabs v-model="currentTabKey">
@@ -120,8 +120,8 @@
           </template>
           <div style="position: relative">
             <va-input
-              label="BackROLL SSH key"
-              messages="Copy-paste one of the keys into the ~/.ssh/authorized_keys file on the server."
+              :label="$t('pages.resources.hypervisor.sshKey')"
+              :messages="$t('pages.resources.hypervisor.sshKeyHint')"
               v-model="currentSshKey"
               type="textarea"
               :autosize="true"
@@ -144,24 +144,24 @@
           </div>
         </va-tabs>
         <div class="d-flex">
-          <va-button flat @click="showConnectModal = false"> Cancel </va-button>
+          <va-button flat @click="showConnectModal = false"> {{ $t('pages.resources.common.cancel') }} </va-button>
           <va-spacer class="spacer" />
-          <va-button @click="$refs.form.validate()"> Done </va-button>
+          <va-button @click="$refs.form.validate()"> {{ $t('pages.resources.common.done') }} </va-button>
         </div>
       </va-form>
     </va-modal>
-    <va-modal v-model="showDeleteModal" @ok="deleteHost()">
+    <va-modal v-model="showDeleteModal" :ok-text="$t('pages.resources.common.ok')" :cancel-text="$t('pages.resources.common.cancel')" @ok="deleteHost()">
       <template #header>
         <h2>
           <va-icon name="warning" color="danger" />
-          Removing hypervisor
+          {{ $t('pages.resources.hypervisor.removing') }}
         </h2>
       </template>
       <hr />
       <div>
-        You are about to remove hypervisor
+        {{ $t('pages.resources.hypervisor.removeIntro') }}
         <b>{{ JSON.parse(JSON.stringify(this.selectedHost)).hostname }}</b
-        >. <br />Please confirm action.
+        >. <br />{{ $t('pages.resources.common.confirmAction') }}
       </div>
     </va-modal>
   </div>
@@ -182,15 +182,6 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        { key: "hostname" },
-        { key: "pool_id", label: "Pool", sortable: true },
-        { key: "ipaddress" },
-        { key: "ssh", label: "SSH Connection" },
-        { key: "tags", sortable: true },
-        { key: "state", sortable: true },
-        { key: "actions" },
-      ],
       validation: false,
       user: null,
       sshKeys: [],
@@ -202,6 +193,28 @@ export default defineComponent({
     };
   },
   computed: {
+    columns() {
+      return [
+        { key: "hostname", label: this.$t("pages.resources.hypervisor.colHostname") },
+        { key: "pool_id", label: this.$t("pages.resources.hypervisor.colPool"), sortable: true },
+        { key: "ipaddress", label: this.$t("pages.resources.hypervisor.colIp") },
+        { key: "ssh", label: this.$t("pages.resources.hypervisor.colSsh") },
+        { key: "tags", label: this.$t("pages.resources.hypervisor.colTags"), sortable: true },
+        { key: "state", label: this.$t("pages.resources.hypervisor.colState"), sortable: true },
+        { key: "actions", label: this.$t("pages.resources.hypervisor.colActions") },
+      ];
+    },
+    columns() {
+      return [
+        { key: "hostname", label: this.$t("pages.resources.hypervisor.colHostname") },
+        { key: "pool_id", label: this.$t("pages.resources.hypervisor.colPool"), sortable: true },
+        { key: "ipaddress", label: this.$t("pages.resources.hypervisor.colIp") },
+        { key: "ssh", label: this.$t("pages.resources.hypervisor.colSsh") },
+        { key: "tags", label: this.$t("pages.resources.hypervisor.colTags"), sortable: true },
+        { key: "state", label: this.$t("pages.resources.hypervisor.colState"), sortable: true },
+        { key: "actions", label: this.$t("pages.resources.hypervisor.colActions") },
+      ];
+    },
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
       return (
@@ -252,7 +265,7 @@ export default defineComponent({
     },
     getPool(id) {
       const result = this.$store.state.resources.poolList.find(
-        (item) => item.id === id
+        (item) => String(item.id) === String(id)
       );
       if (result) {
         return result.name.toUpperCase();
@@ -277,7 +290,7 @@ export default defineComponent({
             this.$store.dispatch("requestHost");
             this.$vaToast.init({
               title: response.data.state,
-              message: `Successfully connected to ${this.selectedHost.hostname}`,
+              message: this.$t('pages.resources.hypervisor.connected', { name: this.selectedHost.hostname }),
               color: "success",
             });
             this.showConnectModal = false;
@@ -285,7 +298,7 @@ export default defineComponent({
           .catch((error) => {
             console.error(error);
             this.$vaToast.init({
-              title: "Error",
+              title: this.$t('pages.resources.common.error'),
               message: error?.response?.data?.detail ?? error,
               color: "danger",
             });
@@ -309,7 +322,7 @@ export default defineComponent({
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to retrieve BackROLL SSH keys",
+            title: this.$t('pages.resources.hypervisor.keysFailed'),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });
@@ -330,13 +343,13 @@ export default defineComponent({
           this.$store.dispatch("requestHost");
           this.$vaToast.init({
             title: response.data.state,
-            message: "Hypervisor has been successfully deleted",
+            message: this.$t('pages.resources.hypervisor.deleted'),
             color: "success",
           });
           if (response.data.warnings?.length > 0) {
             for (const warning of response.data.warnings) {
               this.$vaToast.init({
-                title: "Warning",
+                title: this.$t('pages.resources.common.warning'),
                 message: warning,
                 color: "warning",
               });
@@ -346,7 +359,7 @@ export default defineComponent({
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to delete Hypervisor",
+            title: this.$t('pages.resources.hypervisor.deleteFailed'),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

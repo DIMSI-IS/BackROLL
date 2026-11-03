@@ -17,8 +17,7 @@
 
 from __future__ import print_function
 # KVM Connection Module Imports
-from app.kvm import kvm_connection
-import time
+from app.kvm import kvm_connection, disk_safety
 
 
 def get_snapshot(vm_info, host_info):
@@ -62,6 +61,11 @@ def createSnapshot(virtual_machine, hypervisor, snapshot_xml):
         )
     except Exception as snapshot_error:
         conn.close()
+        if 'guest agent is not configured' in str(snapshot_error):
+            raise ValueError(
+                f"The QEMU guest agent of {virtual_machine['name']} is not available: BackROLL freezes the file system "
+                "before the snapshot and needs it. Install qemu-guest-agent in the machine and add the virtio-serial "
+                f"channel (org.qemu.guest_agent.0) to its definition. ({snapshot_error})") from snapshot_error
         raise snapshot_error
     conn.close()
 
@@ -80,24 +84,25 @@ def deleteSnapshot(virtual_machine, hypervisor):
     conn.close()
 
 
-def blockCommit(virtual_machine, hypervisor, disk_info):
+def open_domain(virtual_machine, hypervisor):
+    """The connection to the hypervisor and the libvirt domain of the machine. The caller closes the connection."""
+    conn = kvm_connection.kvm_connection(hypervisor)
     try:
-        conn = kvm_connection.kvm_connection(hypervisor)
-        dom = conn.lookupByName(virtual_machine['name'])
-        flags = 6
-        dom.blockCommit(
-            disk_info["device"],
-            disk_info["source"].replace(".snap", ""),
-            f'{disk_info["source"].replace(".snap", "")}.snap',
-            0,
-            flags
-        )
-        blockJob = dom.blockJobInfo(disk_info["device"])
-        while blockJob['cur'] < blockJob['end']:
-            time.sleep(2)
-            blockJob = dom.blockJobInfo(disk_info["device"])
-        dom.blockJobAbort(disk_info["device"], 2)
-    except Exception as blockcommit_error:
+        return conn, conn.lookupByName(virtual_machine['name'])
+    except Exception:
         conn.close()
-        raise blockcommit_error
-    conn.close()
+        raise
+
+
+def blockCommit(virtual_machine, hypervisor, disk_info):
+    """Commits the overlay of a disk into its base file and puts the machine back on the base file.
+
+    Raises BackupStateError when this could not be checked. A job that does not end is left running (see
+    disk_safety): the overlay is never cancelled, nor deleted, from here."""
+    conn, dom = open_domain(virtual_machine, hypervisor)
+    try:
+        base = disk_safety.base_of(disk_info["source"])
+        disk_safety.commit_and_pivot(
+            dom, disk_info["device"], base, disk_safety.overlay_of(disk_info["source"]))
+    finally:
+        conn.close()

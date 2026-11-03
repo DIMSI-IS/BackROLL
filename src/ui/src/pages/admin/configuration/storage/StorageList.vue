@@ -2,12 +2,12 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="Storage" plus-button-title="Add storage"
+        <ListHeader :title="$t('pages.configuration.storage.title')" :plus-button-title="$t('pages.configuration.storage.addButton')"
           plus-button-route="/admin/configuration/storage/new" />
       </va-card-title>
       <va-card-content>
-        <va-data-table :items="$store.state.storageList" :columns="columns">
-          <template #header(info)>disk usage (%)</template>
+        <va-data-table :no-data-html="$t('pages.common.noItems')" :items="$store.state.storageList" :columns="columns">
+          <template #header(info)>{{ $t('pages.configuration.storage.diskUsage') }}</template>
           <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
           <template #cell(info)="{ rowIndex }">
             <div v-if="$store.state.storageList[rowIndex].info">
@@ -17,22 +17,22 @@
                   v-if="(100 - (($store.state.storageList[rowIndex].info.free / $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) >= 75"
                   name="warning" color="danger" />
                 <span style="margin-right: 2px;"><b>{{ (100 - (($store.state.storageList[rowIndex].info.free /
-                  $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) }}%</b></span> ({{
-                      humanStorageSize($store.state.storageList[rowIndex].info.free) }} free)
+                  $store.state.storageList[rowIndex].info.total) * 100)).toFixed(1) }}%</b></span> {{
+                      $t('pages.configuration.storage.free', { size: humanStorageSize($store.state.storageList[rowIndex].info.free) }) }}
               </va-chip>
             </div>
             <div v-else>
               <va-chip size="small" outline square color="danger">
                 <va-icon class="material-icons" color="danger">warning</va-icon>
-                Unable to retrieve information
+                {{ $t('pages.configuration.storage.unableInfo') }}
               </va-chip>
             </div>
           </template>
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
-              <va-button icon="settings"
+              <va-button :disabled="!$store.getters.canEdit" icon="settings"
                 @click="this.$router.push(`/admin/configuration/storage/${$store.state.storageList[rowIndex].id}`)" />
-              <va-button icon="delete"
+              <va-button :disabled="!$store.getters.canEdit" icon="delete"
                 @click="selectedStorage = $store.state.storageList[rowIndex], showDeleteModal = !showDeleteModal" />
             </va-button-group>
           </template>
@@ -47,13 +47,13 @@
       <template #header>
         <h2>
           <va-icon name="warning" color="danger" />
-          Removing Storage
+          {{ $t('pages.configuration.storage.removing') }}
         </h2>
       </template>
       <hr>
       <div>
-        You are about to remove storage <b>{{ JSON.parse(JSON.stringify(this.selectedStorage)).name }}</b>.
-        <br>Please confirm action.
+        {{ $t('pages.configuration.storage.removeIntro') }} <b>{{ JSON.parse(JSON.stringify(this.selectedStorage)).name }}</b>.
+        <br>{{ $t('pages.configuration.common.confirm') }}
       </div>
     </va-modal>
   </div>
@@ -74,29 +74,31 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        { key: 'name' },
-        { key: 'path' },
-        { key: 'info' },
-        { key: 'actions' }
-      ],
       showDeleteModal: false,
       selectedStorage: null
     }
   },
   computed: {
+    columns() {
+      return [
+        { key: 'name', label: this.$t('pages.configuration.common.name') },
+        { key: 'path', label: this.$t('pages.configuration.storage.path') },
+        { key: 'info', label: this.$t('pages.configuration.storage.info') },
+        { key: 'actions', label: this.$t('pages.configuration.common.actions') }
+      ]
+    }
   },
   methods: {
     deleteStorage() {
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/storage/${JSON.parse(JSON.stringify(this.selectedStorage)).id}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.$store.dispatch("requestStorage")
-          this.$vaToast.init({ title: response.data.state, message: 'Storage has been successfully removed', color: 'success' })
+          this.$vaToast.init({ title: response.data.state, message: this.$t('pages.configuration.storage.removed'), color: 'success' })
         })
         .catch(error => {
           console.error(error)
           this.$vaToast.init({
-            title: 'Unable to remove storage',
+            title: this.$t('pages.configuration.storage.removeFailed'),
             message: error?.response?.data?.detail ?? error,
             color: 'danger'
           })

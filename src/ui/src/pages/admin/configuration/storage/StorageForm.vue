@@ -4,8 +4,8 @@
       <FormHeader
         :title="
           storageId
-            ? `Updating storage ${stateStorage?.name ?? ''}`
-            : 'Adding storage'
+            ? $t('pages.configuration.storage.updating', { name: stateStorage?.name ?? '' })
+            : $t('pages.configuration.storage.adding')
         "
       />
     </va-card-title>
@@ -14,40 +14,38 @@
         <template #icon>
           <va-icon name="info" />
         </template>
-        The storage path must be accessible by the BackROLL workers
-        containers.<br />
-        To do this, update the following portion in the docker-compose:
+        {{ $t('pages.configuration.storage.pathHelp1') }}<br />
+        {{ $t('pages.configuration.storage.pathHelp2') }}
         <code class="consoleStyle">
           volumes:<br />
           - /mnt:/mnt
         </code>
-        This example gives access to the /mnt directory where NFS shares
-        dedicated to backup storage can be mounted.
+        {{ $t('pages.configuration.storage.pathHelp3') }}
       </va-alert>
       <va-form ref="form">
         <va-input
-          label="Name"
+          :label="$t('pages.configuration.common.name')"
           v-model="formStorage.name"
           :rules="[
-            (value) => value?.length > 0 || 'Field is required',
+            (value) => value?.length > 0 || $t('pages.configuration.common.required'),
             (value) =>
-              isStorageNameUnique(value) || 'This name is already used',
+              isStorageNameUnique(value) || $t('pages.configuration.storage.nameUsed'),
           ]"
         />
         <br />
         <va-input
-          label="Path"
-          placeholder="eg. /mnt/myNFSbackend"
+          :label="$t('pages.configuration.storage.path')"
+          :placeholder="$t('pages.configuration.storage.pathPlaceholder')"
           v-model="formStorage.path"
           :rules="[
-            (value) => value?.length > 0 || 'Field is required',
+            (value) => value?.length > 0 || $t('pages.configuration.common.required'),
             (value) =>
               removeTrailingSlash(value) != '/mnt' ||
-              'The path can’t only be /mnt or /mnt/',
-            (value) => /^\/mnt/gi.test(value) || 'The path must begin by /mnt',
+              $t('pages.configuration.storage.pathNotMnt'),
+            (value) => /^\/mnt/gi.test(value) || $t('pages.configuration.storage.pathMustMnt'),
             (value) =>
               isStoragePathUnique(value) ||
-              'A storage already exist for this path',
+              $t('pages.configuration.storage.pathUsed'),
           ]"
         />
         <br />
@@ -58,7 +56,7 @@
               (storageId ? updateStorage() : addStorage())
           "
         >
-          {{ storageId ? "Update" : "Add" }}
+          {{ storageId ? $t('pages.configuration.common.update') : $t('pages.configuration.common.add') }}
         </va-button>
       </va-form>
     </va-card-content>
@@ -148,14 +146,14 @@ export default {
           this.$router.push("/admin/configuration/storage");
           this.$vaToast.init({
             title: response.data.state,
-            message: "Storage has been successfully added",
+            message: this.$t("pages.configuration.storage.added"),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to add storage",
+            title: this.$t("pages.configuration.storage.addFailed"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

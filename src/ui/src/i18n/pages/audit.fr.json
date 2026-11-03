@@ -1,0 +1,22 @@
+{
+  "title": "Journal d'audit",
+  "refresh": "Actualiser",
+  "user": "Utilisateur",
+  "action": "Action",
+  "failedOnly": "Échecs uniquement",
+  "search": "Rechercher",
+  "success": "succès",
+  "entries": "{total} entrées",
+  "colTime": "heure",
+  "colUser": "utilisateur",
+  "colAction": "action",
+  "colDetails": "détails",
+  "colResult": "résultat",
+  "colIp": "ip",
+  "unableLoad": "Impossible de charger le journal d'audit",
+  "colSource": "source",
+  "source": "Source",
+  "sourceAll": "Toutes",
+  "sourceLocal": "Local",
+  "sourceAd": "Active Directory"
+}

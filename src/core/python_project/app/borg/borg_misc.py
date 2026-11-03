@@ -16,6 +16,7 @@
 # under the License.
 from os import path
 
+import shlex
 import subprocess
 
 from app.initialized import fastapi_app
@@ -46,6 +47,6 @@ def borgbreaklock(virtual_machine_list, virtual_machine_id):
             raise ValueError(
                 f'Borg repository not found for virtual machine with {virtual_machine_id}')
 
-        shell.subprocess_run(f'borg break-lock {vm_repository}')
+        shell.subprocess_run(f'borg break-lock {shlex.quote(vm_repository)}')
     except Exception as e:
         raise ValueError(e)

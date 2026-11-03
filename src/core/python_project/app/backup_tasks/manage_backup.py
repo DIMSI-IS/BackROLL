@@ -17,6 +17,7 @@
 
 #!/usr/bin/env python
 import json
+import shlex
 import subprocess
 from celery_once import QueueOnce
 from app.initialized import celery_app as celery_app
@@ -60,7 +61,7 @@ def get_backup(virtual_machine, backup_name):
     borg_repository = make_path(
         storage_repository['path'], virtual_machine['name'])
     # TODO Test error ?
-    return borg_rc(f"borg info --json {borg_repository}::{backup_name}")
+    return borg_rc(f"borg info --json {shlex.quote(borg_repository)}::{shlex.quote(backup_name)}")
 
 
 def delete_backup(virtual_machine, backup_name):
@@ -69,7 +70,11 @@ def delete_backup(virtual_machine, backup_name):
     borg_repository = make_path(
         storage_repository['path'], virtual_machine['name'])
     get_backup(virtual_machine, backup_name)
-    return borg_rc(f"borg delete {borg_repository}::{backup_name}")
+    result = borg_rc(f"borg delete {shlex.quote(borg_repository)}::{shlex.quote(backup_name)}")
+    # Borg frees the space of a deleted backup only with this step.
+    from app.borg import borg_core
+    borg_core.compact_repository(borg_repository)
+    return result
 
 
 @celery_app.task(name='Get VM archive info')

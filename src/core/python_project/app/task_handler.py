@@ -41,6 +41,10 @@ def handle_task_failure(task_id, msg):
 
 @task_success.connect(sender=single_backup.single_vm_backup)
 def single_backup_success_handler(sender=None, body=None, *args,  **kwargs):
+    # A machine that was not backed up (it is not running) did not "end" a backup: nothing to tell.
+    result = kwargs.get("result")
+    if isinstance(result, dict) and result.get("status") == "skipped":
+        return
     handle_task_success.apply_async(
         args=(sender.request.id, "A new single VM backup job has ended"))
 
@@ -60,7 +64,7 @@ def restore_backup_success_handler(sender=None, body=None, *args,  **kwargs):
 @task_failure.connect(sender=restore.restore_disk_vm)
 def restore_backup_failure_handler(sender=None, body=None, *args,  **kwargs):
     handle_task_failure.apply_async(
-        args=(sender.request.id, "A new diskfile restore job has ended"))
+        args=(sender.request.id, "A new diskfile restore job has exited"))
 
 
 @celery_app.task()

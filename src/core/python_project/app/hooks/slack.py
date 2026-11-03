@@ -23,7 +23,7 @@ from slack_sdk.webhook import WebhookClient
 from slack_sdk.errors import SlackApiError
 
 from app.patch import make_path
-from app.hooks.hook_client import HookClient, convert
+from app.hooks.hook_client import HookClient, convert, format_duration
 from app.logging import logged
 from app.environment import get_env_var
 
@@ -49,7 +49,7 @@ class SlackClient(HookClient):
         time.sleep(10)
         context_smiley = "white_check_mark"
         alerting = ""
-        duration_time = f"{convert(task['runtime'])}"
+        duration_time = format_duration(task, "Unable to retrieve runtime")
         blocks = [
             {
                 "type": "section",
@@ -105,7 +105,7 @@ class SlackClient(HookClient):
         time.sleep(10)
         context_smiley = "x"
         alerting = "<!channel> "
-        duration_time = "N/A"
+        duration_time = format_duration(task, "N/A")
         blocks = [
             {
                 "type": "section",
@@ -155,7 +155,7 @@ class SlackClient(HookClient):
         self.__send(blocks)
 
     @logged()
-    def on_pool(self, pool, success_list, failure_list, received):
+    def on_pool(self, pool, success_list, failure_list, received, skipped_list=None, blocked_list=None):
         alerting = ''
         if len(failure_list) > 0:
             alerting = '<!channel> '
@@ -203,6 +203,40 @@ class SlackClient(HookClient):
                     }
                 ]
             },
+            *([{
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": ":zzz:"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*{len(skipped_list)}* Skipped (not running)"
+                    }
+                ]
+            }] if skipped_list else []),
+            *([{
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": ":lock:"
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*{len(blocked_list)}* Blocked (waiting for an administrator)"
+                    }
+                ]
+            }] if blocked_list else []),
+            *([{
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "\n".join(
+                        ["*Details*"] + [f"• {str(item)[:220]}" for item in [*failure_list, *(blocked_list or [])][:6]])
+                }
+            }] if failure_list or blocked_list else []),
             {
                 "type": "divider"
             },

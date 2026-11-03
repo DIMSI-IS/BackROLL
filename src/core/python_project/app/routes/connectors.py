@@ -19,6 +19,7 @@
 from uuid import UUID
 from app.patch import ensure_uuid
 from fastapi import HTTPException, Depends
+from sqlalchemy.exc import NoResultFound
 from pydantic import Json
 from sqlmodel import Session, select
 from fastapi.encoders import jsonable_encoder
@@ -30,8 +31,10 @@ from app.initialized import celery_app
 
 from app import auth
 from app import database
+from app import vault
 
 from app.database import Hosts
+from app.database import Pools
 from app.database import Connectors
 
 
@@ -50,6 +53,32 @@ class items_create_connector(BaseModel):
                 "password": "your secret password"
             }
         }
+
+
+# The API key and the secret are only read by BackROLL itself, never sent back to the browser.
+MASK = "…"
+
+
+class items_update_connector(BaseModel):
+    name: str
+    url: str
+    # Empty, or the masked key as received: the current value is kept.
+    login: str = ""
+    password: str = ""
+
+
+def mask_login(login: str) -> str:
+    return f"{login[:4]}{MASK}" if len(login) > 8 else MASK
+
+
+def public_view(connector) -> dict:
+    return {
+        "id": str(connector.id),
+        "name": connector.name,
+        "url": connector.url,
+        "login": mask_login(connector.login),
+        "has_password": bool(connector.password),
+    }
 
 
 def filter_connector_by_id(connector_id):
@@ -76,23 +105,25 @@ def api_update_connector(connector_id, name, url, login, password):
         statement = select(Connectors).where(
             Connectors.id == ensure_uuid(connector_id))
         results = session.exec(statement)
-        data_connector = results.one()
+        data_connector = results.first()
     if not data_connector:
-        raise ValueError(f'Connector with id {connector_id} not found')
+        raise HTTPException(status_code=404, detail=f'Connector with id {connector_id} not found')
     try:
         if name:
             data_connector.name = name
         if url:
             data_connector.url = url
-        if login:
+        if login and MASK not in login:
             data_connector.login = login
         if password:
-            data_connector.password = password
+            data_connector.password = vault.encrypt(password)
         with Session(engine) as session:
             session.add(data_connector)
             session.commit()
             session.refresh(data_connector)
-        return jsonable_encoder(data_connector)
+        return public_view(data_connector)
+    except HTTPException:
+        raise
     except Exception as e:
         print(e)
         raise ValueError(e)
@@ -104,12 +135,12 @@ def api_create_connector(name, url, login, password):
 
     try:
         new_connector = Connectors(
-            name=name, url=url, login=login, password=password)
+            name=name, url=url, login=login, password=vault.encrypt(password))
         with Session(engine) as session:
             session.add(new_connector)
             session.commit()
             session.refresh(new_connector)
-        return new_connector
+        return public_view(new_connector)
     except Exception as e:
         raise ValueError(e)
 
@@ -124,8 +155,8 @@ def api_retrieve_connectors():
             statement = select(Connectors)
             results = session.exec(statement)
             for connector in results:
-                records.append(connector)
-        return jsonable_encoder(records)
+                records.append(public_view(connector))
+        return records
     except Exception as e:
         raise ValueError(e)
 
@@ -136,15 +167,24 @@ def api_delete_connector(connector_id):
 
     records = []
     with Session(engine) as session:
-        statement = select(Hosts).where(
-            Hosts.connector_id == ensure_uuid(connector_id))
+        statement = select(Pools).where(
+            Pools.connector_id == ensure_uuid(connector_id))
         results = session.exec(statement)
         for host in results:
             records.append(host)
         if len(records) > 0:
-            raise ValueError('One or more hosts are linked to this connector')
+            names = ", ".join(sorted(pool.name for pool in records))
+            raise HTTPException(
+                status_code=409,
+                detail=f'This connector is used by the pool(s) {names}: detach them from it before deleting it.')
     try:
         connector = filter_connector_by_id(connector_id)
+    except ValueError as e:
+        # An unknown identifier is a 404, whatever the layer that wrapped the error of the database.
+        if "No row was found" in str(e) or "not found" in str(e):
+            raise HTTPException(status_code=404, detail=f'Connector with id {connector_id} not found')
+        raise
+    try:
         with Session(engine) as session:
             session.delete(connector)
             session.commit()
@@ -154,7 +194,7 @@ def api_delete_connector(connector_id):
 
 
 @fastapi_app.post('/api/v1/connectors', status_code=201)
-def create_connector(item: items_create_connector, identity: Json = Depends(auth.verify_token)):
+def create_connector(item: items_create_connector, identity: Json = Depends(auth.require_editor)):
     name = item.name
     url = item.url
     login = item.login
@@ -169,7 +209,7 @@ def retrieve_connectors(identity: Json = Depends(auth.verify_token)):
 
 
 @fastapi_app.patch('/api/v1/connectors/{connector_id}', status_code=200)
-def update_connector(connector_id, item: items_create_connector, identity: Json = Depends(auth.verify_token)):
+def update_connector(connector_id, item: items_update_connector, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(connector_id)
     except ValueError:
@@ -182,7 +222,7 @@ def update_connector(connector_id, item: items_create_connector, identity: Json 
 
 
 @fastapi_app.delete('/api/v1/connectors/{connector_id}', status_code=200)
-def delete_connector(connector_id, identity: Json = Depends(auth.verify_token)):
+def delete_connector(connector_id, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(connector_id)
     except ValueError:

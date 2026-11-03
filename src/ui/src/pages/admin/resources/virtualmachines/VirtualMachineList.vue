@@ -1,26 +1,27 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="Virtual machines" :dependencies-resolved="areDependenciesResolved"
-        dependencies-message="You need to add an hypervisor." go-button-title="Go to hypervisors"
+      <ListHeader :title="$t('pages.resources.vm.title')" :dependencies-resolved="areDependenciesResolved"
+        :dependencies-message="$t('pages.resources.vm.needHypervisor')" :go-button-title="$t('pages.resources.vm.goToHypervisors')"
         go-button-route="/admin/resources/hypervisors" />
     </va-card-title>
     <va-card-content>
+      <machine-list-warnings />
       <div class="row">
-        <va-input class="flex mb-2 md6" placeholder="Filter..." v-model="filter" />
-        <va-checkbox class="flex mb-2 md6" label="Look for an exact match" v-model="useCustomFilteringFn" />
+        <va-input class="flex mb-2 md6" :placeholder="$t('pages.resources.vm.filter')" v-model="filter" />
+        <simple-checkbox class="flex mb-2 md6" :label="$t('pages.resources.vm.exactMatch')" v-model="useCustomFilteringFn" />
       </div>
-      <va-data-table :current-page="currentPage" :per-page="perPage" :items="$store.state.resources.vmList"
+      <va-data-table :no-data-html="$t('pages.common.noItems')" :current-page="currentPage" :per-page="perPage" :items="$store.state.resources.vmList"
         :columns="columns" :filter="filter" :filter-method="customFilteringFn"
         @filtered="filteredCount = $event.items.length">
-        <template #header(cpus)>CPU</template>
-        <template #header(mem)>Memory</template>
-        <template #header(host)>Hypervisor</template>
-        <template #header(host_tag)>Tag(s)</template>
-        <template #header(ssh)>SSH Connection</template>
+        <template #header(cpus)>{{ $t('pages.resources.vm.colCpu') }}</template>
+        <template #header(mem)>{{ $t('pages.resources.vm.colMemory') }}</template>
+        <template #header(host)>{{ $t('pages.resources.vm.colHypervisor') }}</template>
+        <template #header(host_tag)>{{ $t('pages.resources.vm.colTags') }}</template>
+        <template #header(ssh)>{{ $t('pages.resources.vm.colSsh') }}</template>
         <template #cell(name)="{ value }">{{ value.toUpperCase() }}</template>
         <template #cell(cpus)="{ value }">
-          <va-chip size="small" square outline> {{ value }} Cores </va-chip>
+          <va-chip size="small" square outline> {{ $t('pages.resources.vm.cores', { count: value }) }} </va-chip>
         </template>
         <template #cell(mem)="{ value }">
           <va-chip size="small" square outline>
@@ -29,7 +30,7 @@
         </template>
         <template #cell(host)="{ value }">
           <va-chip v-if="value" size="small" square @click="this.$router.push('/admin/resources/hypervisors')">
-            {{ getHost(value).hostname }}
+            {{ getHost(value)?.hostname }}
           </va-chip>
         </template>
         <template #cell(host_tag)="{ value }">
@@ -70,6 +71,8 @@
 </template>
 
 <script>
+import SimpleCheckbox from "@/components/forms/SimpleCheckbox.vue";
+import MachineListWarnings from "@/components/MachineListWarnings.vue";
 import { defineComponent } from "vue";
 import * as spinners from "epic-spinners";
 
@@ -80,18 +83,11 @@ export default defineComponent({
   components: {
     ...spinners,
     ListHeader,
+    SimpleCheckbox,
+    MachineListWarnings,
   },
   data() {
     return {
-      columns: [
-        { key: "name", sortable: true },
-        { key: "cpus", sortable: true },
-        { key: "mem", sortable: true },
-        { key: "host", sortable: true },
-        { key: "host_tag", sortable: true },
-        { key: "state", sortable: true },
-        { key: "actions" },
-      ],
       selectedHost: null,
       perPage: 25,
       currentPage: 1,
@@ -101,6 +97,28 @@ export default defineComponent({
     };
   },
   computed: {
+    columns() {
+      return [
+        { key: "name", label: this.$t("pages.resources.vm.colName"), sortable: true },
+        { key: "cpus", label: this.$t("pages.resources.vm.colCpu"), sortable: true },
+        { key: "mem", label: this.$t("pages.resources.vm.colMemory"), sortable: true },
+        { key: "host", label: this.$t("pages.resources.vm.colHypervisor"), sortable: true },
+        { key: "host_tag", label: this.$t("pages.resources.vm.colTags"), sortable: true },
+        { key: "state", label: this.$t("pages.resources.vm.colState"), sortable: true },
+        { key: "actions", label: this.$t("pages.resources.vm.colActions") },
+      ];
+    },
+    columns() {
+      return [
+        { key: "name", label: this.$t("pages.resources.vm.colName"), sortable: true },
+        { key: "cpus", label: this.$t("pages.resources.vm.colCpu"), sortable: true },
+        { key: "mem", label: this.$t("pages.resources.vm.colMemory"), sortable: true },
+        { key: "host", label: this.$t("pages.resources.vm.colHypervisor"), sortable: true },
+        { key: "host_tag", label: this.$t("pages.resources.vm.colTags"), sortable: true },
+        { key: "state", label: this.$t("pages.resources.vm.colState"), sortable: true },
+        { key: "actions", label: this.$t("pages.resources.vm.colActions") },
+      ];
+    },
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
       return (

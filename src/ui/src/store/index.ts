@@ -2,15 +2,73 @@ import axios from "axios";
 import { createStore } from "vuex";
 import router from "../router";
 
+const SESSION_KEY = "backroll.session";
+
+// The lists are asked to a task that is polled until it ends. A refresh starts a new request: the previous one of
+// the same list is dropped (they piled up while a worker was busy or stopped), and a task that never answers is
+// given up after a while.
+const pollEpochs: Record<string, number> = {};
+const POLL_LIMIT_MS = 120000;
+
+function nextEpoch(name: string): number {
+  pollEpochs[name] = (pollEpochs[name] || 0) + 1;
+  return pollEpochs[name];
+}
+
+function isSuperseded(name: string, epoch?: number, since?: number): boolean {
+  if (epoch !== undefined && epoch !== pollEpochs[name]) {
+    return true;
+  }
+  return since !== undefined && Date.now() - since > POLL_LIMIT_MS;
+}
+
+// The session survives a page refresh but not closing the tab.
+function loadSession(): any {
+  try {
+    const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+    return session && session.expiresAt > Date.now() ? session : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(session: any) {
+  try {
+    if (session) {
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    } else {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  } catch {
+    // Storage may be unavailable, the session then lives in memory only.
+  }
+}
+
+const initialSession = loadSession();
+
+const REFRESH_KEY = "backroll.refresh";
+const REFRESH_CHOICES = [0, 5, 10, 30, 60];
+
+// The refresh period is a preference of the person, kept in this browser. 0 means off.
+function loadRefreshSeconds(): number {
+  try {
+    const value = Number(localStorage.getItem(REFRESH_KEY));
+    return REFRESH_CHOICES.includes(value) && localStorage.getItem(REFRESH_KEY) !== null ? value : 10;
+  } catch {
+    return 10;
+  }
+}
+
 export default createStore({
   strict: true, // process.env.NODE_ENV !== 'production',
   state: {
     endpoint: {
       api: `${window.location.origin}`,
     },
-    token: null,
+    token: initialSession ? initialSession.token : null,
+    user: initialSession ? initialSession.user : null,
     isSidebarMinimized: false,
-    userName: null,
+    userName: initialSession ? initialSession.user.name : null,
     // Table misc
     isPolicyTableReady: false,
     isPoolTableReady: false,
@@ -29,6 +87,8 @@ export default createStore({
       poolList: [],
       hostList: [],
       vmList: [],
+      // What went wrong during the last listing of the machines (a connector that does not answer, for instance).
+      vmWarnings: [] as string[],
       externalHookList: [],
       connectorList: [],
     },
@@ -37,9 +97,21 @@ export default createStore({
     restoreTaskList: [],
     celeryTaskList: [],
     storageList: [],
+    // Automatic refresh of the data. `tick` changes at each refresh: the pages that
+    // read their own data watch it.
+    refresh: {
+      seconds: loadRefreshSeconds(),
+      lastAt: null as number | null,
+      tick: 0,
+      running: false,
+    },
   },
   getters: {
     isAuthenticated: (state) => state.token != null,
+    role: (state: any) => (state.user ? state.user.role : null),
+    canEdit: (state: any) =>
+      state.user != null && ["editor", "admin"].includes(state.user.role),
+    isAdmin: (state: any) => state.user != null && state.user.role === "admin",
     policiesCount(state) {
       return state.resources.policyList.length;
     },
@@ -54,9 +126,31 @@ export default createStore({
     },
   },
   actions: {
-    // Handle OpenID token
-    insertToken(context, token) {
-      context.commit("insertToken", token);
+    // Reloads the lists. The lists that an open form is editing are left alone: a refresh
+    // would replace what the person is typing.
+    async refreshAll(context) {
+      if (!context.state.token || context.state.refresh.running) {
+        return;
+      }
+      context.commit("refreshStarted");
+      try {
+        const path = router.currentRoute.value.path;
+        const editing = /\/new$/.test(path)
+          || /\/(pools|hypervisors|policy|storage|connectors|externalhooks)\/[^/]+$/.test(path);
+        const actions = [
+          "requestJob",
+          "requestBackupTask",
+          "requestRestoreTask",
+          "requestVirtualMachine",
+        ];
+        if (!editing) {
+          actions.push("requestPool", "requestHost", "requestPolicy", "requestStorage",
+            "requestConnector", "requestExternalHook");
+        }
+        await Promise.allSettled(actions.map((action) => context.dispatch(action)));
+      } finally {
+        context.commit("refreshFinished");
+      }
     },
     // Ask and retrieve pools from BackROLL API
     async requestPool(context) {
@@ -70,17 +164,32 @@ export default createStore({
           },
         }
       );
-      context.dispatch("parsePool", { location: data.Location });
+      context.dispatch("parsePool", {
+        location: data.Location,
+        epoch: nextEpoch("Pool"),
+        since: Date.now(),
+      });
     },
-    async parsePool(context, { location }) {
+    async parsePool(context, { location, epoch, since }) {
+      if (isSuperseded("Pool", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let data: any;
+      try {
+        ({ data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ));
+      } catch (error) {
+        // A task that failed answers with an HTTP error: the wait ends and the page stops showing its spinner.
+        console.error(error);
+        context.commit("loadingPool", true);
+        return;
+      }
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parsePool", { location: location });
+          context.dispatch("parsePool", { location: location, epoch: epoch, since: since });
         }, 2000);
       } else {
         context.commit("loadingPool", true);
@@ -109,7 +218,7 @@ export default createStore({
             context.dispatch("requestPool");
             router.push("/admin/resources/pools");
             vm.$vaToast.init({
-              message: "Pool has been successfully updated",
+              message: vm.$t("pages.navbar.poolUpdated"),
               color: "success",
             });
           }
@@ -117,7 +226,7 @@ export default createStore({
         .catch((error) => {
           console.error(error);
           vm.$vaToast.init({
-            title: "Error !",
+            title: vm.$t("pages.navbar.errorTitle"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });
@@ -140,17 +249,30 @@ export default createStore({
       );
       context.dispatch("parsePolicy", {
         location: data.Location,
+        epoch: nextEpoch("Policy"),
+        since: Date.now(),
       });
     },
-    async parsePolicy(context, { location }) {
+    async parsePolicy(context, { location, epoch, since }) {
+      if (isSuperseded("Policy", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let data: any;
+      try {
+        ({ data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ));
+      } catch (error) {
+        // A task that failed answers with an HTTP error: the wait ends and the page stops showing its spinner.
+        console.error(error);
+        context.commit("loadingPolicy", true);
+        return;
+      }
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parsePolicy", { location: location });
+          context.dispatch("parsePolicy", { location: location, epoch: epoch, since: since });
         }, 2000);
       } else {
         context.commit("loadingPolicy", true);
@@ -173,7 +295,9 @@ export default createStore({
             schedule: policyValues.schedule,
             storage: policyValues.storage,
             externalhook: policyValues.externalhook,
-            enabled: policyValues.state,
+            // The form gives the state of the list as "enabled": without it the policy would be switched off.
+            enabled: policyValues.state ?? policyValues.enabled,
+            file_paths: policyValues.file_paths,
           },
           {
             headers: {
@@ -187,7 +311,7 @@ export default createStore({
             context.dispatch("requestPolicy");
             router.push("/admin/configuration/policies");
             vm.$vaToast.init({
-              message: "Policy has been successfully updated",
+              message: vm.$t("pages.navbar.policyUpdated"),
               color: "success",
             });
           }
@@ -195,7 +319,7 @@ export default createStore({
         .catch((error) => {
           console.error(error);
           vm.$vaToast.init({
-            title: "Error !",
+            title: vm.$t("pages.navbar.errorTitle"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });
@@ -216,17 +340,32 @@ export default createStore({
           },
         }
       );
-      context.dispatch("parseHost", { location: data.Location });
+      context.dispatch("parseHost", {
+        location: data.Location,
+        epoch: nextEpoch("Host"),
+        since: Date.now(),
+      });
     },
-    async parseHost(context, { location }) {
+    async parseHost(context, { location, epoch, since }) {
+      if (isSuperseded("Host", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let data: any;
+      try {
+        ({ data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ));
+      } catch (error) {
+        // A task that failed answers with an HTTP error: the wait ends and the page stops showing its spinner.
+        console.error(error);
+        context.commit("loadingHost", true);
+        return;
+      }
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parseHost", { location: location });
+          context.dispatch("parseHost", { location: location, epoch: epoch, since: since });
         }, 2000);
       } else {
         context.commit("loadingHost", true);
@@ -255,7 +394,7 @@ export default createStore({
             context.dispatch("requestHost");
             router.push("/admin/resources/hypervisors");
             vm.$vaToast.init({
-              message: "Hypervisor has been successfully updated",
+              message: vm.$t("pages.navbar.hypervisorUpdated"),
               color: "success",
             });
           }
@@ -263,7 +402,7 @@ export default createStore({
         .catch((error) => {
           console.error(error);
           vm.$vaToast.init({
-            title: "Error !",
+            title: vm.$t("pages.navbar.errorTitle"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });
@@ -286,27 +425,51 @@ export default createStore({
       );
       context.dispatch("parseVirtualMachine", {
         location: data.Location,
+        epoch: nextEpoch("VirtualMachine"),
+        since: Date.now(),
       });
     },
-    async parseVirtualMachine(context, { location }) {
+    async parseVirtualMachine(context, { location, epoch, since }) {
+      if (isSuperseded("VirtualMachine", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let data: any;
+      try {
+        ({ data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ));
+      } catch (error) {
+        // A task that failed answers with an HTTP error: the wait ends and the page stops showing its spinner.
+        console.error(error);
+        context.commit("loadingVm", true);
+        return;
+      }
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parseVirtualMachine", {
-            location: location,
-          });
+          context.dispatch("parseVirtualMachine", { location: location, epoch: epoch, since: since });
         }, 2000);
       } else {
         context.commit("loadingVm", true);
         if (data.state === "SUCCESS") {
           context.dispatch("updateVMList", data.info);
+          context.dispatch("requestVmWarnings");
         } else if (data.state === "FAILURE") {
           console.error(data.status);
         }
+      }
+    },
+    // The listing of the machines does not fail when a connector does not answer: it says so here.
+    async requestVmWarnings(context) {
+      try {
+        const { data } = await axios.get(
+          `${this.state.endpoint.api}/api/v1/virtualmachines/warnings`,
+          { headers: { Authorization: `Bearer ${context.state.token}` } }
+        );
+        context.commit("vmWarnings", Array.isArray(data.warnings) ? data.warnings : []);
+      } catch (error) {
+        context.commit("vmWarnings", []);
       }
     },
     updateVMList(context, vmList) {
@@ -326,19 +489,30 @@ export default createStore({
       );
       context.dispatch("parseStorage", {
         location: data.Location,
+        epoch: nextEpoch("Storage"),
+        since: Date.now(),
       });
     },
-    async parseStorage(context, { location }) {
+    async parseStorage(context, { location, epoch, since }) {
+      if (isSuperseded("Storage", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let data: any;
+      try {
+        ({ data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ));
+      } catch (error) {
+        // A task that failed answers with an HTTP error: the wait ends and the page stops showing its spinner.
+        console.error(error);
+        context.commit("loadingStorage", true);
+        return;
+      }
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parseStorage", {
-            location: location,
-          });
+          context.dispatch("parseStorage", { location: location, epoch: epoch, since: since });
         }, 2000);
       } else {
         context.commit("loadingStorage", true);
@@ -367,7 +541,7 @@ export default createStore({
             context.dispatch("requestStorage");
             router.push("/admin/configuration/storage");
             vm.$vaToast.init({
-              message: "Storage has been successfully updated",
+              message: vm.$t("pages.navbar.storageUpdated"),
               color: "success",
             });
           }
@@ -375,7 +549,7 @@ export default createStore({
         .catch((error) => {
           console.error(error);
           vm.$vaToast.init({
-            title: "Error !",
+            title: vm.$t("pages.navbar.errorTitle"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });
@@ -430,17 +604,32 @@ export default createStore({
         `${this.state.endpoint.api}/api/v1/jobs`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      context.dispatch("parseJob", { location: data.Location });
+      context.dispatch("parseJob", {
+        location: data.Location,
+        epoch: nextEpoch("Job"),
+        since: Date.now(),
+      });
     },
-    async parseJob(context, { location }) {
+    async parseJob(context, { location, epoch, since }) {
+      if (isSuperseded("Job", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let data: any;
+      try {
+        ({ data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ));
+      } catch (error) {
+        // A task that failed answers with an HTTP error: the wait ends and the page stops showing its spinner.
+        console.error(error);
+        context.commit("loadingJob", true);
+        return;
+      }
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parseJob", { location: location });
+          context.dispatch("parseJob", { location: location, epoch: epoch, since: since });
         }, 2000);
       } else {
         context.commit("loadingJob", true);
@@ -468,19 +657,30 @@ export default createStore({
       );
       context.dispatch("parseExternalHooks", {
         location: data.Location,
+        epoch: nextEpoch("ExternalHooks"),
+        since: Date.now(),
       });
     },
-    async parseExternalHooks(context, { location }) {
+    async parseExternalHooks(context, { location, epoch, since }) {
+      if (isSuperseded("ExternalHooks", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
-      const { data } = await axios.get(
-        `${this.state.endpoint.api}${location}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let data: any;
+      try {
+        ({ data } = await axios.get(
+          `${this.state.endpoint.api}${location}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ));
+      } catch (error) {
+        // A task that failed answers with an HTTP error: the wait ends and the page stops showing its spinner.
+        console.error(error);
+        context.commit("loadingExternalHook", true);
+        return;
+      }
       if (data.state === "PENDING" || data.state == "STARTED") {
         setTimeout(() => {
-          context.dispatch("parseExternalHooks", {
-            location: location,
-          });
+          context.dispatch("parseExternalHooks", { location: location, epoch: epoch, since: since });
         }, 2000);
       } else {
         context.commit("loadingExternalHook", true);
@@ -509,7 +709,7 @@ export default createStore({
             context.dispatch("requestExternalHook");
             router.push("/admin/configuration/externalhooks");
             vm.$vaToast.init({
-              message: "External hook has been successfully updated",
+              message: vm.$t("pages.navbar.hookUpdated"),
               color: "success",
             });
           }
@@ -517,7 +717,7 @@ export default createStore({
         .catch((error) => {
           console.error(error);
           vm.$vaToast.init({
-            title: "Error !",
+            title: vm.$t("pages.navbar.errorTitle"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });
@@ -541,9 +741,14 @@ export default createStore({
       );
       context.dispatch("parseConnectors", {
         location: data.Location,
+        epoch: nextEpoch("Connectors"),
+        since: Date.now(),
       });
     },
-    async parseConnectors(context, { location }) {
+    async parseConnectors(context, { location, epoch, since }) {
+      if (isSuperseded("Connectors", epoch, since)) {
+        return;
+      }
       const token = context.state.token;
       try {
         const { data } = await axios.get(
@@ -552,9 +757,7 @@ export default createStore({
         );
         if (data.state === "PENDING" || data.state == "STARTED") {
           setTimeout(() => {
-            context.dispatch("parseConnectors", {
-              location: location,
-            });
+            context.dispatch("parseConnectors", { location: location, epoch: epoch, since: since });
           }, 2000);
         } else {
           context.commit("loadingConnector", true);
@@ -593,7 +796,7 @@ export default createStore({
             context.dispatch("requestConnector");
             router.push("/admin/configuration/connectors");
             vm.$vaToast.init({
-              message: "Connector has been successfully updated",
+              message: vm.$t("pages.navbar.connectorUpdated"),
               color: "success",
             });
           }
@@ -601,7 +804,7 @@ export default createStore({
         .catch((error) => {
           console.error(error);
           vm.$vaToast.init({
-            title: "Error !",
+            title: vm.$t("pages.navbar.errorTitle"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });
@@ -612,15 +815,38 @@ export default createStore({
     },
   },
   mutations: {
-    logout(state) {
+    // Payload of the login and password change routes.
+    setSession(state: any, payload: any) {
+      state.token = payload.access_token;
+      state.user = payload.user;
+      state.userName = payload.user.name;
+      saveSession({
+        token: payload.access_token,
+        user: payload.user,
+        expiresAt: Date.now() + payload.expires_in * 1000,
+      });
+    },
+    refreshStarted(state: any) {
+      state.refresh.running = true;
+    },
+    refreshFinished(state: any) {
+      state.refresh.running = false;
+      state.refresh.lastAt = Date.now();
+      state.refresh.tick += 1;
+    },
+    setRefreshSeconds(state: any, seconds: number) {
+      state.refresh.seconds = seconds;
+      try {
+        localStorage.setItem(REFRESH_KEY, String(seconds));
+      } catch {
+        // The choice is then kept until the page is closed.
+      }
+    },
+    logout(state: any) {
       state.token = null;
+      state.user = null;
       state.userName = null;
-    },
-    insertToken(state, token) {
-      state.token = token;
-    },
-    insertUserName(state, userName) {
-      state.userName = userName;
+      saveSession(null);
     },
     poolList(state, poolsList) {
       state.resources.poolList = poolsList;
@@ -642,6 +868,9 @@ export default createStore({
     },
     vmList(state, vmList) {
       state.resources.vmList = vmList;
+    },
+    vmWarnings(state, warnings) {
+      state.resources.vmWarnings = warnings;
     },
     loadingVm(state, loadingState) {
       state.isvmTableReady = loadingState;

@@ -42,8 +42,10 @@ from app.routes import storage
 from app.backup_tasks import manage_backup
 
 from app.patch import make_path
+from app.redis import new_redis_client
 from app.virtual_machine_helper import add_disk_access_check
 from app import shell
+from app import safety
 
 # CS Imports
 from app.cloudstack import virtual_machine as cs_manage_vm
@@ -65,11 +67,6 @@ class VirtualMachineStorage:
         self.path = path
 
 
-class VirtualMachineBackupsRequest(BaseModel):
-    virtualMachineName: str
-    storagePath: str
-
-
 @celery_app.task(name='Filter VMs list')
 def filter_virtual_machine_list(virtual_machine_list, virtual_machine_id):
     print(virtual_machine_id)
@@ -78,6 +75,9 @@ def filter_virtual_machine_list(virtual_machine_list, virtual_machine_id):
         print(vm['uuid'])
         if vm['uuid'] == virtual_machine_id:
             vmToFind = vm
+    if not vmToFind:
+        # "not found" makes the status of the task answer 404, and no backup nor restore starts on nothing.
+        raise ValueError(f'Virtual machine {virtual_machine_id} not found')
     return vmToFind
 
 
@@ -96,6 +96,41 @@ def dmap(it, callback):
     c = group(callback.clone([arg,]) for arg in it)()
     c.save()
     return c.id
+
+
+WARNINGS_KEY = "virtualmachines:warnings"
+WARNINGS_SECONDS = 15 * 60
+
+
+def connector_warning(connector, exception) -> str:
+    """What to tell the user when the machines of a connector could not be listed."""
+    from app import vault
+    if isinstance(exception, vault.SecretError):
+        return (f"The secret of the connector {connector.name} can not be read (the key of the secrets changed): type it again in "
+                f"Configuration > Connectors. The machines that only CloudStack knows are missing from this list.")
+    return (f"The connector {connector.name} could not be listed ({str(exception)[:200] or type(exception).__name__}). "
+            f"The machines that only CloudStack knows are missing from this list.")
+
+
+def store_warnings(warnings: list[str]):
+    """Kept for the page of the machines, that shows them: a list that is replaced at each listing, and that expires."""
+    try:
+        client = new_redis_client()
+        client.set(WARNINGS_KEY, json.dumps(warnings), ex=WARNINGS_SECONDS)
+        client.quit()
+    except Exception as exception:
+        print(f"Unable to keep the warnings of the machines list. {exception}")
+
+
+def read_warnings() -> list[str]:
+    try:
+        client = new_redis_client()
+        value = client.get(WARNINGS_KEY)
+        client.quit()
+        return json.loads(value) if value else []
+    except Exception as exception:
+        print(f"Unable to read the warnings of the machines list. {exception}")
+        return []
 
 
 @celery_app.task
@@ -130,8 +165,14 @@ def handle_results(group_id):
                 connector_obj.password = connector.password
                 connector_obj.pool_id = pool_id
                 connector_list.append(connector_obj)
+    warnings = []
     for connector in connector_list:
-        cs_vm_list += cs_manage_vm.listAllVms(connector)
+        try:
+            cs_vm_list += cs_manage_vm.listAllVms(connector)
+        except Exception as exception:
+            print(f"Unable to list the machines of the connector {connector.name}. {exception}")
+            warnings.append(connector_warning(connector, exception))
+    store_warnings(warnings)
 
     # Merge KVM and CS discovered virtual machines to a single array
 
@@ -255,25 +296,20 @@ def retrieve_virtual_machine_paths(self):
         raise ValueError(e)
 
 
-@celery_app.task(name='List virtual machine backups', bind=True)
-def retrieve_virtual_machine_backups_from_path(self, virtualMachineName: str, storagePath: str):
-    try:
-        backup_list = json.loads(borg_core.borg_list_backup(
-            virtualMachineName, storagePath))
-        return backup_list
-
-    except Exception as e:
-        raise ValueError(e)
-
-
 @fastapi_app.get('/api/v1/virtualmachines/{virtual_machine_id}/breaklock', status_code=202)
-def break_virtual_machine_borg_lock(virtual_machine_id, identity: Json = Depends(auth.verify_token)):
+def break_virtual_machine_borg_lock(virtual_machine_id, identity: Json = Depends(auth.require_editor)):
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), borg_misc.borgbreaklock.s(virtual_machine_id)).apply_async()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
+
+
+@fastapi_app.get('/api/v1/virtualmachines/warnings', status_code=200)
+def list_virtual_machine_warnings(identity: Json = Depends(auth.verify_token)):
+    """What went wrong during the last listing of the machines (a connector that does not answer, for instance)."""
+    return {"warnings": read_warnings()}
 
 
 @fastapi_app.get('/api/v1/virtualmachines', status_code=202)
@@ -304,12 +340,14 @@ def list_virtual_machine_backups(virtual_machine_id, identity: Json = Depends(au
 
 
 @fastapi_app.delete('/api/v1/virtualmachines/{virtual_machine_id}/backups/{backup_name}', status_code=202)
-def delete_specific_virtual_machine_backup(virtual_machine_id, backup_name, identity: Json = Depends(auth.verify_token)):
+def delete_specific_virtual_machine_backup(virtual_machine_id, backup_name, identity: Json = Depends(auth.require_editor)):
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
     if not backup_name:
         raise HTTPException(status_code=404, detail='Backup not found')
+    if not safety.valid_backup_name(backup_name):
+        raise HTTPException(status_code=422, detail='Invalid backup name.')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), manage_backup.remove_archive.s(virtual_machine_id, backup_name)).apply_async()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
@@ -330,6 +368,8 @@ def get_virtual_machine_backup_stats(virtual_machine_id, backup_name, identity: 
     if not virtual_machine_id:
         raise HTTPException(
             status_code=404, detail='Virtual machine not found')
+    if not safety.valid_backup_name(backup_name):
+        raise HTTPException(status_code=422, detail='Invalid backup name.')
     res = chain(host.retrieve_host.s(), dmap.s(parse_host.s()), handle_results.s(
     ), retrieve_virtual_machine_backup_stats.s(virtual_machine_id, backup_name)).apply_async()
     return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}
@@ -338,10 +378,3 @@ def get_virtual_machine_backup_stats(virtual_machine_id, backup_name, identity: 
 @fastapi_app.get('/api/v1/virtualmachinespaths', status_code=202)
 def get_virtual_machine_paths(identity: Json = Depends(auth.verify_token)):
     return {'paths': retrieve_virtual_machine_paths()}
-
-
-@fastapi_app.post('/api/v1/virtualmachinebackupsfrompath', status_code=202)
-def get_virtual_machine_backups_from_path(virtualMachineBackupsRequest: VirtualMachineBackupsRequest, identity: Json = Depends(auth.verify_token)):
-    res = chain(retrieve_virtual_machine_backups_from_path.s(
-        virtualMachineBackupsRequest.virtualMachineName, virtualMachineBackupsRequest.storagePath)).apply_async()
-    return {'Location': fastapi_app.url_path_for('retrieve_task_status', task_id=res.id)}

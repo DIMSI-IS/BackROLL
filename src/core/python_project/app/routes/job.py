@@ -45,11 +45,6 @@ def retrieve_job():
                 'mode': 'single',
                 'type': 'restore'
             },
-            {
-                'name': 'Disk Restore To Specified Path',
-                'mode': 'mounted',
-                'type': 'restore'
-            },
         ]
     except Exception as e:
         raise ValueError(e)

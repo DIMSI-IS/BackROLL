@@ -33,9 +33,9 @@ For the moment, only the RSA key is shown in the UI but you can also use the Ed2
 If you have changed the source code of one of the containers, you may have to build it and start it again. Example:
 
 ```bash
-docker compose $dev build sso
-docker compose $dev create sso
-docker compose $dev start sso
+docker compose $dev build api
+docker compose $dev create api
+docker compose $dev start api
 ```
 
 Some of the container have their sources mounted. Check out [compose.sources.yaml](./compose.source.yaml). In this case, just restart the container. Example:
@@ -46,9 +46,7 @@ docker compose $dev restart api
 
 ## About the `dev` proxy server
 
-Thanks to the proxy server, only one port of the host is used and the SSO always have the same address. This is useful if you work remotely or if you are not always working on the same network.
-
-Mind that both your web browser and the `api` container must access to the SSO with the same URL.
+Thanks to the proxy server, only one port of the host is used and the containers always have the same address. This is useful if you work remotely or if you are not always working on the same network.
 
 ## User interface
 

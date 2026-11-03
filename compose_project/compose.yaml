@@ -16,17 +16,6 @@ services:
     image: redis:7.2
     command: "redis-server"
 
-  sso:
-    build:
-      context: ./sso
-      args:
-        - BACKROLL_MODE=$BACKROLL_MODE
-    profiles:
-      - sso
-    env_file:
-      - .env
-      - "@$BACKROLL_MODE.env"
-
   api:
     command: bash commands/docker.sh api
     env_file:

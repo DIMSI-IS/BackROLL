@@ -12,7 +12,7 @@
         </div>
         <template #footer>
             <va-button @click="error = null">
-                Close
+                {{ $t('pages.configuration.common.close') }}
             </va-button>
         </template>
     </va-modal>

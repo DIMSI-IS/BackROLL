@@ -4,39 +4,39 @@
       <FormHeader
         :title="
           hookId
-            ? `Updating hook ${stateHook?.name ?? ''}`
-            : 'Adding external hook'
+            ? $t('pages.configuration.externalHook.updating', { name: stateHook?.name ?? '' })
+            : $t('pages.configuration.externalHook.adding')
         "
       />
     </va-card-title>
     <va-card-content v-if="!hookId || stateHook">
       <va-alert color="info" icon="info" dense>
-        For now, the only external hook provider supported is Slack
+        {{ $t('pages.configuration.externalHook.onlySlack') }}
       </va-alert>
       <br />
       <va-form ref="form">
         <va-input
-          label="Name"
+          :label="$t('pages.configuration.common.name')"
           v-model="formHook.name"
           :rules="[
-            (value) => value?.length > 0 || 'Field is required',
+            (value) => value?.length > 0 || $t('pages.configuration.common.required'),
             (value) =>
-              isHookNameUnique(value) || 'This hook name is already used',
+              isHookNameUnique(value) || $t('pages.configuration.externalHook.nameUsed'),
           ]"
         />
         <br />
         <va-input
-          label="Provider"
+          :label="$t('pages.configuration.externalHook.provider')"
           v-model="formHook.provider"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          :rules="[(value) => value?.length > 0 || $t('pages.configuration.common.required')]"
           readonly
         />
         <br />
         <va-input
           v-model="formHook.value"
           :type="isPasswordVisible ? 'text' : 'password'"
-          label="Value"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          :label="$t('pages.configuration.externalHook.value')"
+          :rules="[(value) => value?.length > 0 || $t('pages.configuration.common.required')]"
         >
           <template #appendInner>
             <va-icon
@@ -53,7 +53,7 @@
         class="mb-3"
         @click="$refs.form.validate() && (hookId ? updateHook() : addHook())"
       >
-        {{ hookId ? "Update" : "Add" }}
+        {{ hookId ? $t('pages.configuration.common.update') : $t('pages.configuration.common.add') }}
       </va-button>
     </va-card-content>
     <div v-else class="flex-center ma-3">
@@ -132,14 +132,14 @@ export default {
           this.$router.push("/admin/configuration/externalhooks");
           this.$vaToast.init({
             title: response.data.state,
-            message: "External hook has been successfully added",
+            message: this.$t("pages.configuration.externalHook.added"),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to add external hook",
+            title: this.$t("pages.configuration.externalHook.addFailed"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

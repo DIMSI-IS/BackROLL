@@ -1,7 +1,7 @@
 <template>
     <div id="container">
         <h1>{{ title }}</h1>
-        <va-button icon="clear" color="info" @click="$router.go(-1)">Close</va-button>
+        <va-button icon="clear" color="info" @click="$router.go(-1)">{{ $t('pages.configuration.common.close') }}</va-button>
     </div>
 </template>
 <script>

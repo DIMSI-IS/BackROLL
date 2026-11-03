@@ -1,96 +1,168 @@
-from logging import Logger
-from pydantic import Json
-import sqlalchemy
-from sqlmodel import Session, select
-import bcrypt
-import jwt
+from datetime import datetime, timedelta, timezone
+from functools import lru_cache
+from threading import Lock
 
+import bcrypt
+from sqlalchemy import update
+from sqlmodel import Session, select, func
+
+from app.auth import token
+from app.auth.roles import Role
+from app import settings
 from app.database import init_db_connection, User
 from app.environment import get_env_var
-from app.logging import logged
+
+# After that many failed logins in a row, the account is locked for a while: see the settings.
 
 
-def __bytes_from_string(text: str) -> bytes:
-    return bytes(text, "utf-8")
+class AccountLocked(Exception):
+    def __init__(self, retry_after_seconds: int):
+        super().__init__("Account locked.")
+        self.retry_after_seconds = retry_after_seconds
 
 
-def __hash_password(password: str) -> bytes:
-    return bcrypt.hashpw(__bytes_from_string(password), bcrypt.gensalt())
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 
-def __check_password(password: str, hash: bytes) -> bool:
-    return bcrypt.checkpw(__bytes_from_string(password), hash)
+def get_max_failed_attempts() -> int:
+    return settings.get_value(settings.LOGIN_MAX_ATTEMPTS)
 
 
-def __get_private_key():
-    return "TODO private key"
+def get_lock_duration() -> timedelta:
+    return timedelta(minutes=settings.get_value(settings.LOGIN_LOCK_MINUTES))
 
 
-def register(username: str, password: str):
-    hash: bytes = __hash_password(password)
+# bcrypt only considers the first 72 bytes.
+MAX_PASSWORD_BYTES = 72
+MIN_PASSWORD_LENGTH = 8
 
-    # Enough space must be reserved in the table column.
-    user = User(name=username, password_hash=hash)
-    engine = init_db_connection()
-    with Session(engine) as session:
+
+@lru_cache(maxsize=1)
+def get_engine():
+    return init_db_connection()
+
+
+def hash_password(password: str) -> bytes:
+    return bcrypt.hashpw(password.encode("utf-8")[:MAX_PASSWORD_BYTES], bcrypt.gensalt())
+
+
+def check_password(password: str, password_hash: bytes) -> bool:
+    return bcrypt.checkpw(password.encode("utf-8")[:MAX_PASSWORD_BYTES], bytes(password_hash))
+
+
+@lru_cache(maxsize=1)
+def get_dummy_hash() -> bytes:
+    return hash_password("dummy")
+
+
+def validate_password_strength(password: str) -> str:
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise ValueError(
+            f"Password must be at least {MIN_PASSWORD_LENGTH} characters long.")
+    if len(password.encode("utf-8")) > MAX_PASSWORD_BYTES:
+        raise ValueError(
+            f"Password must be at most {MAX_PASSWORD_BYTES} bytes long.")
+    return password
+
+
+def find_user_by_name(session: Session, username: str) -> User | None:
+    statement = select(User).where(func.lower(User.name) == username.lower())
+    return session.exec(statement).first()
+
+
+def login_payload(user: User) -> dict:
+    return {
+        "access_token": token.create(user),
+        "token_type": "bearer",
+        "expires_in": int(token.get_lifetime().total_seconds()),
+        "user": user.to_json(),
+    }
+
+
+def login(username: str, password: str, audit_info: dict | None = None) -> dict | None:
+    """Return the login payload, or None for any invalid credentials.
+
+    Raises AccountLocked while the account is locked. The password is not even checked then.
+    A user of the Active Directory, or an unknown name while the directory is enabled, is checked by the
+    directory (app/auth/directory.py). `audit_info` receives the source and the detail for the audit log.
+    """
+    from app.auth import directory
+
+    with Session(get_engine()) as session:
+        user = find_user_by_name(session, username)
+
+        if (user is not None and user.auth_source == directory.SOURCE) or (user is None and directory.is_enabled()):
+            return directory.login(username, password, audit_info)
+
+        if user is None:
+            # Spend the same time as for an existing user.
+            check_password(password, get_dummy_hash())
+            return None
+
+        if user.locked_until is not None:
+            locked_until = user.locked_until
+            if locked_until.tzinfo is None:
+                locked_until = locked_until.replace(tzinfo=timezone.utc)
+            remaining = (locked_until - utcnow()).total_seconds()
+            if remaining > 0:
+                raise AccountLocked(int(remaining) + 1)
+
+        if not check_password(password, user.password_hash) or not user.is_active:
+            # The count is increased by the database in one statement: requests that arrive together
+            # (bcrypt takes a quarter of a second) must each be counted.
+            session.exec(update(User).where(User.id == user.id)
+                         .values(failed_attempts=User.failed_attempts + 1))
+            session.commit()
+            session.refresh(user)
+            if user.failed_attempts >= get_max_failed_attempts():
+                session.exec(update(User).where(User.id == user.id)
+                             .values(locked_until=utcnow() + get_lock_duration(), failed_attempts=0))
+                session.commit()
+            return None
+
+        if user.failed_attempts or user.locked_until:
+            user.failed_attempts = 0
+            user.locked_until = None
+            session.add(user)
+            session.commit()
+        return login_payload(user)
+
+
+def change(user_id, old_password: str, new_password: str) -> dict | None:
+    """Change the password and return a new login payload, or None if the old password is wrong."""
+    with Session(get_engine()) as session:
+        user = session.get(User, user_id)
+
+        if user is None or not check_password(old_password, user.password_hash):
+            return None
+
+        user.password_hash = hash_password(new_password)
         session.add(user)
         session.commit()
+        session.refresh(user)
+        return login_payload(user)
 
 
-def login(username: str, password: str) -> str:
-    engine = init_db_connection()
-    with Session(engine) as session:
-        statement = select(User).where(User.name == username)
-        results = session.exec(statement)
-        user: User = results.one()
-
-        if not __check_password(password, user.password_hash):
-            raise Exception("Wrong password")
-
-        return jwt.encode({
-            "username": username,
-        }, __get_private_key(), algorithm="HS256")
+def needs_setup() -> bool:
+    """True while there is no user at all: the first admin must then be created."""
+    with Session(get_engine()) as session:
+        return session.exec(select(func.count()).select_from(User)).one() == 0
 
 
-def change(username: str, old_password, new_password):
-    engine = init_db_connection()
-    with Session(engine) as session:
-        statement = select(User).where(User.name == username)
-        results = session.exec(statement)
-        user: User = results.one()
-
-        if not __check_password(old_password, user.password_hash):
-            raise Exception("Wrong password")
-
-        user.password_hash = __hash_password(new_password)
-        session.add(user)
-        session.commit()
+__setup_lock = Lock()
 
 
-def verify(token: str) -> Json:
-    decoded = jwt.decode(token,
-                         __get_private_key(),
-                         algorithms=["HS256"])
-    if decoded["username"] != get_env_var("DEFAULT_USER_NAME"):
-        raise Exception("You must use the default user.")
-    return decoded
+def create_first_admin(username: str, password: str) -> dict | None:
+    """Create the first admin and return a login payload, or None if a user already exists."""
+    with __setup_lock:
+        if not needs_setup():
+            return None
 
-
-@logged()
-def ensure_default_user(logger: Logger):
-    engine = init_db_connection()
-    with Session(engine) as session:
-        statement = select(User).where(
-            User.name == get_env_var("DEFAULT_USER_NAME"))
-        results = session.exec(statement)
-        try:
-            results.one()
-
-            logger.info("Default user is already registered.")
-        except sqlalchemy.exc.NoResultFound:
-            logger.info("Default user is missing. Registering default user…")
-
-            register(get_env_var("DEFAULT_USER_NAME"),
-                     get_env_var("DEFAULT_USER_PASSWORD"))
-
-            logger.info("Default user is now registered.")
+        with Session(get_engine()) as session:
+            user = User(name=username, password_hash=hash_password(password),
+                        role=Role.ADMIN.value)
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return login_payload(user)

@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <va-data-table
+    <va-data-table :no-data-html="$t('pages.common.noItems')"
       :fields="mode ? detailedFields : fields"
       :data="filteredData"
       :loading="loading"

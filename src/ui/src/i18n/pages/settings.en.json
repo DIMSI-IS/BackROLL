@@ -1,0 +1,51 @@
+{
+  "title": "Settings",
+  "refresh": "Refresh",
+  "save": "Save",
+  "runningNow": "Running now:",
+  "unableLoad": "Unable to load the settings",
+  "unableSave": "Unable to save the settings",
+  "saved": "Settings saved",
+  "range": "Between {min} and {max}",
+  "environmentNote": "A change applies at once, without a restart. What is not set here keeps the value of the environment variable of the same purpose, or its default.",
+  "section": {
+    "backups": "Backups",
+    "history": "History and files",
+    "security": "Security"
+  },
+  "sectionHelp": {
+    "backups": "How the backups run.",
+    "history": "How long the records and the temporary copies are kept. Older records are deleted by a cleaning that runs every six hours.",
+    "security": "Logins and sessions."
+  },
+  "field": {
+    "backup_concurrency": "Virtual machines backed up at the same time",
+    "storage_alert_percent": "Tell Slack when a backup storage is this full",
+    "task_history_retention_days": "Keep the history of the backups and restores",
+    "audit_retention_days": "Keep the audit log",
+    "file_browser_ttl_minutes": "Keep a copy opened to browse a backup",
+    "jwt_lifetime_minutes": "Length of a login session",
+    "login_max_attempts": "Failed logins before an account is locked",
+    "login_lock_minutes": "Length of the lock"
+  },
+  "unit": {
+    "backup_concurrency": "machines",
+    "storage_alert_percent": "% used",
+    "task_history_retention_days": "days",
+    "audit_retention_days": "days",
+    "file_browser_ttl_minutes": "minutes",
+    "jwt_lifetime_minutes": "minutes",
+    "login_max_attempts": "attempts",
+    "login_lock_minutes": "minutes"
+  },
+  "fieldHelp": {
+    "backup_concurrency": "The other backups wait for a free place, in the order they were started, also when this changes. The highest value is the number of processes of the backup worker (BACKUP_MAX_CONCURRENCY).",
+    "storage_alert_percent": "One message to the Slack hook chosen for the storage (Tasks > Clean backup) when its disk reaches this usage, checked every 15 minutes. No message while it stays above, a new one after it went back under.",
+    "task_history_retention_days": "The list in Tasks > Backup and Tasks > Restore, and the counters of the dashboard.",
+    "audit_retention_days": "Who did what, in Parameters > Audit log.",
+    "file_browser_ttl_minutes": "The copy of a backup that you open to browse its files is deleted after this time without use.",
+    "jwt_lifetime_minutes": "After this time a person has to log in again. It applies to the next logins.",
+    "login_max_attempts": "Wrong passwords in a row.",
+    "login_lock_minutes": "An administrator can unlock an account earlier from the users page."
+  }
+}

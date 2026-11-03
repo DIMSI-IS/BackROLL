@@ -167,7 +167,7 @@ def retrieve_pool():
 
 
 @fastapi_app.post('/api/v1/pools', status_code=201)
-def create_pool(item: create_items_pool, identity: Json = Depends(auth.verify_token)):
+def create_pool(item: create_items_pool, identity: Json = Depends(auth.require_editor)):
     return api_create_pool(item)
 
 
@@ -178,7 +178,7 @@ def list_pools(identity: Json = Depends(auth.verify_token)):
 
 
 @fastapi_app.patch('/api/v1/pools/{pool_id}', status_code=200)
-def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.verify_token)):
+def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(pool_id)
     except ValueError:
@@ -188,7 +188,7 @@ def update_pool(pool_id, item: update_items_pool, identity: Json = Depends(auth.
 
 
 @fastapi_app.delete('/api/v1/pools/{pool_id}', status_code=200)
-def delete_pool(pool_id, identity: Json = Depends(auth.verify_token)):
+def delete_pool(pool_id, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(pool_id)
     except ValueError:

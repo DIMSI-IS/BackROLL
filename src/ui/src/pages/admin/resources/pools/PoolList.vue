@@ -2,17 +2,17 @@
   <va-card>
     <va-card-title>
       <ListHeader
-        title="pools"
-        plus-button-title="Create pool"
+        :title="$t('pages.resources.pool.title')"
+        :plus-button-title="$t('pages.resources.pool.createButton')"
         plus-button-route="/admin/resources/pools/new"
         :dependencies-resolved="areDependenciesResolved"
-        dependencies-message="You need to create a backup policy."
-        go-button-title="Go to policies"
+        :dependencies-message="$t('pages.resources.pool.needPolicy')"
+        :go-button-title="$t('pages.resources.pool.goToPolicies')"
         go-button-route="/admin/configuration/policies"
       />
     </va-card-title>
     <va-card-content>
-      <va-data-table
+      <va-data-table :no-data-html="$t('pages.common.noItems')"
         :items="$store.state.resources.poolList"
         :columns="columns"
       >
@@ -39,7 +39,7 @@
         </template>
         <template #cell(actions)="{ rowIndex }">
           <va-button-group gradient :rounded="false">
-            <va-button
+            <va-button :disabled="!$store.getters.canEdit"
               icon="settings"
               @click="
                 this.$router.push(
@@ -47,7 +47,7 @@
                 )
               "
             />
-            <va-button
+            <va-button :disabled="!$store.getters.canEdit"
               icon="delete"
               @click="
                 (selectedPool = $store.state.resources.poolList[rowIndex]),
@@ -62,18 +62,18 @@
       </div>
     </va-card-content>
   </va-card>
-  <va-modal v-model="showDeleteModal" @ok="deletePool()">
+  <va-modal v-model="showDeleteModal" :ok-text="$t('pages.resources.common.ok')" :cancel-text="$t('pages.resources.common.cancel')" @ok="deletePool()">
     <template #header>
       <h2>
         <va-icon name="warning" color="danger" />
-        Removing Pool
+        {{ $t('pages.resources.pool.removing') }}
       </h2>
     </template>
     <hr />
     <div>
-      You are about to remove Pool
+      {{ $t('pages.resources.pool.removeIntro') }}
       <b>{{ JSON.parse(JSON.stringify(this.selectedPool)).name }}</b
-      >. <br />Please confirm action.
+      >. <br />{{ $t('pages.resources.common.confirmAction') }}
     </div>
   </va-modal>
 </template>
@@ -93,17 +93,27 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        { key: "name" },
-        { key: "policy_id", label: "Assigned policy" },
-        { key: "connector_id", label: "Connector" },
-        { key: "actions" },
-      ],
       showDeleteModal: false,
       selectedPool: null,
     };
   },
   computed: {
+    columns() {
+      return [
+        { key: "name", label: this.$t("pages.resources.pool.colName") },
+        { key: "policy_id", label: this.$t("pages.resources.pool.colPolicy") },
+        { key: "connector_id", label: this.$t("pages.resources.pool.colConnector") },
+        { key: "actions", label: this.$t("pages.resources.pool.colActions") },
+      ];
+    },
+    columns() {
+      return [
+        { key: "name", label: this.$t("pages.resources.pool.colName") },
+        { key: "policy_id", label: this.$t("pages.resources.pool.colPolicy") },
+        { key: "connector_id", label: this.$t("pages.resources.pool.colConnector") },
+        { key: "actions", label: this.$t("pages.resources.pool.colActions") },
+      ];
+    },
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
       return (
@@ -138,14 +148,14 @@ export default defineComponent({
           this.$store.dispatch("requestPool");
           this.$vaToast.init({
             title: response.data.state,
-            message: "Pool has been successfully deleted",
+            message: this.$t('pages.resources.pool.deleted'),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to delete pool",
+            title: this.$t('pages.resources.pool.deleteFailed'),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

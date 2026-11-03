@@ -37,6 +37,9 @@ from app.database import Pools
 from app import ssh
 from app.routes import virtual_machine
 from app import shell
+from app import safety
+import shlex
+from pydantic import field_validator
 
 
 class items_create_host(BaseModel):
@@ -44,6 +47,14 @@ class items_create_host(BaseModel):
     tags: Optional[str] = None
     ip_address: str
     pool_id: UUID
+
+    @field_validator("ip_address")
+    @classmethod
+    def check_address(cls, value):
+        # The address ends in a shell command: only an IP address or a host name is accepted.
+        if value is not None and not safety.valid_address(value):
+            raise ValueError("The address of a host must be an IP address or a host name.")
+        return value
 
     class Config:
         schema_extra = {
@@ -61,6 +72,14 @@ class items_update_host(BaseModel):
     tags: Optional[str] = None
     ip_address: Optional[str] = None
     pool_id: Optional[UUID] = None
+
+    @field_validator("ip_address")
+    @classmethod
+    def check_address(cls, value):
+        # The address ends in a shell command: only an IP address or a host name is accepted.
+        if value is not None and not safety.valid_address(value):
+            raise ValueError("The address of a host must be an IP address or a host name.")
+        return value
 
     class Config:
         schema_extra = {
@@ -179,7 +198,7 @@ def retrieve_host():
                 records.append(host)
         for host in records:
             try:
-                shell.os_system(f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
+                shell.os_system(f"nc -z -w 1 {shlex.quote(host.ipaddress)} 22 > /dev/null")
                 host.state = 'Reachable'
             except shell.ShellException:
                 # TODO Be more precise than before and check the exit code ?
@@ -206,7 +225,7 @@ def api_delete_host(host_id):
         is_host_up = False
         try:
             shell.os_system(
-                f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
+                f"nc -z -w 1 {shlex.quote(host.ipaddress)} 22 > /dev/null")
             is_host_up = True
         except shell.ShellException:
             warnings.append(
@@ -225,7 +244,7 @@ def api_delete_host(host_id):
 
 
 @fastapi_app.post("/api/v1/hosts", status_code=201)
-def create_host(item: items_create_host, identity: Json = Depends(auth.verify_token)):
+def create_host(item: items_create_host, identity: Json = Depends(auth.require_editor)):
     return api_create_host(item)
 
 
@@ -238,7 +257,7 @@ def list_hosts(identity: Json = Depends(auth.verify_token)):
 
 
 @fastapi_app.patch("/api/v1/hosts/{host_id}", status_code=200)
-def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.verify_token)):
+def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(host_id)
     except ValueError:
@@ -251,7 +270,7 @@ def update_host(host_id, item: items_update_host, identity: Json = Depends(auth.
 
 
 @fastapi_app.delete('/api/v1/hosts/{host_id}', status_code=200)
-def delete_host(host_id, identity: Json = Depends(auth.verify_token)):
+def delete_host(host_id, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(host_id)
     except ValueError:
@@ -260,7 +279,7 @@ def delete_host(host_id, identity: Json = Depends(auth.verify_token)):
 
 
 @fastapi_app.post('/api/v1/connect/{host_id}', status_code=200)
-def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.verify_token)):
+def init_host_ssh_connection(host_id, item: items_connect_host, identity: Json = Depends(auth.require_editor)):
     try:
         ssh.init_ssh_connection(host_id, item.ip_address, item.username)
         return {'state': 'SUCCESS'}

@@ -1,19 +1,19 @@
 <template>
   <va-card>
     <va-card-title>
-      <ListHeader title="Hooks" plus-button-title="Add external hook"
+      <ListHeader :title="$t('pages.configuration.externalHook.title')" :plus-button-title="$t('pages.configuration.externalHook.addButton')"
         plus-button-route="/admin/configuration/externalhooks/new" />
     </va-card-title>
     <va-card-content>
-      <va-data-table :items="hookList" :columns="columns">
+      <va-data-table :no-data-html="$t('pages.common.noItems')" :items="hookList" :columns="columns">
         <template #cell(value)="{ value }">
-          {{ value ? '***MASKED***' : '' }}
+          {{ value ? $t('pages.configuration.externalHook.masked') : '' }}
         </template>
         <template #cell(id)="{ value }">
           <va-button-group gradient :rounded="false">
-            <va-button icon="play_arrow" @click="testHook(value)" />
-            <va-button icon="settings" :to="`/admin/configuration/externalhooks/${value}`" />
-            <va-button icon="delete" @click="selectedHookId = value, showDeleteModal = true" />
+            <va-button :disabled="!$store.getters.canEdit" icon="play_arrow" @click="testHook(value)" />
+            <va-button :disabled="!$store.getters.canEdit" icon="settings" :to="`/admin/configuration/externalhooks/${value}`" />
+            <va-button :disabled="!$store.getters.canEdit" icon="delete" @click="selectedHookId = value, showDeleteModal = true" />
           </va-button-group>
         </template>
       </va-data-table>
@@ -26,13 +26,13 @@
     <template #header>
       <h2>
         <va-icon name="warning" color="danger" />
-        Removing External hook
+        {{ $t('pages.configuration.externalHook.removing') }}
       </h2>
     </template>
     <hr>
     <div>
-      You are about to remove external hook <b>{{ selectedHook.name }}</b>.
-      <br>Please confirm action.
+      {{ $t('pages.configuration.externalHook.removeIntro') }} <b>{{ selectedHook.name }}</b>.
+      <br>{{ $t('pages.configuration.common.confirm') }}
     </div>
   </va-modal>
 </template>
@@ -51,16 +51,18 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        { key: 'name' },
-        { key: 'value' },
-        { key: "id", label: "actions" }
-      ],
       selectedHookId: null,
       showDeleteModal: false,
     }
   },
   computed: {
+    columns() {
+      return [
+        { key: 'name', label: this.$t('pages.configuration.common.name') },
+        { key: 'value', label: this.$t('pages.configuration.externalHook.value') },
+        { key: 'id', label: this.$t('pages.configuration.common.actions') }
+      ]
+    },
     hookList() {
       return this.$store.state.resources.externalHookList
     },
@@ -72,11 +74,11 @@ export default defineComponent({
     async testHook(id) {
       try {
         const response = await axios.get(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${id}/test`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
-        this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully tested.', color: 'success' })
+        this.$vaToast.init({ title: response.data.state, message: this.$t('pages.configuration.externalHook.tested'), color: 'success' })
       } catch (error) {
         console.error(error)
         this.$vaToast.init({
-          title: 'Unable to test external hook',
+          title: this.$t('pages.configuration.externalHook.testFailed'),
           message: error?.response?.data?.detail ?? error,
           color: 'danger'
         })
@@ -86,12 +88,12 @@ export default defineComponent({
       axios.delete(`${this.$store.state.endpoint.api}/api/v1/externalhooks/${this.selectedHookId}`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.$store.state.token}` } })
         .then(response => {
           this.$store.dispatch("requestExternalHook")
-          this.$vaToast.init({ title: response.data.state, message: 'External hook has been successfully removed', color: 'success' })
+          this.$vaToast.init({ title: response.data.state, message: this.$t('pages.configuration.externalHook.removed'), color: 'success' })
         })
         .catch(error => {
           console.error(error)
           this.$vaToast.init({
-            title: 'Unable to remove external hook',
+            title: this.$t('pages.configuration.externalHook.removeFailed'),
             message: error?.response?.data?.detail ?? error,
             color: 'danger'
           })

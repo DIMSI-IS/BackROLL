@@ -32,8 +32,9 @@ from celery import chord
 from app.initialized import fastapi_app
 from app.initialized import celery_app
 from app import auth
+import shlex
 from app import database
-from app import task_handler
+from app import notifier, task_handler
 from app import shell
 
 from app.backup_tasks import pool_backup
@@ -48,8 +49,23 @@ class connectorObject(object):
     pass
 
 
+def notify_host_problems(pool_id, problems, cancelled=False):
+    """Tells the hook of the policy of the pool that some hypervisors were not backed up. A hook that does not
+    answer never changes what the backup does."""
+    try:
+        from app.routes import backup_policy
+        current = pool.filter_pool_by_id(pool_id)
+        hook_id = backup_policy.filter_policy_by_id(current.policy_id).externalhook
+        notifier.send(hook_id, notifier.host_problem_message(current.name, problems, cancelled),
+                      notifier.host_problem_blocks(current.name, problems, cancelled))
+    except Exception as exception:
+        print(f"Unable to tell the hook about the hypervisors that were not backed up. {exception}")
+
+
 def getVMtobackup(pool_id):
     engine = database.init_db_connection()
+    # (hypervisor, reason): told to the hook of the policy, nothing else changes.
+    problems = []
 
     virtual_machine_list = []
     try:
@@ -61,7 +77,7 @@ def getVMtobackup(pool_id):
                 is_host_up = False
                 try:
                     shell.os_system(
-                        f"nc -z -w 1 {host.ipaddress} 22 > /dev/null")
+                        f"nc -z -w 1 {shlex.quote(host.ipaddress)} 22 > /dev/null")
                     is_host_up = True
                 except shell.ShellException:
                     # TODO Be more precise than before and check the exit code ?
@@ -72,10 +88,19 @@ def getVMtobackup(pool_id):
                         item_host = host.to_json()
                         virtual_machine_list.extend(
                             kvm_manage_vm.retrieve_virtualmachine(item_host))
-                    except Exception:
+                    except Exception as exception:
+                        problems.append((host.hostname, f"its machines could not be listed ({str(exception)[:200]})"))
+                        notify_host_problems(pool_id, problems, cancelled=True)
                         raise
+                elif not is_host_up:
+                    problems.append((host.hostname, "it does not answer on port 22 (SSH)"))
+                else:
+                    problems.append((host.hostname, "it is not connected to BackROLL (SSH keys)"))
     except Exception:
         raise
+
+    if problems:
+        notify_host_problems(pool_id, problems)
 
     # Query VM list from powered and reachable hypervisors
     ready_to_backup_list = []
@@ -83,20 +108,8 @@ def getVMtobackup(pool_id):
         if vm['state'] == 'Running' and int(vm['id']) != -1:
             ready_to_backup_list.append(vm)
 
-    # Check if pool has connector applied - if yes, retrieve powered off VM in cloudstack
-    connector_id = pool.filter_pool_by_id(pool_id).connector_id
-    if connector_id:
-        connector = connectors.filter_connector_by_id(connector_id)
-        connector_obj = connectorObject()
-        # Duplicate object connector to add pool_id property
-        connector_obj.id = connector.id
-        connector_obj.name = connector.name
-        connector_obj.url = connector.url
-        connector_obj.login = connector.login
-        connector_obj.password = connector.password
-        connector_obj.pool_id = pool_id
-
-        ready_to_backup_list += cs_manage_vm.listPoweredOffVms(connector_obj)
+    # Only the machines that are running are backed up. (The original code also added here the powered off
+    # machines of the CloudStack connector of the pool: they are not backed up any more.)
 
     print(ready_to_backup_list)
 
@@ -117,7 +130,7 @@ def kickstart_pool_backup(pool_id):
 
 
 @fastapi_app.post('/api/v1/tasks/poolbackup/{pool_id}', status_code=202)
-def start_pool_backup(pool_id, identity: Json = Depends(auth.verify_token)):
+def start_pool_backup(pool_id, identity: Json = Depends(auth.require_editor)):
     try:
         uuid_obj = UUID(pool_id)
     except ValueError:

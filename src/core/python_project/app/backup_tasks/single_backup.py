@@ -18,6 +18,8 @@
 #!/usr/bin/env python
 from fastapi.encoders import jsonable_encoder
 
+from app import backup_limit, policy_lookup
+from app.backup_tasks import eligibility
 from app.initialized import celery_app
 from app.redis import new_redis_client
 
@@ -58,42 +60,12 @@ def backup_creation(info):
         check_disks_access(virtual_machine)
 
         if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
-            print(f"[{info['name']}] Pre-Flight checks incoming.")
-            if backup_job.check_if_snapshot():
-                print(
-                    f"[{info['name']}] VM is currently under snapshot. Checking disk files...")
-                for disk in virtual_machine['storage']:
-                    if ".snap" in disk['source']:
-                        print(
-                            f"[{info['name']}] Current {disk['device']} disk file is in '.snap' mode.")
-                        try:
-                            # Blockcommit changes to original disk file
-                            backup_job.blockcommit(disk)
-                            print(
-                                f"[{info['name']}] {disk['device']} disk file has been successfully blockcommitted.")
-                        except:
-                            backup_job.close_connections()
-                            del backup_job
-                            raise
-                    if backup_job.checking_files_trace(disk):
-                        print(
-                            f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
-                        # Clean remaining snapshot files
-                        backup_job.remove_snapshot_file(disk)
-                        print(
-                            f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
-                backup_job.delete_snapshot()
-                print(f"[{info['name']}] Snapshot deleted.")
-            else:
-                for disk in virtual_machine['storage']:
-                    if backup_job.checking_files_trace(disk):
-                        print(
-                            f"[{info['name']}] Snap {disk['device']} disk file detected. Proceeding to deletion.")
-                        backup_job.remove_snapshot_file(disk)
-                        print(
-                            f"[{info['name']}] Snap {disk['device']} disk file has been deleted.")
-            print(f"[{info['name']}] Virtual Machine is now in clean condition.")
-            print(f"[{info['name']}] Pre-Flight checks done...")
+            # Nothing is repaired here: a machine that is not as a backup needs it is refused (disk_safety).
+            try:
+                backup_job.preflight()
+            except Exception:
+                backup_job.close_connections()
+                raise
         try:
             # If virtual machine is KVM only
             if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
@@ -103,6 +75,8 @@ def backup_creation(info):
             backup_job.check_repository()
             # Check borg repository lock status
             backup_job.check_repository_lock()
+            # Folders and files of the policy, before the disks which are the main job
+            backup_job.backup_files(policy_lookup.policy_of(virtual_machine))
             # Loop through vm's disks
             for disk in virtual_machine['storage']:
                 if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
@@ -114,37 +88,22 @@ def backup_creation(info):
                     # Blockcommit changes to original disk file
                     backup_job.blockcommit(disk)
                 # Borg Prune
-                host_obj = host.filter_host_by_id(virtual_machine['host'])
-                pool_obj = pool.filter_pool_by_id(host_obj.pool_id)
-                backup_job.borg_prune(
-                    disk, backup_policy.filter_policy_by_id(pool_obj.policy_id))
+                backup_job.borg_prune(disk, policy_lookup.policy_of(virtual_machine))
             if "host" in virtual_machine or virtual_machine.get('state') == 'Running':
                 # Remove VM snapshot
                 backup_job.delete_snapshot()
+            # Cleaning of the repository, if the storage asks for it (never fails the backup)
+            backup_job.cleanup_after_backup()
             # Return backup name
             return backup_job.send_result()
         except Exception as backup_error:
-            for disk in virtual_machine['storage']:
-                try:
-                    # Blockcommit changes to original disk file
-                    backup_job.blockcommit(disk)
-                except Exception as bcommit_error:
-                    print(
-                        f"[{info['name']}] Unable to blockcommit {disk['device']} ({disk['source']}). Keep going...")
-                    print(bcommit_error)
-                if backup_job.checking_files_trace(disk):
-                    try:
-                        # Clean remaining snapshot files
-                        backup_job.remove_snapshot_file(disk)
-                    except Exception as cleaning_error:
-                        # Close connections
-                        backup_job.close_connections()
-                        del backup_job
-                        raise cleaning_error
-            # Close connections
-            backup_job.close_connections()
-            del backup_job
-            raise backup_error
+            # The machine goes back on its disks when it can. No file is deleted here: what can not be brought
+            # back is reported (NEEDS_ATTENTION) and left for an administrator.
+            try:
+                backup_job.recover()
+            finally:
+                backup_job.close_connections()
+            raise
     try:
         # Retrieve VM host info
         # print px
@@ -158,18 +117,14 @@ def backup_creation(info):
         raise sequence_error
 
 
-@celery_app.task(queue='backup_tasks', name='Single_VM_Backup', soft_time_limit=5400)
-def single_vm_backup(virtual_machine_info):
+def run_single_vm_backup(virtual_machine_info):
     redis_client = new_redis_client()
     try:
         # TODO Duplicated code ?
-        vm_lock_key = f'vmlock-{virtual_machine_info}'
-        if not redis_client.exists(vm_lock_key):
-            # No duplicated key found in redis - target IS NOT locked right now
-            redis_client.set(vm_lock_key, "")
+        vm_lock_key = backup_limit.acquire_vm_lock(redis_client, virtual_machine_info)
+        if vm_lock_key is not None:
+            # The machine was not locked: it is now
             try:
-                redis_client.expire(vm_lock_key, 5400)
-
                 return backup_creation(virtual_machine_info)
             finally:
                 redis_client.delete(vm_lock_key)
@@ -178,6 +133,25 @@ def single_vm_backup(virtual_machine_info):
             raise ValueError("This task is already running / scheduled")
     finally:
         redis_client.quit()
+
+
+@celery_app.task(bind=True, queue='backup_tasks', name='Single_VM_Backup', soft_time_limit=5400,
+                 max_retries=None)
+def single_vm_backup(self, virtual_machine_info):
+    # The number of backups at the same time is a setting. A backup that finds no free place goes back
+    # to the queue: it must not wait here, inside the 90 minutes that a backup is allowed to take.
+    # max_retries=None on the task: given to retry() it would mean "the default of the task" (3 retries,
+    # 45 seconds), and a backup that waits for its turn would fail.
+    skipped = eligibility.skipped(virtual_machine_info)
+    if skipped:
+        return skipped
+    member = backup_limit.try_acquire(str(virtual_machine_info))
+    if member is None:
+        raise self.retry(countdown=backup_limit.RETRY_SECONDS)
+    try:
+        return run_single_vm_backup(virtual_machine_info)
+    finally:
+        backup_limit.release(member)
 
 
 # # Orphan backups cleaner (remove virtual machine borg's repository (and all of it's data) of any non-existing VM)

@@ -1,0 +1,71 @@
+name: Tests
+
+on:
+  # Every push, on every branch: the tests run by themselves after each change.
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: src/core/python_project/requirements.txt
+
+      # Borg, QEMU and the e2fsprogs tools are used by the tests of the restores.
+      # The tests that need libguestfs are skipped here: they run in the backend container.
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvirt-dev pkg-config build-essential \
+            libacl1-dev libssl-dev liblz4-dev libzstd-dev libxxhash-dev \
+            borgbackup qemu-utils e2fsprogs
+
+      - name: Python packages
+        run: pip install -r src/core/python_project/requirements.txt
+
+      - name: Tests
+        working-directory: src/core/python_project
+        run: python -m pytest tests -q
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: src/ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: src/ui/package-lock.json
+
+      - name: Install
+        run: npm ci --legacy-peer-deps --ignore-scripts
+
+      - name: Build
+        env:
+          # The build tools of this version of the UI need the legacy hash functions.
+          NODE_OPTIONS: --openssl-legacy-provider
+        run: npx vue-cli-service build
+
+      - name: Texts of the interface
+        working-directory: .
+        run: python src/ui/scripts/i18n_check.py
+
+      # A real browser (the Chrome of the runner) drives the built interface, with a mock backend and demo data.
+      - name: Tests of the interface
+        working-directory: .
+        run: |
+          pip install pytest playwright fastapi uvicorn pillow tzdata
+          UI_DIST="$PWD/src/ui/dist" python -m pytest src/ui/tests/e2e -q

@@ -38,6 +38,7 @@ In the [compose_project/](.) directory, the script [source-me.sh](./source-me.sh
     ```bash
     source source-me.sh setup-prod
     ```
+    > ⚠️ Run the setup **once** per installation. It writes `@prod.env` with new secret keys, and the secrets saved in the database (CloudStack secret key, Slack webhook, directory password) can only be read with them. When `@prod.env` exists, the script stops and asks you to type `overwrite`. Keep `@prod.env` with the backups of the database.
 - use [`docker compose`](https://docs.docker.com/reference/cli/docker/compose/) with an argument variable :
   - dev version :
     ```bash
@@ -86,7 +87,6 @@ The user interface is made up of several components :
 
 - the Backroll front
 - the [Flower](https://flower.readthedocs.io/en/latest/) web application to monitor and manage the [Celery](https://docs.celeryq.dev/en/stable/) tasks
-- the [Keycloak](https://www.keycloak.org/) SSO admin console
 
 ### Accessing the `dev` UI
 
@@ -99,10 +99,10 @@ To access the various containers’ web interfaces, your internet browser needs 
 Create a proxy server by connecting to the proxy container:
 
 ```bash
-ssh -p 2222 -D 1080 developer@localhost
+ssh -p 2222 -D 1080 admin@localhost
 ```
 
-The password is `developer`. You must ensure that the command is running each time you start working on Backroll.
+The password is `admin`. You must ensure that the command is running each time you start working on Backroll.
 
 If you are working remotely, do not forget to forward the port 2222.
 
@@ -146,14 +146,7 @@ For Firefox, see [Connection settings in Firefox](https://support.mozilla.org/en
 Backroll :
 
 - URL : http://front:8080/admin/dashboard
-- username : developer
-- password : developer
-
-Keycloak :
-
-- URL : http://sso:8080/admin/master/console/#/backroll
-- username : admin
-- password : admin
+- first opening: create the administrator account on the setup page
 
 Flower :
 
@@ -167,4 +160,3 @@ You can acces to the user interfaces on localhost :
   - `staging` http://localhost:8080/admin/dashboard
   - `prod` http://localhost/admin/dashboard
 - Flower http://localhost:5555/
-- Keycloak http://localhost:8081/admin/master/console/#/backroll

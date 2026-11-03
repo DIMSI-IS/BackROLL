@@ -4,46 +4,46 @@
       <FormHeader
         :title="
           connectorId
-            ? `Updating connector ${stateConnector?.name ?? ''}`
-            : 'Adding connector'
+            ? $t('pages.configuration.connector.updating', { name: stateConnector?.name ?? '' })
+            : $t('pages.configuration.connector.adding')
         "
       />
     </va-card-title>
     <va-card-content v-if="!connectorId || stateConnector">
       <va-alert color="info" icon="info" dense>
-        For now, the only supported connector is Cloudstack
+        {{ $t('pages.configuration.connector.onlyCloudstack') }}
       </va-alert>
       <br />
       <va-form ref="form">
         <va-input
-          label="Name"
+          :label="$t('pages.configuration.common.name')"
           v-model="formConnector.name"
           :rules="[
-            (value) => value?.length > 0 || 'Field is required',
+            (value) => value?.length > 0 || $t('pages.configuration.common.required'),
             (value) =>
               isConnectorNameUnique(value) ||
-              'This connector name is already used',
+              $t('pages.configuration.connector.nameUsed'),
           ]"
         />
         <br />
         <!-- TODO Test for duplicates ? -->
         <va-input
-          label="Endpoint URL"
+          :label="$t('pages.configuration.connector.endpointUrl')"
           v-model="formConnector.url"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          :rules="[(value) => value?.length > 0 || $t('pages.configuration.common.required')]"
         />
         <br />
         <va-input
-          label="Login"
+          :label="connectorId ? $t('pages.configuration.connector.loginUpdate') : $t('pages.configuration.connector.login')"
           v-model="formConnector.login"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          :rules="[(value) => connectorId || value?.length > 0 || $t('pages.configuration.common.required')]"
         />
         <br />
         <va-input
           v-model="formConnector.password"
           :type="isPasswordVisible ? 'text' : 'password'"
-          label="Password"
-          :rules="[(value) => value?.length > 0 || 'Field is required']"
+          :label="connectorId ? $t('pages.configuration.connector.passwordUpdate') : $t('pages.configuration.connector.password')"
+          :rules="[(value) => connectorId || value?.length > 0 || $t('pages.configuration.common.required')]"
         >
           <template #appendInner>
             <va-icon
@@ -63,7 +63,7 @@
             (connectorId ? updateConnector() : addConnector())
         "
       >
-        {{ connectorId ? "Update" : "Add" }}
+        {{ connectorId ? $t('pages.configuration.common.update') : $t('pages.configuration.common.add') }}
       </va-button>
     </va-card-content>
     <div v-else class="flex-center ma-3">
@@ -117,7 +117,8 @@ export default {
       );
     },
     propagateStateConnector() {
-      this.formConnector = { ...this.stateConnector };
+      // The secret is never sent back by the server.
+      this.formConnector = { ...this.stateConnector, password: "" };
     },
     updateConnector() {
       this.$store.dispatch("updateConnector", {
@@ -142,14 +143,14 @@ export default {
           this.$router.push("/admin/configuration/connectors");
           this.$vaToast.init({
             title: response.data.state,
-            message: "Connector has been successfully added",
+            message: this.$t("pages.configuration.connector.added"),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to add connector",
+            title: this.$t("pages.configuration.connector.addFailed"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

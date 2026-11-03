@@ -11,7 +11,6 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@dsb-norge/vue-keycloak-js": "^2.1.5-beta",
     "amcharts3": "^3.21.15",
     "ammap3": "^3.21.15",
     "axios": "^0.27.2",

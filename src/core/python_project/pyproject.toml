@@ -1,3 +1,7 @@
 [project]
 name = "app"
 version = "0.0.0"
+
+[tool.pytest.ini_options]
+# The tests import the application (app/) from this folder, whichever way pytest is started.
+pythonpath = ["."]

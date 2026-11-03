@@ -1,5 +1,6 @@
 <template>
-  <task-page title="Restore" kickstart-title="Start restore task" kickstart-task="restore"
+  <task-page :title="$t('pages.tasks.restore.title')" :kickstart-title="$t('pages.tasks.restore.kickstart')"
+    kickstart-task="restore"
     :get-task-list="getTaskList" />
 </template>
 
@@ -27,7 +28,7 @@ export default defineComponent({
             return {
               uuid: task.uuid,
               name: task.name.replaceAll('_', ' '),
-              target: taskArg?.name ?? "N/A",
+              target: taskArg?.name ?? this.$t('pages.tasks.common.na'),
               targetPage: "virtualmachines",
               targetUuid: taskArg?.uuid,
               started: task.started,

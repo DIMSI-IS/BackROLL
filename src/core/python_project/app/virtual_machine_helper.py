@@ -34,4 +34,7 @@ def check_disks_access(virtual_machine):
             lambda disk: f"- {disk["device"]} at {disk["source"]}: {
                 ", ".join(map(lambda keyValue: f"{keyValue[0]}={keyValue[1]}", disk["status"].items()))}",
             unavailable_disks))
-        raise ValueError(f"Some disks are unavailable:\n{report}")
+        raise ValueError(
+            f"Some disks are unavailable:\n{report}\n"
+            "The disk must exist and be readable at this path inside BackROLL: the storage of the hypervisor has to be "
+            "mounted at the same path in the BackROLL containers (/mnt/...).")

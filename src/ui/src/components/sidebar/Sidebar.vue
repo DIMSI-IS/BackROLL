@@ -32,12 +32,17 @@ export default {
       default: undefined
     },
   },
-  data() {
-    return {
-      items: NavigationRoutes.routes,
-    };
-  },
   computed: {
+    items() {
+      const getters = this.$store.getters;
+      const allowed = (child) =>
+        !child.requiresRole ||
+        (child.requiresRole === "admin" ? getters.isAdmin : getters.canEdit);
+      return NavigationRoutes.routes.map((route) => ({
+        ...route,
+        children: route.children?.filter(allowed),
+      }));
+    },
     computedClass() {
       return {
         "app-sidebar--minimized": this.minimized

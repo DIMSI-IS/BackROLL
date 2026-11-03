@@ -4,44 +4,44 @@
       <FormHeader
         :title="
           hypervisorId
-            ? `Updating hypervisor ${stateHypervisor?.hostname ?? ''}`
-            : 'Adding hypervisor'
+            ? $t('pages.resources.hypervisor.updating', { name: stateHypervisor?.hostname ?? '' })
+            : $t('pages.resources.hypervisor.adding')
         "
       />
     </va-card-title>
     <va-card-content v-if="!hypervisorId || stateHypervisor">
       <va-form ref="form">
         <va-input
-          label="Hostname"
+          :label="$t('pages.resources.hypervisor.hostname')"
           v-model="formHypervisor.hostname"
           :rules="[
-            (value) => value?.length > 0 || 'Field is required',
+            (value) => value?.length > 0 || $t('pages.resources.common.required'),
             (value) =>
-              isHypervisorNameUnique(value) || 'This hostname is already used',
+              isHypervisorNameUnique(value) || $t('pages.resources.hypervisor.hostnameUsed'),
           ]"
         />
         <br />
         <va-input
-          label="IP Address or Domain Name"
+          :label="$t('pages.resources.hypervisor.address')"
           v-model="formHypervisor.ipAddress"
           :rules="[
             (value) =>
               /^[0-9a-zA-Z.-]+$/.test(value) ||
-              'Field is required and must be a valid IP address or domain name.',
+              $t('pages.resources.hypervisor.addressInvalid'),
             (value) =>
               isHypervisorAddressUnique(value) ||
-              'This IP address or domain name is already used',
+              $t('pages.resources.hypervisor.addressUsed'),
           ]"
         />
         <br />
         <va-select
-          label="Select Pool"
+          :label="$t('pages.resources.hypervisor.selectPool')"
           v-model="selectedPool"
           :options="poolOptions"
-          :rules="[(value) => value || 'Field is required']"
+          :rules="[(value) => value || $t('pages.resources.common.required')]"
         />
         <br />
-        <va-input label="Tag (optional)" v-model="formHypervisor.tags" />
+        <va-input :label="$t('pages.resources.hypervisor.tagOptional')" v-model="formHypervisor.tags" />
       </va-form>
       <br />
       <va-button
@@ -51,7 +51,7 @@
             (hypervisorId ? updateHypervisor() : addHypervisor())
         "
       >
-        {{ hypervisorId ? "Update" : "Add" }}
+        {{ hypervisorId ? $t('pages.resources.common.update') : $t('pages.resources.hypervisor.add') }}
       </va-button>
     </va-card-content>
     <div v-else class="flex-center ma-3">
@@ -186,14 +186,14 @@ export default {
           this.$router.push("/admin/resources/hypervisors");
           this.$vaToast.init({
             title: response.data.state,
-            message: "Hypervisor has been successfully added",
+            message: this.$t('pages.resources.hypervisor.added'),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to add hypervisor",
+            title: this.$t('pages.resources.hypervisor.addFailed'),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

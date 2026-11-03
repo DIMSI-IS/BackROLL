@@ -1,0 +1,21 @@
+{
+  "refreshNow": "Refresh now",
+  "autoRefresh": "Automatic refresh",
+  "refreshOff": "Off",
+  "sec5": "5 s",
+  "sec10": "10 s",
+  "sec30": "30 s",
+  "min1": "1 min",
+  "logout": "Logout",
+  "logoutFailed": "Logout failed",
+  "roleViewer": "viewer",
+  "roleEditor": "editor",
+  "roleAdmin": "admin",
+  "errorTitle": "Error !",
+  "poolUpdated": "Pool has been successfully updated",
+  "policyUpdated": "Policy has been successfully updated",
+  "hypervisorUpdated": "Hypervisor has been successfully updated",
+  "storageUpdated": "Storage has been successfully updated",
+  "hookUpdated": "External hook has been successfully updated",
+  "connectorUpdated": "Connector has been successfully updated"
+}

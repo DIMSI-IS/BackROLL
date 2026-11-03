@@ -1,19 +1,19 @@
 <template>
   <va-card>
     <va-card-title>
-      <h1>Change password</h1>
+      <h1>{{ $t('pages.auth.changePassword') }}</h1>
     </va-card-title>
     <va-card-content>
       <va-form ref="form">
-        <va-input class="mb-3" label="Current password" v-model="oldPassword" />
-        <va-input class="mb-3" label="New password" v-model="newPassword" />
-        <va-input class="mb-3" label="Confirm" v-model="confirmedNewPassword" />
+        <va-input class="mb-3" :label="$t('pages.auth.currentPassword')" type="password" v-model="oldPassword"
+          :rules="[(v) => !!v || $t('pages.auth.required')]" />
+        <va-input class="mb-3" :label="$t('pages.auth.newPasswordMin')" type="password" v-model="newPassword"
+          :rules="[(v) => v.length >= 8 || $t('pages.auth.atLeast8')]" />
+        <va-input class="mb-3" :label="$t('pages.auth.confirm')" type="password" v-model="confirmedNewPassword"
+          :rules="[(v) => v === newPassword || $t('pages.auth.passwordsMismatch')]" />
       </va-form>
-      <va-button
-        class="mb-3"
-        @click="$refs.form.validate() && changePassword()"
-      >
-        {{ "Change password" }}
+      <va-button class="mb-3" @click="$refs.form.validate() && changePassword()">
+        {{ $t('pages.auth.changePassword') }}
       </va-button>
     </va-card-content>
   </va-card>
@@ -23,7 +23,7 @@ import axios from "axios";
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: "ChangePassowrd",
+  name: "ChangePassword",
   data() {
     return {
       oldPassword: "",
@@ -34,12 +34,9 @@ export default defineComponent({
   methods: {
     async changePassword() {
       try {
-        // TODO check confirmed password
-
-        await axios.post(
+        const { data } = await axios.post(
           `${this.$store.state.endpoint.api}/api/v1/auth/password/change`,
           {
-            username: process.env.VUE_APP_DEFAULT_USER_NAME,
             old_password: this.oldPassword,
             new_password: this.newPassword,
           },
@@ -50,15 +47,20 @@ export default defineComponent({
             },
           }
         );
+        // The previous token is revoked by the password change.
+        this.$store.commit("setSession", data);
+        this.oldPassword = this.newPassword = this.confirmedNewPassword = "";
+        // Emptied fields must not show as invalid.
+        this.$nextTick(() => this.$refs.form.resetValidation());
         this.$vaToast.init({
-          title: "Change password",
-          message: "Password successfully changed.",
+          title: this.$t('pages.auth.changePassword'),
+          message: this.$t('pages.auth.passwordChanged'),
           color: "success",
         });
       } catch (error) {
         console.error(error);
         this.$vaToast.init({
-          title: "Change password failed.",
+          title: this.$t('pages.auth.changeFailed'),
           message: error?.response?.data?.detail ?? error,
           color: "danger",
         });

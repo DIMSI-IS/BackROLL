@@ -1,6 +1,6 @@
 <template>
   <div class="row row-equal">
-    <div class="flex xl8 xs12">
+    <div v-if="part !== 'storage'" class="flex xs12" :class="part === 'counters' ? 'xl12' : 'xl8'">
       <div class="row" v-if="$store.state.isvmTableReady">
         <div class="flex xs12 sm4" v-for="(info, idx) in infoTiles" :key="idx">
           <va-card
@@ -42,68 +42,10 @@
           </va-card>
         </div>
       </div>
-      <div class="row">
-        <div class="flex xs12 md6">
-          <va-card stripe stripe-color="info">
-            <va-card-title>
-              {{
-                `${$t(
-                  "dashboard.info.componentReleaseVersion"
-                )} ${backrollVersion}`
-              }}
-            </va-card-title>
-            <va-card-content>
-              <p class="rich-theme-card-text">
-                {{ $t("dashboard.info.gitprojectinfo") }}
-              </p>
-              <div class="mt-3">
-                <va-button
-                  color="primary"
-                  target="_blank"
-                  href="https://github.com/DIMSI-IS/backroll"
-                >
-                  {{ $t("dashboard.info.viewProject") }}
-                </va-button>
-              </div>
-            </va-card-content>
-          </va-card>
-        </div>
-        <div class="flex xs12 md6">
-          <va-card>
-            <va-card-title>{{ $t("dashboard.info.lastTask") }}</va-card-title>
-            <va-card-content>
-              <div class="row row-separated">
-                <div class="flex xs6">
-                  <p
-                    class="display-2 mb-1 text--center"
-                    :style="{ color: theme.success }"
-                  >
-                    {{ successTaskNumber }}
-                  </p>
-                  <p class="text--center mb-1">
-                    {{ $t("dashboard.info.success") }}
-                  </p>
-                </div>
-                <div class="flex xs6">
-                  <p
-                    class="display-2 mb-1 text--center"
-                    :style="{ color: theme.danger }"
-                  >
-                    {{ failureTaskNumber }}
-                  </p>
-                  <p class="text--center no-wrap mb-1">
-                    {{ $t("dashboard.info.failure") }}
-                  </p>
-                </div>
-              </div>
-            </va-card-content>
-          </va-card>
-        </div>
-      </div>
     </div>
-    <div class="flex xs12 md12 xl4">
+    <div v-if="part !== 'counters'" class="flex xs12 md12" :class="part === 'storage' ? 'xl12' : 'xl4'">
       <va-card stripe stripe-color="dark">
-        <va-card-title> Storage </va-card-title>
+        <va-card-title> {{ $t('pages.dashboard.storage') }} </va-card-title>
         <va-card-content
           v-if="!$store.state.isStorageTableReady"
           class="table-example--pagination"
@@ -171,10 +113,10 @@
                               100 -
                               (storage.info.free / storage.info.total) * 100
                             ).toFixed(1)
-                          }}% Used</b
+                          }}% {{ $t('pages.dashboard.used') }}</b
                         ></span
                       >
-                      ({{ humanStorageSize(storage.info.free) }} free)
+                      {{ $t('pages.dashboard.freeOf', { size: humanStorageSize(storage.info.free) }) }}
                     </va-chip>
                   </div>
                   <div
@@ -198,7 +140,7 @@
                     <va-icon class="material-icons" color="danger"
                       >warning</va-icon
                     >
-                    Unable to retrieve information
+                    {{ $t('pages.dashboard.unableRetrieve') }}
                   </va-chip>
                 </div>
               </va-list-item-section>
@@ -241,6 +183,8 @@ import VaChart from "@/components/va-charts/VaChart.vue";
 
 export default {
   name: "DashboardInfoBlock",
+  // "counters" or "storage": the dashboard places the two parts itself. Without it, both are shown.
+  props: { part: { type: String, default: null } },
   components: { ...spinners, VaChart },
   data() {
     return {
@@ -476,4 +420,8 @@ export default {
 //     }
 //   }
 // }
+.version {
+  opacity: 0.6;
+  margin: 0;
+}
 </style>

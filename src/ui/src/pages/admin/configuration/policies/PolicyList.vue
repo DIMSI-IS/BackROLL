@@ -2,13 +2,13 @@
   <div>
     <va-card>
       <va-card-title>
-        <ListHeader title="policies" plus-button-title="Create policy"
+        <ListHeader :title="$t('pages.configuration.policy.title')" :plus-button-title="$t('pages.configuration.policy.createButton')"
           plus-button-route="/admin/configuration/policies/new" :dependencies-resolved="areDependenciesResolved"
-          dependencies-message="You need to add a storage." go-button-title="Go to storage"
+          :dependencies-message="$t('pages.configuration.policy.needStorage')" :go-button-title="$t('pages.configuration.policy.goToStorage')"
           go-button-route="/admin/configuration/storage" />
       </va-card-title>
       <va-card-content>
-        <va-data-table :items="$store.state.resources.policyList" :columns="columns">
+        <va-data-table :no-data-html="$t('pages.common.noItems')" :items="$store.state.resources.policyList" :columns="columns">
           <template #cell(schedule)="{ value }">
             <va-chip size="small" outline square>
               {{ humanCron(value) }}
@@ -20,7 +20,7 @@
             </va-chip>
           </template>
           <template #cell(enabled)="{ value }"><va-chip size="small" :color="JSON.parse(value) ? 'success' : 'danger'">
-              {{ JSON.parse(value) ? "Enabled" : "Disabled" }}
+              {{ JSON.parse(value) ? $t('pages.configuration.policy.enabled') : $t('pages.configuration.policy.disabled') }}
             </va-chip>
           </template>
           <template #cell(storage)="{ value }">
@@ -30,7 +30,7 @@
           </template>
           <template #cell(actions)="{ rowIndex }">
             <va-button-group gradient :rounded="false">
-              <va-button v-if="
+              <va-button :disabled="!$store.getters.canEdit" v-if="
                 JSON.parse(
                   $store.state.resources.policyList[rowIndex].enabled
                 )
@@ -39,15 +39,15 @@
                   $store.state.resources.policyList[rowIndex]),
                   (showDisableModal = !showDisableModal)
                   " />
-              <va-button v-else icon="start" @click="
+              <va-button :disabled="!$store.getters.canEdit" v-else icon="start" @click="
                 enablePolicy($store.state.resources.policyList[rowIndex])
                 " />
-              <va-button icon="settings" @click="
+              <va-button :disabled="!$store.getters.canEdit" icon="settings" @click="
                 this.$router.push(
                   `/admin/configuration/policy/${$store.state.resources.policyList[rowIndex].id}`
                 )
                 " />
-              <va-button icon="delete" @click="
+              <va-button :disabled="!$store.getters.canEdit" icon="delete" @click="
               (selectedPolicy =
                 $store.state.resources.policyList[rowIndex]),
                 (showDeleteModal = !showDeleteModal)
@@ -64,26 +64,26 @@
       <template #header>
         <h2>
           <va-icon name="warning" color="danger" />
-          Disabling Backup Policy
+          {{ $t('pages.configuration.policy.disabling') }}
         </h2>
       </template>
       <hr />
       <div>
-        You are about to disable policy
-        <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>. <br />Please confirm action.
+        {{ $t('pages.configuration.policy.disableIntro') }}
+        <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>. <br />{{ $t('pages.configuration.common.confirm') }}
       </div>
     </va-modal>
     <va-modal v-model="showDeleteModal" @ok="deletePolicy()">
       <template #header>
         <h2>
           <va-icon name="warning" color="danger" />
-          Removing Backup Policy
+          {{ $t('pages.configuration.policy.removing') }}
         </h2>
       </template>
       <hr />
       <div>
-        You are about to remove policy
-        <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>. <br />Please confirm action.
+        {{ $t('pages.configuration.policy.removeIntro') }}
+        <b>{{ JSON.parse(JSON.stringify(this.selectedPolicy)).name }}</b>. <br />{{ $t('pages.configuration.common.confirm') }}
       </div>
     </va-modal>
   </div>
@@ -92,7 +92,7 @@
 <script>
 import axios from "axios";
 import { defineComponent } from "vue";
-import cronstrue from "cronstrue";
+import cronstrue from "cronstrue/i18n";
 import * as spinners from "epic-spinners";
 
 import ListHeader from "@/components/lists/ListHeader.vue";
@@ -105,13 +105,6 @@ export default defineComponent({
   },
   data() {
     return {
-      columns: [
-        { key: "name" },
-        { key: "schedule" },
-        { key: "storage" },
-        { key: "enabled", label: "auto-start" },
-        { key: "actions" },
-      ],
       showDeleteModal: false,
       showDisableModal: false,
       selectedPolicy: null,
@@ -121,6 +114,15 @@ export default defineComponent({
     this.$store.dispatch("requestPolicy");
   },
   computed: {
+    columns() {
+      return [
+        { key: "name", label: this.$t("pages.configuration.common.name") },
+        { key: "schedule", label: this.$t("pages.configuration.policy.schedule") },
+        { key: "storage", label: this.$t("pages.configuration.policy.storage") },
+        { key: "enabled", label: this.$t("pages.configuration.policy.autoStart") },
+        { key: "actions", label: this.$t("pages.configuration.common.actions") },
+      ];
+    },
     areDependenciesResolved() {
       // Prevent showing irrelevant alert by checking if the table is ready.
       return (
@@ -133,9 +135,9 @@ export default defineComponent({
     humanCron(value) {
       // Let the other rows render by catching the error.
       try {
-        return cronstrue.toString(value);
+        return cronstrue.toString(value, { locale: this.$i18n.locale });
       } catch {
-        return "Invalid – Please update the schedule.";
+        return this.$t("pages.configuration.policy.invalidSchedule");
       }
     },
     getStorage(id) {
@@ -145,7 +147,7 @@ export default defineComponent({
         });
         return result[0].name.toUpperCase();
       } else {
-        return "loading...";
+        return this.$t("pages.configuration.policy.loading");
       }
     },
     deletePolicy() {
@@ -164,14 +166,14 @@ export default defineComponent({
           this.$store.dispatch("requestPolicy");
           this.$vaToast.init({
             title: response.data.state,
-            message: "Policy has been successfully removed",
+            message: this.$t("pages.configuration.policy.removed"),
             color: "success",
           });
         })
         .catch((error) => {
           console.error(error);
           this.$vaToast.init({
-            title: "Unable to remove policy",
+            title: this.$t("pages.configuration.policy.removeFailed"),
             message: error?.response?.data?.detail ?? error,
             color: "danger",
           });

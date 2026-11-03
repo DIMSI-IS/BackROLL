@@ -22,9 +22,20 @@ from app.routes import backup_policy
 from app.routes import storage
 from app.routes import kickstart_backup
 from app.routes import connectors
-from app.routes.auth import openid, password, cloudstack
+from app.routes import users
+from app.routes import audit
+from app.routes import settings
+from app.routes import dashboard
+from app.routes import cleanup as cleanup_routes
+from app.routes import file_browser
+from app.routes import attention
+from app import drp
+from app.routes import drp as drp_routes
+from app.routes.auth import password, cloudstack
+from app.routes.auth import directory as directory_routes
 
 from app import events
+from app import task_history
 
 # Re-export
 from app.initialized import starlette_app, celery_app

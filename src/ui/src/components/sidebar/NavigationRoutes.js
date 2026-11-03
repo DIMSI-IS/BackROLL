@@ -27,6 +27,15 @@ export default {
           name: "restore",
           displayName: "menu.restore",
         },
+        {
+          name: "cleanup",
+          displayName: "menu.cleanup",
+        },
+        {
+          name: "drp",
+          displayName: "menu.drp",
+          requiresRole: "editor",
+        },
       ],
     },
     {
@@ -89,7 +98,34 @@ export default {
           name: "changePassword",
           displayName: "menu.changePassword",
         },
+        {
+          name: "users",
+          displayName: "menu.users",
+          requiresRole: "admin",
+        },
+        {
+          name: "settings",
+          displayName: "menu.settings",
+          requiresRole: "admin",
+        },
+        {
+          name: "directory",
+          displayName: "menu.directory",
+          requiresRole: "admin",
+        },
+        {
+          name: "auditlog",
+          displayName: "menu.audit",
+          requiresRole: "admin",
+        },
       ],
+    },
+    {
+      name: "documentation",
+      displayName: "menu.documentation",
+      meta: {
+        icon: "menu_book",
+      },
     },
   ],
 };
