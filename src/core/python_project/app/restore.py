@@ -130,8 +130,19 @@ def is_nfs(path):
     return type_fs in ('nfs', 'nfs4')
 
 
+def leave_folder(home):
+    """Goes back to the folder the task started in, before the folder of the restore is deleted. A process that stands
+    in a folder it deletes can not open "." any more on NFS: `find`, run to connect to the hypervisor, fails with
+    "Failed to save initial working directory" and the machine is not started again."""
+    try:
+        os.chdir(home)
+    except OSError:
+        os.chdir("/")
+
+
 def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup_name):
     print("Debug - restore_task - start")
+    home = os.getcwd()
     vm_storage = storage.retrieveStoragePathFromHostBackupPolicy(
         virtual_machine_info)
     borg_repository = vm_storage["path"]
@@ -267,6 +278,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
                 # Remove temporary folder used to extract borg archive
                 # subprocess.run(['rm', "-rf", restore_path])
+                leave_folder(home)
                 shell.os_system(f"rm -rf {shlex.quote(restore_path)}")
             except Exception as e:
                 # The disk of the machine is still the old one (the copy is only moved in place at the end): the
@@ -288,6 +300,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         except Exception as e:
             # Remove restore artifacts
+            leave_folder(home)
             shell.subprocess_run(f"rm -rf {shlex.quote(restore_path)}")
             raise e
         print("Debug - restore_task - end")
@@ -295,6 +308,7 @@ def restore_task(self, virtual_machine_info, hypervisor, vm_storage_info, backup
 
         # Remove restore artifacts
         try:
+            leave_folder(home)
             shell.subprocess_run(f"rm -rf {shlex.quote(restore_path)}")
         except Exception as err:
             print(err)

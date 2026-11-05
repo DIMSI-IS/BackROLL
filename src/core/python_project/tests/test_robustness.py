@@ -166,6 +166,35 @@ def test_a_restore_that_works_stops_then_starts_the_machine_once(monkeypatch, tm
     assert not any(command.startswith("rm -f ") for command in commands)
 
 
+def test_a_restore_leaves_its_folder_before_deleting_it_so_that_the_machine_can_start_again(monkeypatch, tmp_path):
+    commands = []
+    restore, events = restore_environment(monkeypatch, tmp_path, commands)
+    monkeypatch.setattr(restore.os, "getcwd", lambda: "/app")
+    monkeypatch.setattr(restore.os, "chdir", lambda path: commands.append(f"chdir {path}"))
+    monkeypatch.setattr(restore.kvm_manage_vm, "start_vm", lambda *arguments: commands.append("start"))
+
+    restore.restore_task(None, KVM_VM, {"pool_id": "p1"}, DISKS, "vda_x_1792000000")
+
+    # On NFS a process that stands in a folder it deleted can not run a command any more (`find` fails when it
+    # connects to the hypervisor): the machine stayed stopped. It goes back to where it started first.
+    removal = max(index for index, command in enumerate(commands) if command.startswith("rm -rf "))
+    assert commands[removal - 1] == "chdir /app"
+    assert commands.index("start") > removal
+
+
+def test_a_failed_restore_also_leaves_its_folder_before_deleting_it(monkeypatch, tmp_path):
+    commands = []
+    restore, events = restore_environment(monkeypatch, tmp_path, commands, fail_on="cp ")
+    monkeypatch.setattr(restore.os, "getcwd", lambda: "/app")
+    monkeypatch.setattr(restore.os, "chdir", lambda path: commands.append(f"chdir {path}"))
+
+    with pytest.raises(restore.shell.ShellException):
+        restore.restore_task(None, KVM_VM, {"pool_id": "p1"}, DISKS, "vda_x_1792000000")
+
+    removal = max(index for index, command in enumerate(commands) if command.startswith("rm -rf "))
+    assert commands[removal - 1] == "chdir /app"
+
+
 def test_a_restore_without_room_to_replace_the_disk_does_not_stop_the_machine(monkeypatch, tmp_path):
     commands = []
     restore, events = restore_environment(monkeypatch, tmp_path, commands)
